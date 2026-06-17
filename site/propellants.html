@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Propellants — voxelforge</title>
+<link rel="stylesheet" href="assets/brand.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  .compare-stage { background: var(--bg-elev); border: 1px solid var(--rule); border-radius: var(--r-3); padding: var(--s-6); }
+  .pair-row { display: grid; grid-template-columns: 200px 1fr 1fr 1fr; gap: 0; align-items: stretch; border-top: 1px solid var(--rule); }
+  .pair-row:first-child { border-top: 0; }
+  .pair-row > div { padding: var(--s-4); border-left: 1px solid var(--rule); display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+  .pair-row > div:first-child { border-left: 0; background: var(--bone-50); justify-content: flex-start; gap: 6px; }
+  .metric-label { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em; }
+  .metric-val { font-family: var(--font-mono); font-size: var(--t-md); color: var(--ink); font-weight: 500; }
+  .pair-head { background: var(--graphite) !important; color: white !important; padding: var(--s-3) var(--s-4) !important; }
+  .pair-head .name { font-family: var(--font-display); font-size: var(--t-md); font-weight: 500; color: white; }
+  .pair-head .formula { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: rgba(255,255,255,0.6); }
+  .bar { height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+  .bar > span { display: block; height: 100%; background: var(--ignition); border-radius: 3px; }
+  .bar.ok > span { background: var(--green); }
+  .bar.warn > span { background: var(--amber); }
+  .pair-rec { padding: var(--s-3) var(--s-4); border-top: 1px solid var(--rule); background: var(--bone-50); font-size: var(--t-sm); color: var(--ink-2); }
+  .pair-tag { display:inline-block; padding: 2px 8px; border-radius: 99px; font-family: var(--font-mono); font-size: var(--t-mono-xs); margin-right: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pair-tag.green { background: rgba(31,138,80,0.12); color: var(--green); }
+  .pair-tag.amber { background: rgba(201,122,26,0.15); color: var(--amber); }
+  .pair-tag.red { background: rgba(184,52,27,0.12); color: var(--rust); }
+</style></head><body>
+
+<nav class="nav"><div class="nav__brand"><img src="assets/logo.svg" alt=""><a href="index.html" class="nav__brand-name">voxelforge</a></div>
+<div class="nav__links"><a href="about.html">About</a><a href="architecture.html">Architecture</a><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html" class="is-current">Propellants</a><a href="examples.html">Examples</a><a href="roadmap.html">Roadmap</a><a href="cascade.html">Cascade</a><a href="getting-started.html">Get started</a><a href="design-system.html">Brand</a><a href="https://github.com/poetac/voxelforge">GitHub ↗</a></div></nav>
+
+<header class="section" style="border-bottom:1px solid var(--rule);padding-bottom:var(--s-12);"><div class="wrap">
+  <p class="eyebrow">Propellants</p>
+  <h1 class="t-h1" style="margin-top:var(--s-3);max-width:820px;">Three pairs, one comparator.</h1>
+  <p class="t-lead" style="margin-top:var(--s-5);max-width:720px;">voxelforge currently models LOX/CH4, LOX/H2, and LOX/RP-1. Each entry is the closed-form properties path used for sizing — combustion temperature, c*, density, regen-side fluid behaviour, plus the pair-specific bounds enforced by gates.</p>
+</div></header>
+
+<section class="section"><div class="wrap">
+  <div class="compare-stage">
+    <div class="pair-row" style="background:var(--graphite);">
+      <div class="pair-head"><span class="name">Property</span><span class="formula">@ OF=opt, Pc=10 MPa</span></div>
+      <div class="pair-head"><span class="name">LOX / CH4</span><span class="formula">methalox · O₂ + CH₄</span></div>
+      <div class="pair-head"><span class="name">LOX / H2</span><span class="formula">hydrolox · O₂ + H₂</span></div>
+      <div class="pair-head"><span class="name">LOX / RP-1</span><span class="formula">kerolox · O₂ + RP-1</span></div>
+    </div>
+
+    <div class="pair-row">
+      <div><span class="metric-label">Vacuum ISP (ε=40)</span></div>
+      <div><span class="metric-val">372 s</span><div class="bar"><span style="width:78%"></span></div></div>
+      <div><span class="metric-val">450 s</span><div class="bar ok"><span style="width:95%"></span></div></div>
+      <div><span class="metric-val">335 s</span><div class="bar warn"><span style="width:70%"></span></div></div>
+    </div>
+    <div class="pair-row">
+      <div><span class="metric-label">Optimal O/F</span></div>
+      <div><span class="metric-val">3.5</span></div>
+      <div><span class="metric-val">6.0</span></div>
+      <div><span class="metric-val">2.3</span></div>
+    </div>
+    <div class="pair-row">
+      <div><span class="metric-label">Bulk density (avg)</span></div>
+      <div><span class="metric-val">820 kg/m³</span><div class="bar ok"><span style="width:80%"></span></div></div>
+      <div><span class="metric-val">340 kg/m³</span><div class="bar warn"><span style="width:33%"></span></div></div>
+      <div><span class="metric-val">1030 kg/m³</span><div class="bar ok"><span style="width:100%"></span></div></div>
+    </div>
+    <div class="pair-row">
+      <div><span class="metric-label">Adiabatic flame T</span></div>
+      <div><span class="metric-val">3550 K</span></div>
+      <div><span class="metric-val">3300 K</span></div>
+      <div><span class="metric-val">3650 K</span></div>
+    </div>
+    <div class="pair-row">
+      <div><span class="metric-label">L* range</span></div>
+      <div><span class="metric-val">1.0–1.3 m</span></div>
+      <div><span class="metric-val">0.6–0.9 m</span></div>
+      <div><span class="metric-val">1.0–1.5 m</span></div>
+    </div>
+    <div class="pair-row">
+      <div><span class="metric-label">Cooling capacity</span></div>
+      <div><span class="metric-val">good</span><div class="bar ok"><span style="width:75%"></span></div></div>
+      <div><span class="metric-val">excellent</span><div class="bar ok"><span style="width:98%"></span></div></div>
+      <div><span class="metric-val">marginal · coking</span><div class="bar warn"><span style="width:45%"></span></div></div>
+    </div>
+    <div class="pair-row">
+      <div><span class="metric-label">Coking risk @ wall</span></div>
+      <div><span class="metric-val">low (&gt; 700 K)</span></div>
+      <div><span class="metric-val">none</span></div>
+      <div><span class="metric-val">high · T_wall &lt; 580 K</span></div>
+    </div>
+    <div class="pair-row">
+      <div><span class="metric-label">Storage</span></div>
+      <div><span class="metric-val">cryo · 110 K</span></div>
+      <div><span class="metric-val">deep cryo · 20 K</span></div>
+      <div><span class="metric-val">ambient</span></div>
+    </div>
+    <div class="pair-row">
+      <div><span class="metric-label">Tank dry mass fraction</span></div>
+      <div><span class="metric-val">moderate</span></div>
+      <div><span class="metric-val">high (insulation)</span></div>
+      <div><span class="metric-val">low</span></div>
+    </div>
+    <div class="pair-row">
+      <div><span class="metric-label">Reusability</span></div>
+      <div><span class="metric-val">excellent</span></div>
+      <div><span class="metric-val">good</span></div>
+      <div><span class="metric-val">poor (coking)</span></div>
+    </div>
+
+    <div style="margin-top:var(--s-8);padding:var(--s-5);background:var(--bg-elev);border:1px solid var(--rule);border-radius:var(--r-3);">
+      <p class="eyebrow">Per-pair ignition floor (S 29)</p>
+      <p class="t-body" style="margin-top:var(--s-2);max-width:820px;">Sprint 29 replaced the universal 50 mJ floor with per-pair minimum ignition energies. Three new gates: <code>IGNITER_MISSING</code>, <code>IGNITER_MODALITY_UNSUITABLE</code>, and a tightened <code>IGNITER_ENERGY_INSUFFICIENT</code>.</p>
+      <table class="table" style="margin-top:var(--s-4);">
+        <thead><tr><th>Pair</th><th>Min energy</th><th>Compatible modalities</th></tr></thead>
+        <tbody>
+          <tr><td>LOX/CH4</td><td class="mono">50 mJ</td><td class="mono">torch · spark · pyro</td></tr>
+          <tr><td>LOX/H2</td><td class="mono">5 mJ</td><td class="mono">spark · torch · pyro</td></tr>
+          <tr><td>LOX/RP-1</td><td class="mono">500 mJ</td><td class="mono">torch · pyro · TEA-TEB</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pair-rec">
+      <strong>voxelforge says:</strong>
+      <span class="pair-tag green">LOX/CH4 · default</span>
+      <span class="pair-tag amber">LOX/H2 · upper stages</span>
+      <span class="pair-tag red">LOX/RP-1 · single-use boost</span>
+      &nbsp;
+      Cooling-margin gate is the most common rejection for RP-1 designs at Pc &gt; 8 MPa with film-cooling fraction &lt; 5 %. Hypergol pairs (N2O4/MMH, H2O2/RP-1, N2O4/N2H4) are demand-driven on the public roadmap &mdash; gated on real CEA table data; ~1&ndash;2 days each once the tables arrive.
+    </div>
+  </div>
+
+  <div class="u-cols-2" style="margin-top:var(--s-12);">
+    <div>
+      <p class="eyebrow">Inside the propellant tables</p>
+      <h2 class="t-h3" style="margin-top:var(--s-2);">Tabulated, not solver-derived.</h2>
+      <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">Combustion-product properties (T_c, γ, M_w, c*) are interpolated from CEA-generated tables in <code>Core/Combustion/PropellantTables/</code>. This is intentional — running CEA in-process would lock voxelforge into a Fortran toolchain. The price is occasional table-edge ringing at extreme O/F; gate <code>cea-table-domain</code> catches it.</p>
+    </div>
+    <div>
+      <p class="eyebrow">Adding a propellant pair</p>
+      <h2 class="t-h3" style="margin-top:var(--s-2);">ADR-pending. The recipe exists.</h2>
+      <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">The recipe is documented: generate CEA tables across Pc × O/F sweep, register a <code>PropellantPair</code> with thermal-expansion + viscosity polynomials, register an entry in <code>CoolantRegistry</code> if the fuel is a coolant. Gates auto-apply once the pair is registered. The next candidates &mdash; N2O4/MMH, H2O2/RP-1, N2O4/N2H4 &mdash; are demand-driven on the roadmap; each is ~1&ndash;2 days of work once real CEA tables (MR-vs-Pc sweeps of C* / γ / Tc) arrive.</p>
+    </div>
+  </div>
+</div></section>
+
+<footer class="foot"><div class="wrap"><div class="foot__cols"><div><div class="u-row-tight" style="margin-bottom:var(--s-3);"><img src="assets/logo.svg" width="22" height="22" alt=""><span style="font-weight:600;color:var(--ink)">voxelforge</span></div><p style="margin:0;max-width:360px;">A 3D-printable rocket engine, generated from a handful of parameters.</p></div><div><div class="foot__title">Reference</div><div class="foot__links"><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a></div></div><div><div class="foot__title">Project</div><div class="foot__links"><a href="architecture.html">Architecture</a><a href="roadmap.html">Roadmap</a><a href="faq.html">FAQ</a><a href="design-system.html">Brand</a></div></div><div><div class="foot__title">Source</div><div class="foot__links"><a href="https://github.com/poetac/voxelforge">GitHub</a><a href="https://github.com/poetac/voxelforge/blob/main/LICENSE">License (MIT)</a></div></div></div></div></footer>
+</body></html>

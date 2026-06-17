@@ -1,0 +1,12 @@
+{
+  "name": "rocket-aerospike",
+  "description": "Aerospike annular thrust chamber, copper CuCrZr",
+  "pillar": "rocket",
+  "camera_azimuth_deg": 45,
+  "camera_elevation_deg": 25,
+  "hdri_name": "studio_small",
+  "material": "copper",
+  "resolution": "high",
+  "frames": 60,
+  "frame_delay_ms": 33
+}

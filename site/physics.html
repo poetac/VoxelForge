@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Physics — voxelforge</title>
+<link rel="stylesheet" href="assets/brand.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  .corr { background: var(--bg-elev); border: 1px solid var(--rule); border-radius: var(--r-3); padding: var(--s-6); margin-bottom: var(--s-4); }
+  .corr__head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-4); flex-wrap: wrap; margin-bottom: var(--s-3); }
+  .corr__title { font-size: var(--t-md); font-weight: 600; letter-spacing: -0.01em; }
+  .corr__cite { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); }
+  .corr__body { display: grid; grid-template-columns: 1fr 280px; gap: var(--s-6); }
+  @media(max-width:780px){.corr__body{grid-template-columns:1fr}}
+  .formula { font-family: var(--font-mono); font-size: var(--t-md); background: var(--bone-100); border: 1px solid var(--rule); border-radius: var(--r-2); padding: var(--s-3) var(--s-4); white-space: pre; overflow-x: auto; }
+  .meta-block { background: var(--bone-50); border: 1px solid var(--rule); border-radius: var(--r-2); padding: var(--s-3) var(--s-4); }
+  .meta-block dt { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; margin-top: var(--s-2); }
+  .meta-block dt:first-child { margin-top: 0; }
+  .meta-block dd { margin: 2px 0 0; font-size: var(--t-sm); color: var(--ink); }
+  .uncertainty-bar { height: 8px; background: linear-gradient(90deg, #1F8A50 0 var(--green), #C97A1A var(--green) var(--amber), #B8341B var(--amber) 100%); border-radius: 4px; margin-top: 6px; }
+  .domain-tag { display: inline-block; padding: 2px 8px; border-radius: 99px; font-family: var(--font-mono); font-size: var(--t-mono-xs); text-transform: uppercase; letter-spacing: 0.04em; }
+  .domain-tag.heat { background: rgba(217,79,0,0.12); color: var(--ignition-deep); }
+  .domain-tag.fluid { background: rgba(11,79,122,0.12); color: var(--forge); }
+  .domain-tag.combust { background: rgba(184,52,27,0.12); color: var(--rust); }
+  .domain-tag.struct { background: rgba(28,32,36,0.1); color: var(--graphite); }
+  .domain-tag.geom { background: rgba(31,138,80,0.12); color: var(--green); }
+</style></head><body>
+
+<nav class="nav"><div class="nav__brand"><img src="assets/logo.svg" alt=""><a href="index.html" class="nav__brand-name">voxelforge</a></div>
+<div class="nav__links"><a href="about.html">About</a><a href="architecture.html">Architecture</a><a href="physics.html" class="is-current">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a><a href="roadmap.html">Roadmap</a><a href="cascade.html">Cascade</a><a href="getting-started.html">Get started</a><a href="design-system.html">Brand</a><a href="https://github.com/poetac/voxelforge">GitHub ↗</a></div></nav>
+
+<header class="section" style="border-bottom:1px solid var(--rule);padding-bottom:var(--s-12);"><div class="wrap">
+  <p class="eyebrow">Physics reference</p>
+  <h1 class="t-h1" style="margin-top:var(--s-3);max-width:820px;">Twenty-plus correlations, every one cited.</h1>
+  <p class="t-lead" style="margin-top:var(--s-5);max-width:720px;">Every closed-form expression voxelforge uses, with its source, validity domain, uncertainty band, and the gate(s) that depend on it. Treat the bands as load-bearing — they're why "passing every gate" is a screen, not a guarantee.</p>
+</div></header>
+
+<section class="section"><div class="wrap">
+
+  <div style="margin-bottom:var(--s-10);padding:var(--s-5);background:var(--bg-elev);border:1px solid var(--rule);border-radius:var(--r-3);border-left:3px solid var(--ignition);">
+    <p class="eyebrow">Recently shipped · Apr 24–26 cascade</p>
+    <p class="t-body" style="margin-top:var(--s-2);max-width:820px;">Six physics-fidelity items landed across Sprints 33/36/34a/37a/37b/34b/38a: <strong>PH-6</strong> Dravid Dean-number Nu enhancement on helical channels; <strong>PH-7</strong> Haaland LPBF friction factor; <strong>PH-13</strong> injector-face cylindrical-fin efficiency; <strong>PH-14</strong> aerospike face Bartz; <strong>PH-16</strong> Rao bell-nozzle angle lookup table (bilinear over 11×5 grid digitised from Sutton RPE 9e fig.&nbsp;3-7); <strong>PH-18</strong> truncated-plug base-drag correction; <strong>PH-20</strong> dual-bell sea-level/altitude &epsilon; mode switch; <strong>PH-24</strong> &gamma; split chamber/throat with back-compat alias; <strong>PH-26</strong> turbine-choked criterion; <strong>PH-30</strong> per-table <code>IsFrozen</code> flag with idempotent equilibrium correction. Plus pump <code>N_s</code> as user-overridable input + <code>PUMP_SPECIFIC_SPEED_OFF_BAND</code> gate (PH-8 minimum-viable). 23 of 50 audit findings closed.</p>
+  </div>
+
+  <!-- HEAT TRANSFER -->
+  <p class="eyebrow">Heat transfer</p>
+  <h2 class="t-h2" style="margin-top:var(--s-2);margin-bottom:var(--s-6);">Bartz, Dittus-Boelter, Gnielinski, Sieder-Tate.</h2>
+
+  <div class="corr">
+    <div class="corr__head">
+      <div><span class="domain-tag heat">Heat · gas-side</span> <span class="corr__title" style="margin-left:var(--s-2);">Bartz convective coefficient</span></div>
+      <span class="corr__cite">Bartz, JPL Memo 30-4 (1957); Sutton §5.5</span>
+    </div>
+    <div class="corr__body">
+      <div>
+        <div class="formula">h_g = (0.026 / Dt^0.2) · (μ^0.2 c_p / Pr^0.6)_0
+        · (P_c · g / c*)^0.8 · (Dt/r_c)^0.1 · (At/A)^0.9 · σ</div>
+        <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">Throat-anchored gas-side film coefficient. The σ factor accounts for property variation across the boundary layer; voxelforge uses Bartz's original form with film-temperature evaluation.</p>
+      </div>
+      <dl class="meta-block">
+        <dt>Validity</dt><dd>Conventional bell nozzles; throat-region heating</dd>
+        <dt>Uncertainty</dt><dd>±25–50 %<div class="uncertainty-bar" style="--green:35%;--amber:75%"></div></dd>
+        <dt>Gates</dt><dd class="mono">heat-flux-cap · regen-thermal-margin</dd>
+        <dt>Implementation</dt><dd class="mono">Core/HeatTransfer/Bartz.cs</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="corr">
+    <div class="corr__head">
+      <div><span class="domain-tag heat">Heat · coolant-side</span> <span class="corr__title" style="margin-left:var(--s-2);">Dittus-Boelter</span></div>
+      <span class="corr__cite">Dittus &amp; Boelter (1930); Incropera §8.5</span>
+    </div>
+    <div class="corr__body">
+      <div>
+        <div class="formula">Nu = 0.023 · Re^0.8 · Pr^n
+n = 0.4 (heating) | 0.3 (cooling)</div>
+        <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">Smooth-tube fully-developed turbulent flow. voxelforge uses n=0.4 throughout regen channels (coolant is heated). Below Re=10⁴ falls back to Gnielinski; outside Pr ∈ [0.6, 160] falls back to Sieder-Tate.</p>
+      </div>
+      <dl class="meta-block">
+        <dt>Validity</dt><dd>Re &gt; 10⁴ · 0.6 ≤ Pr ≤ 160 · L/D &gt; 60</dd>
+        <dt>Uncertainty</dt><dd>±15–25 %<div class="uncertainty-bar" style="--green:50%;--amber:80%"></div></dd>
+        <dt>Gates</dt><dd class="mono">regen-thermal-margin · coolant-velocity-cap</dd>
+        <dt>Implementation</dt><dd class="mono">Core/HeatTransfer/CoolantSideHTC.cs</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="corr">
+    <div class="corr__head">
+      <div><span class="domain-tag heat">Heat · transitional</span> <span class="corr__title" style="margin-left:var(--s-2);">Gnielinski</span></div>
+      <span class="corr__cite">Gnielinski (1976); Incropera Eq. 8.62</span>
+    </div>
+    <div class="corr__body">
+      <div>
+        <div class="formula">Nu = (f/8)(Re−1000)Pr / [1 + 12.7(f/8)^0.5 (Pr^(2/3)−1)]</div>
+        <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">Used when Re drops into 3·10³–10⁴. friction factor <code>f</code> from Petukhov's smooth-tube fit. Tighter than Dittus-Boelter in the transitional band.</p>
+      </div>
+      <dl class="meta-block">
+        <dt>Validity</dt><dd>3·10³ &lt; Re &lt; 5·10⁶ · 0.5 &lt; Pr &lt; 2000</dd>
+        <dt>Uncertainty</dt><dd>±10 %<div class="uncertainty-bar" style="--green:65%;--amber:90%"></div></dd>
+        <dt>Gates</dt><dd class="mono">regen-thermal-margin</dd>
+        <dt>Implementation</dt><dd class="mono">Core/HeatTransfer/CoolantSideHTC.cs</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="corr">
+    <div class="corr__head">
+      <div><span class="domain-tag heat">Heat · wall material</span> <span class="corr__title" style="margin-left:var(--s-2);">Bimetallic composite wall (series k, Voigt E)</span></div>
+      <span class="corr__cite">Hibbeler §3.4 (series thermal resistance); A1 + Z1.2 hot-fix</span>
+    </div>
+    <div class="corr__body">
+      <div>
+        <div class="formula">k_eff = 1 / (t_liner/k_liner + t_jacket/k_jacket)
+E_eff = f·E_liner + (1−f)·E_jacket
+σ_y   = min(σ_y,liner, σ_y,jacket)</div>
+        <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">Heat flows perpendicular to the wall, so thermal resistances add in series — the low-conductivity IN625 jacket (≈ 10–19 W/m·K) dominates, giving k_eff ≈ 13 W/m·K cold for a 25 % GRCop / 75 % IN625 wall (vs. 264 W/m·K under the prior parallel-blend error — a 20× overclaim). Hoop strain is tangential so stiffnesses add in Voigt (parallel) blend. Yield is governed by the weaker layer regardless of thickness ratio.</p>
+      </div>
+      <dl class="meta-block">
+        <dt>Validity</dt><dd>Wall index 4 (bimetallic GRCop-42 / IN625); single-material walls use direct tabulated k</dd>
+        <dt>Uncertainty</dt><dd>±5 % k at LPBF bond quality<div class="uncertainty-bar" style="--green:70%;--amber:90%"></div></dd>
+        <dt>Gates</dt><dd class="mono">YIELD_EXCEEDED · BURST_MARGIN_INSUFFICIENT · BIMETALLIC_BOND_ZONE_SHEAR</dd>
+        <dt>Implementation</dt><dd class="mono">Core/HeatTransfer/WallMaterial.cs</dd>
+      </dl>
+    </div>
+  </div>
+
+  <!-- COMBUSTION -->
+  <p class="eyebrow" style="margin-top:var(--s-12);">Combustion stability</p>
+  <h2 class="t-h2" style="margin-top:var(--s-2);margin-bottom:var(--s-6);">Crocco N-τ and the chamber acoustic family.</h2>
+
+  <div class="corr">
+    <div class="corr__head">
+      <div><span class="domain-tag combust">Combustion</span> <span class="corr__title" style="margin-left:var(--s-2);">Crocco N-τ instability criterion</span></div>
+      <span class="corr__cite">Crocco &amp; Cheng (1956); Harrje &amp; Reardon (1972) NASA SP-194</span>
+    </div>
+    <div class="corr__body">
+      <div>
+        <div class="formula">N · |1 − e^(−iωτ)| &lt; 1   →  stable
+ωτ ∉ [π/2, 3π/2] for chug
+ωτ ∉ acoustic-mode windows for buzz/screech</div>
+        <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">Chamber treated as a 1D acoustic cavity with sensitive time-lag combustion. voxelforge solves the longitudinal, first-tangential, and first-radial modes — three gates, not one — and rejects designs where any mode falls in an unstable window.</p>
+      </div>
+      <dl class="meta-block">
+        <dt>Validity</dt><dd>L* &gt; 0.6 m · injector pressure-drop ratio &gt; 0.1</dd>
+        <dt>Uncertainty</dt><dd>Class-only<div class="uncertainty-bar" style="--green:25%;--amber:60%"></div></dd>
+        <dt>Gates</dt><dd class="mono">stability-chug · stability-1T · stability-1L</dd>
+        <dt>Implementation</dt><dd class="mono">Core/Combustion/Stability/CroccoNTau.cs</dd>
+      </dl>
+    </div>
+  </div>
+
+  <!-- NOZZLE -->
+  <p class="eyebrow" style="margin-top:var(--s-12);">Nozzle &amp; chamber geometry</p>
+  <h2 class="t-h2" style="margin-top:var(--s-2);margin-bottom:var(--s-6);">Rao bell, isentropic flow, characteristic length.</h2>
+
+  <div class="corr">
+    <div class="corr__head">
+      <div><span class="domain-tag geom">Geometry</span> <span class="corr__title" style="margin-left:var(--s-2);">Rao parabolic-bell contour</span></div>
+      <span class="corr__cite">Rao (1958); Sutton §3.4</span>
+    </div>
+    <div class="corr__body">
+      <div>
+        <div class="formula">θ_n, θ_e = f(εₙ, L/L_15°)
+contour = parabola tangent to circular throat arc</div>
+        <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">80 %-bell default. Inflection angle θ_n and exit angle θ_e tabulated from Rao's curves; voxelforge fits a smooth parabola tangent to the throat circular arc and the exit angle line.</p>
+      </div>
+      <dl class="meta-block">
+        <dt>Validity</dt><dd>ε ∈ [3, 200] · 0.6 ≤ L/L_15° ≤ 1.0</dd>
+        <dt>Uncertainty</dt><dd>±2 % thrust loss vs ideal MOC<div class="uncertainty-bar" style="--green:90%;--amber:98%"></div></dd>
+        <dt>Gates</dt><dd class="mono">nozzle-overexpansion-margin · contour-curvature</dd>
+        <dt>Implementation</dt><dd class="mono">Core/Nozzle/RaoContour.cs</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="corr">
+    <div class="corr__head">
+      <div><span class="domain-tag geom">Geometry</span> <span class="corr__title" style="margin-left:var(--s-2);">Characteristic length L*</span></div>
+      <span class="corr__cite">Sutton §8.1; Huzel &amp; Huang Table 4-1</span>
+    </div>
+    <div class="corr__body">
+      <div>
+        <div class="formula">L* = V_chamber / A_throat
+LOX/CH4: 1.0–1.3 m
+LOX/H2:  0.6–0.9 m
+LOX/RP1: 1.0–1.5 m</div>
+        <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">Combustion residence-time proxy. voxelforge keeps L* inside propellant-pair-specific bounds; below the lower bound, c* drops; above the upper, mass and heat load grow without ISP gain.</p>
+      </div>
+      <dl class="meta-block">
+        <dt>Validity</dt><dd>Tabulated propellants only</dd>
+        <dt>Uncertainty</dt><dd>Empirical band ±20 %<div class="uncertainty-bar" style="--green:55%;--amber:85%"></div></dd>
+        <dt>Gates</dt><dd class="mono">L-star-window · cstar-efficiency</dd>
+        <dt>Implementation</dt><dd class="mono">Core/Combustion/LStarLimits.cs</dd>
+      </dl>
+    </div>
+  </div>
+
+  <!-- TURBOPUMP -->
+  <p class="eyebrow" style="margin-top:var(--s-12);">Feed system &amp; turbopump</p>
+  <h2 class="t-h2" style="margin-top:var(--s-2);margin-bottom:var(--s-6);">Cavitation, suction specific speed, shaft critical.</h2>
+
+  <div class="corr">
+    <div class="corr__head">
+      <div><span class="domain-tag fluid">Fluid</span> <span class="corr__title" style="margin-left:var(--s-2);">Suction specific speed S</span></div>
+      <span class="corr__cite">Stepanoff (1957); Brennen, "Hydrodynamics of Pumps" §7</span>
+    </div>
+    <div class="corr__body">
+      <div>
+        <div class="formula">S = N · √Q / NPSH^(3/4)
+S_max ≈ 30,000  (rocket inducers)</div>
+        <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">Cavitation onset margin. Above S_max the inducer cavitates; voxelforge enforces S ≤ 28,000 by default with a 7 % safety factor. Lowering it forces a larger inducer or higher tank pressure.</p>
+      </div>
+      <dl class="meta-block">
+        <dt>Validity</dt><dd>Axial inducer + centrifugal stage</dd>
+        <dt>Uncertainty</dt><dd>±10 % cavitation onset<div class="uncertainty-bar" style="--green:55%;--amber:85%"></div></dd>
+        <dt>Gates</dt><dd class="mono">cavitation-margin · inducer-tip-speed</dd>
+        <dt>Implementation</dt><dd class="mono">Core/FeedSystem/Turbopump/Cavitation.cs</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="corr">
+    <div class="corr__head">
+      <div><span class="domain-tag struct">Structural</span> <span class="corr__title" style="margin-left:var(--s-2);">Rotordynamic critical speed</span></div>
+      <span class="corr__cite">Vance, "Rotordynamics of Turbomachinery" (1988) §3</span>
+    </div>
+    <div class="corr__body">
+      <div>
+        <div class="formula">N_op &lt; 0.7 · N_crit_1   (subcritical)
+ω_n = √(k_eff / m_eff) / 2π</div>
+        <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">Lumped-mass shaft model. Bearings as linear springs, impellers as discrete masses. voxelforge keeps operating speed below 70 % of first critical (subcritical design); supercritical designs require a separate analysis path not yet implemented.</p>
+      </div>
+      <dl class="meta-block">
+        <dt>Validity</dt><dd>Stiff-bearing rigid-rotor approx</dd>
+        <dt>Uncertainty</dt><dd>±15 % critical-speed<div class="uncertainty-bar" style="--green:50%;--amber:80%"></div></dd>
+        <dt>Gates</dt><dd class="mono">shaft-critical-margin</dd>
+        <dt>Implementation</dt><dd class="mono">Core/FeedSystem/Turbopump/ShaftDynamics.cs</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="corr">
+    <div class="corr__head">
+      <div><span class="domain-tag struct">Structural · hoop stress</span> <span class="corr__title" style="margin-left:var(--s-2);">Composite-cylinder hoop with isentropic gas P</span></div>
+      <span class="corr__cite">Hibbeler §8.3 (composite cylinder); isentropic flow relations; Sprint G'</span>
+    </div>
+    <div class="corr__body">
+      <div>
+        <div class="formula">σ_hoop = ΔP · r / t_eff
+t_eff  = t_liner + t_jacket
+P_gas  = P_c · (1 + (γ−1)/2 · M²)^(−γ/(γ−1))</div>
+        <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">Gas-side liner and outer jacket share the circumferential hoop load in parallel — effective wall thickness is the sum of both. Gas pressure at each axial station is the local isentropic static value, which drops dramatically through the nozzle (exit ≈ 0.1 MPa at ε = 16 vs. P_c at the chamber). The prior constant-P_c path over-predicted exit-station hoop stress by 10–20×, producing false YIELD_EXCEEDED rejections on otherwise-feasible designs.</p>
+      </div>
+      <dl class="meta-block">
+        <dt>Validity</dt><dd>Thin-wall regime (r/t &gt; 10); requires gasGamma &gt; 0 for isentropic path</dd>
+        <dt>Uncertainty</dt><dd>±8 % (thin-wall approximation)<div class="uncertainty-bar" style="--green:60%;--amber:85%"></div></dd>
+        <dt>Gates</dt><dd class="mono">YIELD_EXCEEDED · BURST_MARGIN_INSUFFICIENT</dd>
+        <dt>Implementation</dt><dd class="mono">Core/Structure/StructuralCheck.cs</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div style="margin-top:var(--s-12);padding:var(--s-6);background:var(--bg-elev);border:1px solid var(--rule);border-radius:var(--r-3);">
+    <p class="eyebrow">Citation discipline</p>
+    <p class="t-body" style="margin-top:var(--s-2);max-width:760px;">Every correlation is implemented next to an XML doc-comment carrying the full citation (author, year, page or equation number). Validity-domain checks are runtime — the headless physics path will refuse to apply Dittus-Boelter at Re=300, not silently return a number that's wrong by 70 %.</p>
+  </div>
+
+</div></section>
+
+<footer class="foot"><div class="wrap"><div class="foot__cols"><div><div class="u-row-tight" style="margin-bottom:var(--s-3);"><img src="assets/logo.svg" width="22" height="22" alt=""><span style="font-weight:600;color:var(--ink)">voxelforge</span></div><p style="margin:0;max-width:360px;">A 3D-printable rocket engine, generated from a handful of parameters.</p></div><div><div class="foot__title">Reference</div><div class="foot__links"><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a></div></div><div><div class="foot__title">Project</div><div class="foot__links"><a href="architecture.html">Architecture</a><a href="roadmap.html">Roadmap</a><a href="faq.html">FAQ</a><a href="design-system.html">Brand</a></div></div><div><div class="foot__title">Source</div><div class="foot__links"><a href="https://github.com/poetac/voxelforge">GitHub</a><a href="https://github.com/poetac/voxelforge/blob/main/LICENSE">License (MIT)</a></div></div></div></div></footer>
+</body></html>

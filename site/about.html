@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>About — voxelforge</title>
+<link rel="stylesheet" href="assets/brand.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  .hero-doc { padding: var(--s-16) 0 var(--s-12); border-bottom: 1px solid var(--rule); }
+  .toc { position: sticky; top: 80px; font-size: var(--t-sm); }
+  .toc a { display: block; padding: 4px 10px; border: 0; color: var(--ink-2); border-left: 2px solid var(--rule); }
+  .toc a:hover { color: var(--ink); border-left-color: var(--ignition); background: var(--bone-50); }
+  .doc-grid { display: grid; grid-template-columns: 200px 1fr; gap: var(--s-12); }
+  @media(max-width:980px){.doc-grid{grid-template-columns:1fr}.toc{position:static}}
+  .prose { max-width: 720px; }
+  .prose h2 { margin-top: var(--s-12); font-size: var(--t-xl); font-weight: 600; letter-spacing: -0.01em; }
+  .prose h3 { margin-top: var(--s-8); font-size: var(--t-md); font-weight: 600; }
+  .prose p { line-height: 1.65; color: var(--ink); margin: var(--s-3) 0; }
+  .prose ul { line-height: 1.65; padding-left: var(--s-5); }
+  .pullquote { border-left: 3px solid var(--ignition); padding: var(--s-3) var(--s-5); margin: var(--s-6) 0; font-family: var(--font-display); font-size: var(--t-md); line-height: 1.4; color: var(--ink); background: var(--bone-50); }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: var(--r-3); overflow: hidden; margin: var(--s-6) 0; }
+  .compare > div { background: var(--bg-elev); padding: var(--s-5); }
+  .compare h4 { margin: 0 0 var(--s-2); font-size: var(--t-sm); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); }
+</style></head><body>
+
+<nav class="nav"><div class="nav__brand"><img src="assets/logo.svg" alt=""><a href="index.html" class="nav__brand-name">voxelforge</a></div>
+<div class="nav__links"><a href="about.html" class="is-current">About</a><a href="architecture.html">Architecture</a><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a><a href="roadmap.html">Roadmap</a><a href="getting-started.html">Get started</a><a href="design-system.html">Brand</a><a href="https://github.com/poetac/voxelforge">GitHub ↗</a></div></nav>
+
+<header class="hero-doc"><div class="wrap">
+  <p class="eyebrow">About</p>
+  <h1 class="t-h1" style="margin-top: var(--s-3); max-width: 800px;">An honest tool for an unforgiving problem.</h1>
+  <p class="t-lead" style="margin-top: var(--s-5); max-width: 720px;">voxelforge generates regen-cooled liquid rocket engines as printable STL files. It does not promise rocket science is easy. It promises the hand-cranked early arithmetic is.</p>
+</div></header>
+
+<section class="section"><div class="wrap"><div class="doc-grid">
+  <aside class="toc">
+    <p class="eyebrow" style="margin-bottom: var(--s-3);">Contents</p>
+    <a href="#what">What it is</a>
+    <a href="#why">Why voxel-implicit</a>
+    <a href="#how">How it differs</a>
+    <a href="#who">Who it's for</a>
+    <a href="#truth">What it doesn't do</a>
+    <a href="#provenance">Provenance</a>
+    <a href="#hooks">External integration</a>
+  </aside>
+
+  <article class="prose">
+    <h2 id="what">What it is</h2>
+    <p>voxelforge takes three numbers — thrust, chamber pressure, propellant pair — and returns a buildable thrust chamber. Contour, regen channels, injector face, mounting flanges, sensor bosses. One STL, ready for an LPBF print bed.</p>
+    <p>Behind that small input surface is a 34-dimension simulated-annealing search space and a ring of 65 rocket feasibility gates (196 project-wide across 5 physics pillars — 65 rocket · 40 air-breathing · 54 electric · 22 marine · 15 nuclear) that reject any candidate violating rotordynamic, cavitation, body-interference, combustion-stability, LPBF-printability, hull-buckling, or numerical-stability constraints — <em>before</em> any expensive voxel work runs.</p>
+
+    <div class="pullquote">Most preliminary-design tools optimise first and validate second. voxelforge inverts that: physics reality is an admission criterion, not a penalty term.</div>
+
+    <h2 id="why">Why voxel-implicit geometry</h2>
+    <p>Mesh-based CAD struggles with the geometry additive manufacturing actually unlocks. Conformal TPMS coolant channels. Monolithic fusion of chamber, turbopump, and feed manifold into a single part. Aerospike plug cooling with internally-routed regen passages.</p>
+    <p>voxelforge runs on <a href="https://picogk.org/">PicoGK</a>, a voxel-implicit kernel from LEAP 71, where those operations are boolean-trivial. A coolant channel isn't a swept surface — it's the negative of a Schwarz P field clipped to a chamber shell. Subtract, add, smooth.</p>
+
+    <h2 id="how">How it differs</h2>
+    <div class="compare">
+      <div><h4>Mesh CAD (SolidWorks · Fusion)</h4><p style="margin:0;font-size:var(--t-sm);line-height:1.55;color:var(--ink-2);">Parametric features, history tree. Excellent for machined parts. Struggles when 80 helical channels need to merge with a manifold and clear a turbopump volute in the same body.</p></div>
+      <div><h4>voxelforge</h4><p style="margin:0;font-size:var(--t-sm);line-height:1.55;color:var(--ink-2);">Implicit SDF, boolean composition. Subsystems fuse into one part. The only cost is voxel resolution; geometry complexity is free.</p></div>
+      <div><h4>Hand calculation (Sutton · Huzel &amp; Huang)</h4><p style="margin:0;font-size:var(--t-sm);line-height:1.55;color:var(--ink-2);">Definitive textbook arithmetic. Slow when you want to sweep 34 dimensions and check up to 196 gates per candidate.</p></div>
+      <div><h4>voxelforge</h4><p style="margin:0;font-size:var(--t-sm);line-height:1.55;color:var(--ink-2);">Same correlations, automated. Bartz, Dittus-Boelter, Crocco N-τ, Rao bell — all cited, all bounded by uncertainty bands you can read.</p></div>
+    </div>
+
+    <h2 id="who">Who it's for</h2>
+    <p>Aerospace and propulsion engineers in the preliminary-design phase. Hobbyist rocketry teams whose ambitions outpace their CAD time. Researchers who need a citable reference design they can perturb and rerun.</p>
+    <p>Not for: production hardware that hasn't been through CFD, FEA, and a real test stand. <a href="#truth">See below.</a></p>
+
+    <h2 id="truth">What it doesn't do</h2>
+    <p>Passing every gate means "this design is not obviously broken in the ways we know how to check." It does not mean "this design will fly." voxelforge is a screen, not a certification.</p>
+    <ul>
+      <li>No 3D CFD. The Bartz correlation has a ±25-50 % uncertainty band — fine for screening, not for first-fire.</li>
+      <li>No 3D FEA. Pressure-vessel + thermal-stress is axisymmetric; ±15 % on peak stress.</li>
+      <li>No transient acoustics. Crocco N-τ catches chug, buzz, screech as classes; full thermoacoustic modelling is future work.</li>
+      <li>No vendor toolpath. The LPBF printability gates (overhang, trapped-powder, drain-path) shipped in Sprint&nbsp;27 cover DfM screening; actual slicer integration belongs to the LPBF vendor's API.</li>
+    </ul>
+    <p>The full honest list lives in <code>Voxelforge/docs/LIMITATIONS.md</code>.</p>
+
+    <h2 id="provenance">Provenance</h2>
+    <p>Every shipped sprint freezes a JSONL fingerprint baseline. The post-cascade diff <em>is</em> the cascade's measured impact. Every example reproduces bit-identically from a SHA-256 receipt. Every gate has a stable machine-readable ID — changing it is a breaking change.</p>
+    <p>This is not a research toy. It's a tracked, tested, audit-grade tool with 5,700+ passing tests and zero TODO/FIXME/HACK markers in the source tree.</p>
+
+    <h2 id="hooks">External integration</h2>
+    <p><strong><code>voxelforge-eval</code></strong> (shipped 2026-04-25, S 38a · T2.2) — a subprocess oracle that wraps the headless <code>.Core</code> physics. Pipe a JSON-line design vector to stdin; get a feasibility report and headline metrics back on stdout. External Python / Julia / R drivers can run the optimisation loop without the .NET runtime — useful for grafting voxelforge onto a Bayesian-optimisation framework, an SU2 closed loop, or a Jupyter exploration session.</p>
+    <p><strong>Sobol sensitivity indices</strong> (shipped 2026-04-25, S 38a · OOB-5) — Saltelli sampling exposes first-order and total-order indices for every design variable against every objective. The first sensitivity heatmap that doesn't require running an external R / Python pipeline.</p>
+    <p><strong>Multi-chain parallel SA</strong> (shipped 2026-04-25, ADR-017) — N independent SA chains in lockstep with elite migration; per-chain Sobol slice for low-discrepancy initial coverage. Auto-scales to <code>ProcessorCount&nbsp;−&nbsp;2</code>. Strict determinism: same seed + chain count → identical result.</p>
+    <p>See <a href="cascade.html">the Apr 24–26 cascade summary</a> for the full ledger.</p>
+  </article>
+</div></div></section>
+
+<footer class="foot"><div class="wrap"><div class="foot__cols"><div><div class="u-row-tight" style="margin-bottom:var(--s-3);"><img src="assets/logo.svg" width="22" height="22" alt=""><span style="font-weight:600;color:var(--ink)">voxelforge</span></div><p style="margin:0;max-width:360px;">A 3D-printable rocket engine, generated from a handful of parameters.</p></div><div><div class="foot__title">Reference</div><div class="foot__links"><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a></div></div><div><div class="foot__title">Project</div><div class="foot__links"><a href="architecture.html">Architecture</a><a href="roadmap.html">Roadmap</a><a href="faq.html">FAQ</a><a href="design-system.html">Brand</a></div></div><div><div class="foot__title">Source</div><div class="foot__links"><a href="https://github.com/poetac/voxelforge">GitHub</a><a href="https://github.com/poetac/voxelforge/blob/main/LICENSE">License (MIT)</a></div></div></div></div></footer>
+</body></html>

@@ -1,0 +1,21 @@
+{
+  "Schema": "v1",
+  "Version": "1.0",
+  "CreatedUtc": "2026-05-03T00:00:00.0000000Z",
+  "AppName": "Voxelforge.Airbreathing",
+  "Conditions": {
+    "Altitude_m": 0,
+    "MachNumber": 0.85,
+    "Fuel": "H2"
+  },
+  "Design": {
+    "Kind": "Turbojet",
+    "InletThroatArea_m2": 0.025,
+    "CombustorArea_m2": 0.05,
+    "CombustorLength_m": 0.5,
+    "NozzleThroatArea_m2": 0.015,
+    "NozzleExitArea_m2": 0.03,
+    "EquivalenceRatio": 0.4,
+    "CompressorPressureRatio": 15
+  }
+}

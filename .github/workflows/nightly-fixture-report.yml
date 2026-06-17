@@ -1,0 +1,196 @@
+# Nightly cross-pillar fixture validation consolidated report (#653).
+#
+# ADR-045 D1: cron 03:00 UTC Mon–Fri (staggered between fingerprint start
+# and microbench). Runs the same fixture tests as ci.yml across all 6 pillar
+# test projects in parallel on the two-runner pair, then consolidates results
+# into a single job-summary table using tools/Generate-FixtureReport.ps1.
+#
+# Acceptance criteria (#653):
+# - Scheduled workflow at this path                                        ✓
+# - Consolidated status artifact in markdown + JSON (TRX as structured XML)✓
+# - Per-pillar status: passed / failed / skipped counts                    ✓
+# - Failing pillar emits ::error:: annotation via failure step             ✓
+# - Inherits ADR-045 infrastructure (self-hosted runner, retention policy) ✓
+
+name: Nightly Fixture Report
+
+on:
+  schedule:
+    - cron: '0 3 * * 1-5'   # 03:00 UTC Mon–Fri (ADR-045 D1)
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+# ── Per-pillar test jobs (run in parallel on the two-runner pair) ──────────
+jobs:
+  test-rocket:
+    name: fixture / rocket
+    runs-on: self-hosted
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Restore + build
+        run: dotnet restore voxelforge.sln && dotnet build voxelforge.sln --no-restore --configuration Release
+      - name: Test
+        run: >
+          dotnet test Voxelforge.Tests/Voxelforge.Tests.csproj
+          --no-build --configuration Release
+          --logger "trx;LogFileName=test-results-rocket.trx"
+          --filter "Category!=CrossFamily&Category!=Performance"
+      - name: Upload TRX
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: fixture-trx-rocket-${{ github.run_id }}
+          path: "**/test-results-rocket.trx"
+          retention-days: 30
+
+  test-airbreathing:
+    name: fixture / airbreathing
+    runs-on: self-hosted
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Restore + build
+        run: dotnet restore Voxelforge.Airbreathing.Tests/Voxelforge.Airbreathing.Tests.csproj && dotnet build Voxelforge.Airbreathing.Tests/Voxelforge.Airbreathing.Tests.csproj --no-restore --configuration Release
+      - name: Test
+        run: >
+          dotnet test Voxelforge.Airbreathing.Tests/Voxelforge.Airbreathing.Tests.csproj
+          --no-build --configuration Release
+          --logger "trx;LogFileName=test-results-airbreathing.trx"
+      - name: Upload TRX
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: fixture-trx-airbreathing-${{ github.run_id }}
+          path: "**/test-results-airbreathing.trx"
+          retention-days: 30
+
+  test-electric:
+    name: fixture / electric
+    runs-on: self-hosted
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Restore + build
+        run: dotnet restore Voxelforge.ElectricPropulsion.Tests/Voxelforge.ElectricPropulsion.Tests.csproj && dotnet build Voxelforge.ElectricPropulsion.Tests/Voxelforge.ElectricPropulsion.Tests.csproj --no-restore --configuration Release
+      - name: Test
+        run: >
+          dotnet test Voxelforge.ElectricPropulsion.Tests/Voxelforge.ElectricPropulsion.Tests.csproj
+          --no-build --configuration Release
+          --logger "trx;LogFileName=test-results-electric.trx"
+      - name: Upload TRX
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: fixture-trx-electric-${{ github.run_id }}
+          path: "**/test-results-electric.trx"
+          retention-days: 30
+
+  test-marine:
+    name: fixture / marine
+    runs-on: self-hosted
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Restore + build
+        run: dotnet restore Voxelforge.Marine.Tests/Voxelforge.Marine.Tests.csproj && dotnet build Voxelforge.Marine.Tests/Voxelforge.Marine.Tests.csproj --no-restore --configuration Release
+      - name: Test
+        run: >
+          dotnet test Voxelforge.Marine.Tests/Voxelforge.Marine.Tests.csproj
+          --no-build --configuration Release
+          --logger "trx;LogFileName=test-results-marine.trx"
+      - name: Upload TRX
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: fixture-trx-marine-${{ github.run_id }}
+          path: "**/test-results-marine.trx"
+          retention-days: 30
+
+  test-nuclear:
+    name: fixture / nuclear
+    runs-on: self-hosted
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Restore + build
+        run: dotnet restore Voxelforge.Nuclear.Tests/Voxelforge.Nuclear.Tests.csproj && dotnet build Voxelforge.Nuclear.Tests/Voxelforge.Nuclear.Tests.csproj --no-restore --configuration Release
+      - name: Test
+        run: >
+          dotnet test Voxelforge.Nuclear.Tests/Voxelforge.Nuclear.Tests.csproj
+          --no-build --configuration Release
+          --logger "trx;LogFileName=test-results-nuclear.trx"
+      - name: Upload TRX
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: fixture-trx-nuclear-${{ github.run_id }}
+          path: "**/test-results-nuclear.trx"
+          retention-days: 30
+
+  test-cfd:
+    name: fixture / cfd
+    runs-on: self-hosted
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Restore + build
+        run: dotnet restore Voxelforge.Cfd.Tests/Voxelforge.Cfd.Tests.csproj && dotnet build Voxelforge.Cfd.Tests/Voxelforge.Cfd.Tests.csproj --no-restore --configuration Release
+      - name: Test
+        run: >
+          dotnet test Voxelforge.Cfd.Tests/Voxelforge.Cfd.Tests.csproj
+          --no-build --configuration Release
+          --logger "trx;LogFileName=test-results-cfd.trx"
+      - name: Upload TRX
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: fixture-trx-cfd-${{ github.run_id }}
+          path: "**/test-results-cfd.trx"
+          retention-days: 30
+
+  # ── Consolidation job (runs after all pillar jobs complete) ───────────────
+  fixture-report:
+    name: Consolidated fixture report
+    runs-on: self-hosted
+    timeout-minutes: 20
+    needs: [test-rocket, test-airbreathing, test-electric, test-marine, test-nuclear, test-cfd]
+    if: always()   # run even when some pillar jobs fail
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Download all TRX artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444306b1a4df79b0d7c43c4f  # v4.2.1
+        with:
+          pattern: fixture-trx-*-${{ github.run_id }}
+          path: trx-results
+          merge-multiple: true
+
+      - name: Generate consolidated report
+        id: report
+        shell: pwsh
+        run: |
+          $anyFailure = pwsh -NonInteractive -File tools/Generate-FixtureReport.ps1 `
+            -TrxDir trx-results `
+            -OutFile trx-results/fixture-report.md
+          exit $LASTEXITCODE
+
+      - name: Upload consolidated report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: fixture-report-${{ github.run_id }}
+          path: trx-results/fixture-report.md
+          retention-days: 30
+
+      - name: Annotate failure
+        if: steps.report.outcome == 'failure'
+        run: |
+          echo "::error title=Fixture report::One or more pillars have test failures. Check the fixture-report artifact."

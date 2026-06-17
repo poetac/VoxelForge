@@ -1,0 +1,152 @@
+name: CI (ubuntu-latest fallback)
+
+# Watchdog companion to ci.yml. Runs the 6 PicoGK-free jobs on
+# github-hosted ubuntu-latest in parallel with the self-hosted Windows
+# runner.
+#
+# Audit 06-ci.md H2: the single self-hosted Windows runner
+# auto-stops after clean exit and only restarts via manual admin shell.
+# Every PR's CI hung indefinitely during the 2026-05-13 → 2026-05-16
+# outage. 5 of the 9 matrix jobs in ci.yml do not require PicoGK (the
+# pillar Cores + their Tests target plain net9.0, which is cross-platform);
+# the contract-checks workflow is pure bash. This fallback workflow
+# exercises those 6 jobs on github-hosted minutes so a self-hosted
+# outage no longer hides drift across the PicoGK-free majority.
+#
+# Self-hosted (ci.yml + contract-checks.yml) remains the CANONICAL
+# build verification. This workflow is a redundancy layer:
+#   • self-hosted result is the source of truth
+#   • ubuntu fallback is the watchdog that keeps reporting through
+#     a self-hosted outage
+#
+# Jobs running here (must match the PicoGK-free subset of ci.yml's
+# matrix + contract-checks.yml):
+#   • airbreathing-tests          (Voxelforge.Airbreathing.Tests, net9.0)
+#   • electric-tests              (Voxelforge.ElectricPropulsion.Tests, net9.0)
+#   • marine-tests                (Voxelforge.Marine.Tests, net9.0)
+#   • cfd-tests                   (Voxelforge.Cfd.Tests, net9.0)
+#   • nuclear-tests               (Voxelforge.Nuclear.Tests, net9.0)
+#   • contract-checks             (bash scripts; no .NET)
+#
+# Jobs that MUST stay self-hosted-only (NOT in this workflow):
+#   • rocket-tests                (Voxelforge.Tests targets net9.0-windows + PicoGK)
+#   • cross-family-contract-tests (Voxelforge.Tests, PicoGK)
+#   • analyzers-and-typecheck     (full voxelforge.sln pulls in PicoGK transitively)
+#
+# Build/test scope discipline: each job here restores/builds ONLY its own
+# pillar test csproj (NOT voxelforge.sln). Building the full solution on
+# ubuntu would fail because PicoGK 2.0.0 + the net9.0-windows projects
+# are Windows-only — but the pillar test csproj graph stays inside
+# Voxelforge.Core + the pillar's own Core, both of which target plain
+# net9.0.
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'Voxelforge/docs/**'
+      - '.gitignore'
+      - 'LICENSE'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pillar-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: airbreathing-tests
+            project: Voxelforge.Airbreathing.Tests/Voxelforge.Airbreathing.Tests.csproj
+            artifact: test-results-airbreathing-ubuntu.trx
+          - name: electric-tests
+            project: Voxelforge.ElectricPropulsion.Tests/Voxelforge.ElectricPropulsion.Tests.csproj
+            artifact: test-results-electric-ubuntu.trx
+          - name: marine-tests
+            project: Voxelforge.Marine.Tests/Voxelforge.Marine.Tests.csproj
+            artifact: test-results-marine-ubuntu.trx
+          - name: cfd-tests
+            project: Voxelforge.Cfd.Tests/Voxelforge.Cfd.Tests.csproj
+            artifact: test-results-cfd-ubuntu.trx
+          - name: nuclear-tests
+            project: Voxelforge.Nuclear.Tests/Voxelforge.Nuclear.Tests.csproj
+            artifact: test-results-nuclear-ubuntu.trx
+
+    name: ${{ matrix.name }} (ubuntu)
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore (pillar csproj only)
+        # Restoring the full voxelforge.sln on ubuntu would fail on the
+        # net9.0-windows + PicoGK projects. Each pillar test csproj only
+        # transitively references plain net9.0 projects (its own Core +
+        # Voxelforge.Core), so restoring just the test csproj keeps us
+        # inside the linux-compatible subgraph.
+        run: dotnet restore ${{ matrix.project }}
+
+      - name: Build (pillar csproj only)
+        run: dotnet build ${{ matrix.project }} --no-restore --configuration Release
+
+      - name: Test
+        run: >
+          dotnet test ${{ matrix.project }}
+          --no-build
+          --configuration Release
+          --logger "console;verbosity=normal"
+          --logger "trx;LogFileName=${{ matrix.artifact }}"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}-ubuntu-results
+          path: "**/${{ matrix.artifact }}"
+          retention-days: 7
+
+  contract-checks:
+    # Mirror of .github/workflows/contract-checks.yml on ubuntu. The
+    # scripts under .github/scripts/ are pure bash so they portage
+    # 1:1 from the self-hosted Windows runner (which runs them via
+    # Git for Windows bash) to ubuntu's system bash.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout (full history for diff)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Make scripts executable
+        run: chmod +x .github/scripts/check-*.sh
+
+      - name: Schema-bump check
+        run: .github/scripts/check-schema-bump.sh origin/${{ github.base_ref }}
+
+      - name: Gate-census check
+        run: .github/scripts/check-gate-census.sh origin/${{ github.base_ref }}

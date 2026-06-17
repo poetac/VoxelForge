@@ -1,0 +1,144 @@
+# .editorconfig — repo-wide editor and analyzer settings (tech-debt T19, 2026-04-28).
+#
+# Captures the conventions already used in the codebase rather than
+# inventing new ones. The repo is Windows-only (PicoGK / WinForms), so
+# CRLF line endings are preferred. C# file conventions match the
+# baseline established across the 117 Core files + 19 Voxels builders.
+
+root = true
+
+# All files
+[*]
+indent_style             = space
+indent_size              = 4
+end_of_line              = crlf
+charset                  = utf-8
+trim_trailing_whitespace = true
+insert_final_newline     = true
+
+# C# files
+[*.cs]
+indent_size = 4
+
+# Sort + group `using` directives: System.* first, then alphabetical
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# ─────────────────────────────────────────────────────────────────────
+#  NetAnalyzers triage (tech-debt T11, 2026-04-28)
+# ─────────────────────────────────────────────────────────────────────
+#
+#  `<AnalysisLevel>latest-recommended</AnalysisLevel>` in
+#  Directory.Build.props turns on the curated CA-rule subset. The block
+#  below silences high-volume rules whose default opinion doesn't fit
+#  the codebase (test naming, engineering-output formatting, struct/
+#  record idioms). Each suppression carries a one-line rationale so a
+#  future contributor can re-evaluate.
+#
+#  Rules NOT silenced here fire 0-10× and are fixed at the call site.
+#  Net effect: zero NetAnalyzer warnings under TreatWarningsAsErrors.
+
+# CA1707 — Identifiers should not contain underscores. Fires on every
+# xUnit `Method_Behaviour_Expected` test name (idiomatic naming +
+# exists in 1500+ existing tests). Re-evaluate only if the test naming
+# convention itself changes.
+dotnet_diagnostic.CA1707.severity = none
+
+# CA1305 — Specify IFormatProvider. Engineering scalar formatting in
+# this codebase runs through Invariant by convention (every `ToString`
+# call site producing real output already passes Invariant). The rule
+# fires mostly on internal log/debug strings where culture cannot bite.
+# Suppress to avoid 442 noise warnings.
+dotnet_diagnostic.CA1305.severity = none
+
+# CA1805 — Do not initialize unnecessarily. Pure style preference;
+# leaving `bool x = false;` documents intent in long constructor
+# bodies and matches the codebase's existing pattern.
+dotnet_diagnostic.CA1805.severity = none
+
+# CA1861 — Avoid constant arrays as arguments. Test data + lookup
+# tables routinely use `new[] {…}` literals; the alleged perf gain
+# from caching is irrelevant for one-shot test paths and lookup
+# callsites. Style preference.
+dotnet_diagnostic.CA1861.severity = none
+
+# CA1510-CA1513 — `*.ThrowIf` throw-helper modernization. Style
+# rewrite, no behavioural delta. The existing `if (…) throw new…`
+# form is more grep-friendly when investigating which sites validate
+# what. Suppress to avoid churn.
+dotnet_diagnostic.CA1510.severity = none
+dotnet_diagnostic.CA1512.severity = none
+dotnet_diagnostic.CA1513.severity = none
+
+# CA1725 — Parameter names should match base declaration. Sometimes
+# we deliberately rename for clarity at the override site (e.g.
+# generic `target` → specific `chamber`). Suppress.
+dotnet_diagnostic.CA1725.severity = none
+
+# CA1051 — Don't declare visible instance fields. Records intentionally
+# expose positional + init-only fields; the rule fires on idiomatic
+# C# 9+ record syntax.
+dotnet_diagnostic.CA1051.severity = none
+
+# CA1716 — Identifiers should not match keywords. The `Structure`
+# namespace deliberately mirrors aerospace usage (structural analysis).
+# voxelforge is C#-only — no VB / F# consumers — so reserved-keyword
+# collisions are theoretical.
+dotnet_diagnostic.CA1716.severity = none
+
+# CA1068 — CancellationToken parameters must come last. The
+# `MultiChainOptimizer.Run(evaluator, initialCandidate, cancellation,
+# onProgress)` shape predates the rule; CancellationToken was placed
+# before the optional `onProgress` so the common call site
+# `Run(eval, ct: token)` reads naturally. Cosmetic only.
+dotnet_diagnostic.CA1068.severity = none
+
+# CA2208 — Instantiate argument exceptions correctly. Fires on
+# `nameof(spec.Thrust_N)` patterns where we deliberately point the
+# caller at the offending record field rather than the wrapping
+# parameter name. Each call site already mentions the field in the
+# message text, so the structural ParamName carries useful info.
+dotnet_diagnostic.CA2208.severity = none
+
+# CA2263 — Prefer generic overload. Reflection-driven helpers
+# (DesignVariableRegistry, scoring profiles) deliberately use the
+# non-generic `Type` overload. Suppress.
+dotnet_diagnostic.CA2263.severity = none
+
+# Naming conventions
+dotnet_naming_rule.const_should_be_pascal_case.severity = warning
+dotnet_naming_rule.const_should_be_pascal_case.symbols  = const_symbol
+dotnet_naming_rule.const_should_be_pascal_case.style    = pascal_case_style
+
+dotnet_naming_symbols.const_symbol.applicable_kinds            = field
+dotnet_naming_symbols.const_symbol.applicable_accessibilities  = *
+dotnet_naming_symbols.const_symbol.required_modifiers          = const
+
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+# Code style
+csharp_style_namespace_declarations          = file_scoped:warning
+csharp_prefer_simple_using_statement         = true:suggestion
+csharp_style_expression_bodied_methods       = when_on_single_line:silent
+csharp_style_expression_bodied_constructors  = false:silent
+csharp_style_expression_bodied_properties    = when_on_single_line:silent
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
+csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
+
+# Markdown — keep author's intentional line breaks
+[*.md]
+trim_trailing_whitespace = false
+insert_final_newline     = true
+
+# YAML / JSON — 2-space indent
+[*.{yaml,yml,json}]
+indent_size = 2
+
+# JSONL bench baselines — leave as-is; auto-generated
+[*.jsonl]
+trim_trailing_whitespace = false
+insert_final_newline     = false
+
+# C# project + MSBuild files
+[*.{csproj,props,targets}]
+indent_size = 2

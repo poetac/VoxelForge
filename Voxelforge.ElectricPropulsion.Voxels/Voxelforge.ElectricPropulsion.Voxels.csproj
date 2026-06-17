@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Voxelforge.ElectricPropulsion.Voxels — PicoGK voxel/SDF/STL
+       builder for the electric-propulsion pillar (resistojet today).
+
+       Sibling to Voxelforge.Voxels (rocket-side) and
+       Voxelforge.Airbreathing.Voxels. Parallel-pillar architecture: each
+       engine pillar has its own Voxels project so the rocket pipeline
+       never depends on electric-propulsion PicoGK code and vice versa.
+       The shared abstraction is `IVoxelHandle` in Voxelforge.Core (a
+       marker interface); each pillar's Voxels project owns its own
+       concrete `PicoGKVoxelHandle`. -->
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Nullable + ImplicitUsings + TreatWarningsAsErrors live in
+         Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge.ElectricPropulsion</RootNamespace>
+    <AssemblyName>Voxelforge.ElectricPropulsion.Voxels</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PicoGK" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ExcludeAssets="analyzers": same rationale as
+         Voxelforge.ElectricPropulsion.Core's ProjectReference to
+         Voxelforge.Core. -->
+    <ProjectReference Include="..\Voxelforge.ElectricPropulsion.Core\Voxelforge.ElectricPropulsion.Core.csproj"
+                      ExcludeAssets="analyzers" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge.ElectricPropulsion.StlExporter" />
+    <InternalsVisibleTo Include="Voxelforge.ElectricPropulsion.Tests" />
+  </ItemGroup>
+
+</Project>

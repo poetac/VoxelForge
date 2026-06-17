@@ -1,0 +1,8 @@
+{
+  "//": "global.json — pin the .NET SDK version so local builds match CI (tech-debt T20, 2026-04-28). rollForward 'feature' resolves to the latest installed SDK in the 9.0.x range (same major + minor, any feature band + patch); it does NOT roll forward to 9.1, 9.2, or a future .NET 10 — those would silently shift analyzer defaults under TreatWarningsAsErrors. The looseness within 9.0.x is accepted: security-patch + feature-band bumps inside .NET 9.0 are low-risk and well-tested upstream; pinning tighter (latestPatch) would require also bumping the version field to match each installed feature band, adding maintenance cost without proportionate safety. See #670.",
+  "sdk": {
+    "version": "9.0.0",
+    "rollForward": "feature",
+    "allowPrerelease": false
+  }
+}

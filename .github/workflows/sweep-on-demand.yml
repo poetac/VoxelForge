@@ -1,0 +1,75 @@
+# Ad-hoc 1D parameter sweep workflow (#830).
+#
+# Runs a single-variable sweep over any SA design variable or supported
+# operating condition (p_c, thrust) and uploads CSV + PNG as an artifact.
+# One gh workflow run command kicks off a full sweep without any session
+# token spend.
+#
+# Usage:
+#   gh workflow run sweep-on-demand.yml \
+#     -F preset=merlin -F variable=p_c -F range=2e6,8e6 -F samples=30 \
+#     -F objective=isp
+#
+# Artifact: sweep-{preset}-{variable}-{date}-{sha7}/
+#   sweep-{preset}-{variable}-{date}.csv
+#   sweep-{preset}-{variable}-{date}.png
+
+name: Sweep on Demand
+
+on:
+  workflow_dispatch:
+    inputs:
+      preset:
+        description: "Canonical design preset"
+        required: true
+        default: merlin
+        type: choice
+        options: [merlin, rl10, pressure-fed-small, aerospike, pintle]
+      variable:
+        description: "SA design variable (MemberName) or condition shorthand: p_c, thrust"
+        required: true
+        default: p_c
+        type: string
+      range:
+        description: "Sweep range as lo,hi (InvariantCulture, e.g. 2e6,8e6)"
+        required: true
+        default: "2e6,8e6"
+        type: string
+      samples:
+        description: "Number of evenly-spaced sample points (2..1000)"
+        required: false
+        default: "20"
+        type: string
+      objective:
+        description: "Scalar to record as the Y axis"
+        required: false
+        default: score
+        type: choice
+        options: [score, peak_wall_t, coolant_dp, mass, min_sf, coolant_t_out, isp]
+
+# Each dispatch is a unique run; no concurrency cancellation needed.
+# If you fire two sweeps simultaneously they queue on the runner pair.
+
+permissions:
+  contents: read
+
+jobs:
+  sweep:
+    uses: ./.github/workflows/_scheduled-bench-template.yml
+    with:
+      bench-name: sweep-${{ github.event.inputs.preset }}-${{ github.event.inputs.variable }}
+      build-project: voxelforge.sln
+      bench-command: |
+        mkdir -p current
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --sweep \
+          --preset "${{ github.event.inputs.preset }}" \
+          --variable "${{ github.event.inputs.variable }}" \
+          --range "${{ github.event.inputs.range }}" \
+          --samples "${{ github.event.inputs.samples }}" \
+          --objective "${{ github.event.inputs.objective }}" \
+          --out "current/sweep-${{ github.event.inputs.preset }}-${{ github.event.inputs.variable }}.csv"
+      output-path: current/*
+      retention-days: 30
+      timeout-minutes: 30

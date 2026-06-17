@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- WinExe so an interactive launch doesn't open a persistent
+         console window behind the fullscreen form. Subprocess callers
+         (the regression test, the headless CLI) still get stdout via
+         RedirectStandardOutput on the Process they spawn. -->
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>Voxelforge.Kiosk</RootNamespace>
+    <AssemblyName>Voxelforge.Kiosk</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PicoGK" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Voxelforge.Core\Voxelforge.Core.csproj" />
+    <ProjectReference Include="..\Voxelforge.Voxels\Voxelforge.Voxels.csproj" />
+    <ProjectReference Include="..\Voxelforge\Voxelforge.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge.Tests" />
+  </ItemGroup>
+
+</Project>

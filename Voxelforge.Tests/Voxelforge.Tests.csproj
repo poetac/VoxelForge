@@ -1,0 +1,79 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Nullable + ImplicitUsings live in Directory.Build.props (T1, 2026-04-28). -->
+    <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
+    <!-- NU1701: Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit transitively
+         pulls in legacy .NET Framework compatibility packages that NuGet flags
+         as not-fully-compatible with net9.0-windows. They load fine; the warning
+         is informational. Suppressing here (vs. globally) so the rest of the
+         solution still treats NU1701 as an error. -->
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <!-- Issue #209 / ADR-020: in-memory analyzer test harness for
+         DeterministicAnalyzerTests. The 1.1.2 .Testing.XUnit package's
+         transitive deps pin Microsoft.CodeAnalysis at 1.0.1, which conflicts
+         with our analyzer's 4.12.0 ref. Explicit pins below force the
+         resolver to a single 4.12 version (matches Voxelforge.Analyzers). -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" Version="1.1.2" />
+    <!-- All four CodeAnalysis packages must be pinned to the same major
+         version. Dependabot's #713 group bump (2026-05-17) split them
+         (Common + Workspaces.Common stayed on 4.14.0 but CSharp +
+         CSharp.Workspaces jumped to 5.3.0), tripping NU1605
+         "Detected package downgrade" once NuGet re-resolved. Pinning
+         all four to 4.14.0 keeps the analyzer suite aligned with
+         Voxelforge.Analyzers + Voxelforge.Generators (which also sit
+         on 4.14.0). A coordinated 5.x bump should land as a separate
+         PR that bumps all four together — see issue #625 follow-up. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.14.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Voxelforge\Voxelforge.csproj" />
+    <ProjectReference Include="..\Voxelforge.StlExporter\Voxelforge.StlExporter.csproj" />
+    <!-- OOB-5: Sobol sensitivity tests live here but call into the
+         internal SobolSensitivity static class in the Benchmarks
+         project (since that's where the Saltelli implementation lives,
+         alongside other analysis tooling). -->
+    <ProjectReference Include="..\Voxelforge.Benchmarks\Voxelforge.Benchmarks.csproj" />
+    <!-- Sprint render (2026-04-25): test the renderer's CLI parsing +
+         Blender discovery. The renderer project's classes are internal;
+         InternalsVisibleTo on its csproj exposes them to this assembly. -->
+    <ProjectReference Include="..\Voxelforge.Renderer\Voxelforge.Renderer.csproj" />
+    <!-- Issue #209 / ADR-020: reference the analyzer assembly directly
+         (without OutputItemType="Analyzer") so the test code can
+         instantiate DeterministicAnalyzer for in-memory verification. -->
+    <ProjectReference Include="..\Voxelforge.Analyzers\Voxelforge.Analyzers.csproj" />
+    <!-- Sprint 0 / Wave 1: cross-family contract tests in
+         Voxelforge.Tests/Engines/CrossFamilyContractTests.cs need to
+         discover IEngine / IEngineDesign / IObjective implementations
+         from both pillars at runtime. Reference the air-breathing
+         pillar's headless Core assembly so its types load alongside
+         the rocket types when the test runner walks AppDomain.
+         ExcludeAssets="analyzers" matches the rocket-side rationale —
+         the source generator emits an empty partial that conflicts
+         with the imported type otherwise. -->
+    <ProjectReference Include="..\Voxelforge.Airbreathing.Core\Voxelforge.Airbreathing.Core.csproj"
+                      ExcludeAssets="analyzers" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

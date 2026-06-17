@@ -1,0 +1,12 @@
+{
+  "name": "default-rocket",
+  "description": "Pillar-level default for any rocket design — studio lighting, copper chamber",
+  "pillar": "rocket",
+  "camera_azimuth_deg": 30,
+  "camera_elevation_deg": 20,
+  "hdri_name": "studio_small",
+  "material": "copper",
+  "resolution": "high",
+  "frames": 60,
+  "frame_delay_ms": 33
+}

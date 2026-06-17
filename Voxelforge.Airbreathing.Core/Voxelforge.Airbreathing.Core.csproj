@@ -1,0 +1,80 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Voxelforge.Airbreathing.Core — headless physics for air-breathing
+       engines (ramjet, turbojet, turbofan, scramjet, RBCC).
+
+       Sibling to Voxelforge.Core. Parallel-pillar architecture for
+       Air-breathing propulsion:
+       a new top-level engine family lives in its own subtree with its own
+       design records, cycle-solver registry, and feasibility-gate
+       evaluator. The shared optimization framework (IObjective,
+       MultiChainOptimizer, DesignVariableInfo) is reused via a Core
+       reference; nothing in Core changes.
+
+       Folder + namespace + AssemblyName all use the `Voxelforge.*`
+       convention. Sprint 0 PR-2 (PR #285) renamed namespaces; the
+       follow-on (this branch / 2026-05-04) renamed the rocket-side
+       folders to match. The 5 documented magic strings (DesignPersistence
+       AppName, ThreeMFExport meta tag, AnalyticalPreviewMesh + tiled
+       STL header, PrinterParameterPresets schema tag) remain literal
+       for JSON/3MF/STL round-trip — pinned by Sprint0Pr2OnDiskFormatStringTests.
+
+       PublicApiAnalyzers intentionally omitted while the API surface is
+       still in flux across A1-A7. The two production projects that ship
+       it (Voxelforge.Core, Voxelforge.Voxels) have stable surfaces; the
+       air-breathing pillar will adopt PublicApiAnalyzers in a follow-on
+       sprint once the surface settles. -->
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <!-- Nullable + ImplicitUsings + TreatWarningsAsErrors live in
+         Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge.Airbreathing</RootNamespace>
+    <AssemblyName>Voxelforge.Airbreathing.Core</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge.Airbreathing.Tests" />
+    <!-- Voxels project consumes the internal RamjetSurfaceSampler from
+         Geometry/. The sampler is pure-C# (no PicoGK) so it lives in Core
+         alongside the record types it produces; Voxels invokes it via
+         InternalsVisibleTo to keep the public surface narrow. -->
+    <InternalsVisibleTo Include="Voxelforge.Airbreathing.Voxels" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Voxelforge.Core hosts the engine-family-agnostic optimizer
+         framework (IObjective, DesignVariableInfo, MultiChainOptimizer,
+         FeasibilityViolation). Air-breathing pillar consumes those;
+         it does NOT consume any rocket-shaped record (RegenChamberDesign,
+         OperatingConditions, RegenGenerationResult).
+
+         ExcludeAssets="analyzers": Voxelforge.Core's csproj loads
+         Voxelforge.Generators (DesignVariableBinderGenerator) +
+         Voxelforge.Analyzers (DeterministicAnalyzer) as analyzers
+         for its own compilation. By default those analyzers propagate
+         transitively to direct consumers. The source generator emits a
+         partial `Voxelforge.Optimization.DesignVariableBinder` class
+         unconditionally — even when the consumer has zero
+         [SaDesignVariable] properties — which produces a CS0436 type
+         conflict against the type imported from the Voxelforge.Core
+         DLL. ExcludeAssets="analyzers" stops the transit. The
+         air-breathing pillar uses no [SaDesignVariable] attributes
+         (it has its own hand-rolled DesignVariableInfo arrays in
+         RamjetObjective + TurbojetObjective per Sprint A5/A7), so
+         disabling the generator here is correctness-neutral. -->
+    <ProjectReference Include="..\Voxelforge.Core\Voxelforge.Core.csproj"
+                      ExcludeAssets="analyzers" />
+    <!-- VFA001 + VFA002 family-purity guards (Sprint 0 / Wave 1). The Core
+         reference above blocks all analyzer transit (to keep the
+         DesignVariableBinder source generator from emitting into a
+         consumer that has no [SaDesignVariable] properties). The
+         pillar-discipline analyzers live in the same Voxelforge.Analyzers
+         assembly but are independent of the source generator, so we
+         import them here directly. -->
+    <ProjectReference Include="..\Voxelforge.Analyzers\Voxelforge.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

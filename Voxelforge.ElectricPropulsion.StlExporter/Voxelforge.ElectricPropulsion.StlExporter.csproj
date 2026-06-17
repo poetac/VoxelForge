@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Voxelforge.ElectricPropulsion.StlExporter — headless console exe
+       that re-generates the resistojet voxel geometry at an arbitrary
+       voxel size and writes an STL.
+
+       Sibling to Voxelforge.StlExporter (rocket-side) and
+       Voxelforge.Airbreathing.StlExporter. Lives in its own project so
+       sub-process tests in Voxelforge.ElectricPropulsion.Tests can invoke
+       it via SubprocessRunner — the xUnit + PicoGK incompatibility
+       (CLAUDE.md pitfall #8) is the historical reason for the
+       Process.Start pattern; even after PicoGK 2.0.0 resolved the
+       disposal crash, the subprocess path stays cleaner for STL
+       artifacts.
+
+       Sprint E.3 fills in the actual build pipeline (Resistojet
+       voxel builder + STL export). E.0 ships only the project skeleton
+       so voxelforge.sln has the full pillar shape; the Program.cs in
+       this project prints a usage line and exits non-zero until E.3
+       lands. -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Nullable + ImplicitUsings + TreatWarningsAsErrors live in
+         Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge.ElectricPropulsion.StlExporter</RootNamespace>
+    <AssemblyName>Voxelforge.ElectricPropulsion.StlExporter</AssemblyName>
+    <!-- Copy the exe into the Voxels bin so sub-process tests find it
+         at a stable path: Voxelforge.ElectricPropulsion.Voxels/bin/<cfg>/net9.0-windows/. -->
+    <OutDir>..\Voxelforge.ElectricPropulsion.Voxels\bin\$(Configuration)\net9.0-windows\</OutDir>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Voxelforge.ElectricPropulsion.Voxels\Voxelforge.ElectricPropulsion.Voxels.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge.ElectricPropulsion.Tests" />
+  </ItemGroup>
+
+</Project>

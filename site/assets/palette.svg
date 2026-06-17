@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 90" role="img" aria-label="voxelforge color palette">
+  <title>voxelforge palette</title>
+  <g>
+    <rect x="0" y="0" width="100" height="60" fill="#0B4F7A"></rect>
+    <rect x="100" y="0" width="100" height="60" fill="#D94F00"></rect>
+    <rect x="200" y="0" width="100" height="60" fill="#1C2024"></rect>
+    <rect x="300" y="0" width="100" height="60" fill="#F5F3EE" stroke="#1C2024" stroke-opacity="0.2" stroke-width="0.5"></rect>
+    <rect x="400" y="0" width="100" height="60" fill="#6B7280"></rect>
+  </g>
+  <g font-family="ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="11" text-anchor="middle">
+    <text x="50" y="35" fill="#F5F3EE">#0B4F7A</text>
+    <text x="150" y="35" fill="#F5F3EE">#D94F00</text>
+    <text x="250" y="35" fill="#F5F3EE">#1C2024</text>
+    <text x="350" y="35" fill="#1C2024">#F5F3EE</text>
+    <text x="450" y="35" fill="#F5F3EE">#6B7280</text>
+  </g>
+  <g font-family="ui-sans-serif, system-ui, -apple-system, &#39;Segoe UI&#39;, Inter, sans-serif" font-size="11" font-weight="500" fill="#1C2024" text-anchor="middle">
+    <text x="50" y="80">Forge Blue</text>
+    <text x="150" y="80">Ignition</text>
+    <text x="250" y="80">Graphite</text>
+    <text x="350" y="80">Bone</text>
+    <text x="450" y="80">Steel</text>
+  </g>
+</svg>

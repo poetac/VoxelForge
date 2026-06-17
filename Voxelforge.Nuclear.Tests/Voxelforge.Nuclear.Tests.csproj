@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Voxelforge.Nuclear.Tests — xUnit tests for the nuclear thermal rocket pillar.
+       Mirrors the structure of Voxelforge.Marine.Tests and
+       Voxelforge.ElectricPropulsion.Tests. Net9.0 (PicoGK-free) so tests run
+       in the standard CI matrix without requiring a Windows-only graphics stack.
+
+       Primary deliverable: NervaNrxA6Fixture validating NERVA NRX-A6 ground-test
+       data (1100 MW, 33 kg/s, 34 bar) against the lumped NtrCycleSolver. -->
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>Voxelforge.Nuclear.Tests</RootNamespace>
+    <AssemblyName>Voxelforge.Nuclear.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ExcludeAssets="analyzers": same rationale as Marine.Tests. -->
+    <ProjectReference Include="..\Voxelforge.Nuclear.Core\Voxelforge.Nuclear.Core.csproj"
+                      ExcludeAssets="analyzers" />
+  </ItemGroup>
+
+</Project>

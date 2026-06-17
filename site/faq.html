@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FAQ — voxelforge</title>
+<link rel="stylesheet" href="assets/brand.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  .qa { border-top: 1px solid var(--rule); padding: var(--s-5) 0; }
+  .qa:first-child { border-top: 0; }
+  .qa h3 { margin: 0 0 var(--s-3); font-size: var(--t-md); font-weight: 600; letter-spacing: -0.01em; line-height: 1.35; }
+  .qa p { margin: 0; font-size: var(--t-sm); color: var(--ink-2); line-height: 1.65; max-width: 720px; }
+  .qa p + p { margin-top: var(--s-2); }
+  .qa-section h2 { font-size: var(--t-md); margin: var(--s-12) 0 var(--s-3); padding-bottom: var(--s-2); border-bottom: 1px solid var(--rule); font-family: var(--font-mono); font-size: var(--t-mono-sm); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); font-weight: 500; }
+  .qa-section:first-child h2 { margin-top: 0; }
+</style></head><body>
+
+<nav class="nav"><div class="nav__brand"><img src="assets/logo.svg" alt=""><a href="index.html" class="nav__brand-name">voxelforge</a></div>
+<div class="nav__links"><a href="about.html">About</a><a href="architecture.html">Architecture</a><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a><a href="roadmap.html">Roadmap</a><a href="cascade.html">Cascade</a><a href="getting-started.html">Get started</a><a href="design-system.html">Brand</a><a href="https://github.com/poetac/voxelforge">GitHub ↗</a></div></nav>
+
+<header class="section" style="border-bottom:1px solid var(--rule);padding-bottom:var(--s-12);"><div class="wrap">
+  <p class="eyebrow">FAQ</p>
+  <h1 class="t-h1" style="margin-top:var(--s-3);max-width:820px;">Frequently asked, honestly answered.</h1>
+</div></header>
+
+<section class="section"><div class="wrap" style="max-width:880px;">
+
+  <div class="qa-section">
+    <h2>Scope &amp; intent</h2>
+
+    <div class="qa"><h3>Will an engine voxelforge generates actually fire?</h3>
+      <p>Maybe. Passing every feasibility gate means the design is not obviously broken in the ways we know how to check — Bartz heat flux, Crocco stability, cavitation, rotordynamics, printability. It does not certify the engine.</p>
+      <p>Anyone planning to fire what voxelforge produces should run independent CFD, structural FEA, and a cold-flow + hot-fire campaign on a test stand. voxelforge shortens preliminary design from weeks to minutes; it does not replace verification.</p>
+    </div>
+
+    <div class="qa"><h3>Can I use this commercially?</h3>
+      <p>Yes — MIT license. PicoGK is also permissively licensed. The propellant tables come from CEA, which is public-domain NASA work. Vendor LPBF process windows are referenced from public datasheets only; tighter vendor-specific bounds belong in your fork.</p>
+    </div>
+
+    <div class="qa"><h3>Why "voxelforge" and not "regen-chamber-designer"?</h3>
+      <p>The project began life as <code>RegenChamberDesigner</code>, a regen-chamber tool. As scope grew to a full engine generator (and now a multi-pillar platform with air-breathing entries), the repo was renamed <code>voxelforge</code>. Sprint 0 PR-2 (2026-04-30) renamed the namespaces and assemblies; the folder rename followed 2026-05-04. Five on-disk magic strings still carry the legacy <code>RegenChamberDesigner</code> identifier in JSON / 3MF / STL artifacts so older saved designs keep round-tripping cleanly.</p>
+    </div>
+  </div>
+
+  <div class="qa-section">
+    <h2>Methodology</h2>
+
+    <div class="qa"><h3>Why simulated annealing and not gradient-based?</h3>
+      <p>Two reasons. First, the search space is mixed-integer (channel count, element count, cycle topology) — gradients aren't defined. Second, the gate cascade is non-smooth: tiny parameter shifts can flip a feasibility verdict, so a smooth gradient surface doesn't exist near the boundary that matters most.</p>
+      <p>Multi-chain parallel SA with Sobol seeding shipped 2026-04-25 (ADR-017) and was <strong>promoted to default-on 2026-04-27</strong> after the cascade benchmarks validated it: N independent chains in lockstep with elite migration, auto-scaling to <code>ProcessorCount&nbsp;−&nbsp;2</code>. T1.5 progressive-fidelity pre-screen layers on top, rejecting ~60–80&thinsp;% of candidates at ~10&nbsp;µs each before paying the 50–200&nbsp;ms thermal solve. CMA-ES on the continuous core shipped 2026-04-29; a hybrid SA+CMA-ES orchestrator and a Bayesian-optimisation outer loop are now also live.</p>
+    </div>
+
+    <div class="qa"><h3>Bartz has a ±25–50% uncertainty band. How can you optimise against it?</h3>
+      <p>By treating it as a screening criterion with margin, not a target. The <code>regen-thermal-margin</code> gate requires predicted wall temperature stays 30 % below the Bartz worst-case. The SA isn't <em>minimising</em> wall temperature — it's pushing the design until any gate stops it. Bartz is one of the gates.</p>
+      <p>An SU2 RANS oracle that recalibrates the Bartz coefficient per-region for the converged candidate is in <a href="https://github.com/poetac/voxelforge/blob/main/ROADMAP.md">ROADMAP.md</a> as a Tier&nbsp;2 optimisation-infrastructure bet. Closed-form correlation stays the screening tool; CFD becomes the validation tool. Unscheduled.</p>
+    </div>
+
+    <div class="qa"><h3>Why no 3D CFD inside the SA loop?</h3>
+      <p>Compute. A 34-D SA run with 8,000 evaluations × ~30 minutes of CFD per candidate is roughly four CPU-years. The closed-form path runs the same 8,000 evaluations in under two hours. SU2 lives outside the SA loop — applied once to the converged optimum.</p>
+    </div>
+
+    <div class="qa"><h3>How rigid is the 34-dimension search space?</h3>
+      <p>Not rigid. ADR-012 documents the recipe to add a dimension: register in <code>DesignVariableRegistry</code>, supply bounds + log/linear scaling, write at minimum one gate that depends on it, freeze a baseline JSONL, run the cascade. The 34 are today's; new dimensions land when a physics finding opens a new SA-tunable knob.</p>
+    </div>
+  </div>
+
+  <div class="qa-section">
+    <h2>Implementation</h2>
+
+    <div class="qa"><h3>Why Windows-only?</h3>
+      <p>PicoGK 2.2.0 ships pre-built Windows binaries with a known-good OpenVDB linkage. The Linux build path exists but isn't covered by the cascade. Headless physics in <code>.Core</code> runs anywhere .NET 9 runs; the Windows constraint applies only to STL generation.</p>
+    </div>
+
+    <div class="qa"><h3>Why does my test crash on dispose?</h3>
+      <p>This was a known issue under PicoGK 1.7.7.5 (documented in ADR-005, now retired). Under PicoGK 2.0.0, in-process xUnit works correctly via the <code>LibraryScope</code> ambient helper: <code>using var lib = new Library(vox_mm); using var libScope = LibraryScope.Set(lib);</code> then call into builders normally. Subprocess tests are now reserved for three specific cases only: CLI-surface tests (<code>voxelforge-eval</code>), cross-process determinism (<code>BenchSADeterminismTests</code>), and cross-platform test projects.</p>
+    </div>
+
+    <div class="qa"><h3>Why pin PicoGK to 2.0.0?</h3>
+      <p>Voxel-engine output is sensitive to kernel-internal numerics. Floating an unpinned PicoGK breaks reproducibility receipts on every patch release. ADR-011 fixes the version; bumps are tracked as deliberate cascade events with full baseline rebake.</p>
+    </div>
+
+    <div class="qa"><h3>What's the cascade tail and what shipped recently?</h3>
+      <p>From 2026-04-22 through 2026-04-26 voxelforge ran a five-day correctness cascade: Sprint A1/A2 (the <code>.Core</code> / <code>.Voxels</code> / app split, ADR-015 + ADR-016) on day one; Sprints 30/31/32 (Criticals + 4 Majors) on day two; Sprints 33/36/34a/37a/37b/34b/38a (coolant correlations, advisory gates, turbine choke, dual-bell, aerospike Bartz, plug base drag, &gamma; split, Rao bell table, voxelforge-eval subprocess oracle, Sobol indices, CI contracts) compressed onto days three–four; ADR-017 multi-chain SA on day four; ADR-018 feasibility-investigation audit on day five.</p>
+      <p>Phase 6 followed 2026-04-27: Sprint G′ (multi-wall hoop credit + local gas-static P), physics-integrity bundles 1+2 (closing YF-1 / ID-1 / ID-2 / ID-3), hot-fire items 5+6 (<code>SafetyReport</code> + <code>BuildSheet</code>), Tier-1 + Tier-2 audit micro-fixes, A5 LH2 viscosity, L3 Sobol slice fix, Track A (multi-chain default-on), Track B (per-station wall thickness, SA dims 28→31), plus A1 bimetallic series resistance and T1.5 progressive-fidelity SA pre-screen. <strong>25 of 50 physics-audit findings closed; 1,613 tests passing; gate census 45 → 46.</strong></p>
+    </div>
+
+    <div class="qa"><h3>Which canonical presets are feasible today?</h3>
+      <p>Three of five, post-Phase-6: <strong>merlin</strong> (139 / 1,149 feasible @ 100-iter SA), <strong>aerospike</strong> (20 / 1,024 @ 100-iter), <strong>pintle</strong> (2,315 / 7,005 @ 500-iter — ~33&thinsp;%). Pre-cascade all five returned 0 feasible. RL-10 currently sits at 0 / 15,600 — exit-station hoop on the &epsilon;=84 bell dominates yield. Track&nbsp;B shipped per-station wall thickness as the lever; the optimiser can now thicken the exit station while keeping the throat thin for thermal extraction. Validation run pending. <code>pressure-fed-small</code> at 1 kN sits in a fundamentally stretched regen regime — pressure-fed micro-thrusters typically film-cool, not regen-cool.</p>
+    </div>
+
+    <div class="qa"><h3>What is voxelforge-eval?</h3>
+      <p>A subprocess oracle that wraps the headless <code>.Core</code> physics with a JSON-line stdin/stdout protocol. Pipe a design vector in, get back a feasibility report and headline metrics. Lets external Python / Julia / R callers drive optimisation without touching the .NET runtime. Shipped in S 38a alongside Sobol sensitivity indices.</p>
+    </div>
+
+    <div class="qa"><h3>What's a "cascade"?</h3>
+      <p>A reproducibility CI job that re-runs every example, every gate scenario, and every benchmark, then diffs the resulting JSONL fingerprints against the previous baseline. A clean cascade is the merge gate. Cascade #N+1's diff against #N is the measured impact of the sprint.</p>
+    </div>
+
+    <div class="qa"><h3>How big is the codebase?</h3>
+      <p>Roughly 3,250+ tests across 25 projects spanning 5 pillars (rocket · air-breathing · electric propulsion · marine · CFD verification), 22 active ADRs (most recent: ADR-025 <code>IEngine&lt;,,&gt;</code> engine-family abstraction, ADR-026 multi-pillar coordination, ADR-027 Avalonia + PicoGK threading spike). <code>.Core</code> holds the headless physics (no PicoGK dependency); <code>.Voxels</code> contains the 19 voxel builders behind <code>IVoxelHandle</code>; <code>.Eval</code> ships the <code>voxelforge-eval</code> subprocess oracle for Python / Julia / R consumers.</p>
+    </div>
+  </div>
+
+  <div class="qa-section">
+    <h2>Contributing</h2>
+
+    <div class="qa"><h3>What do you actually need help with?</h3>
+      <p>Three things: validation against published hot-fire data (especially RL10 and Merlin Vacuum); the demand-driven hypergol propellant pairs (N2O4/MMH, H2O2/RP-1, N2O4/N2H4 — blocked on real CEA tables); and the SU2 oracle wiring (closed-form to CFD validation loop). All three are documented as open issues with acceptance criteria.</p>
+    </div>
+
+    <div class="qa"><h3>What kind of contributions get rejected?</h3>
+      <p>Anything that breaks reproducibility receipts without a corresponding cascade rebake. Anything that adds a correlation without a citation and validity-domain guard. Anything that introduces a TODO/FIXME/HACK marker — the source tree has zero of these by policy.</p>
+    </div>
+
+    <div class="qa"><h3>Is there a community?</h3>
+      <p>GitHub issues and PRs at <a href="https://github.com/poetac/voxelforge">poetac/voxelforge</a>. No Discord, no Slack — the project leans toward asynchronous, citable, archive-friendly communication. ADRs are the canonical record.</p>
+    </div>
+
+    <div class="qa"><h3>What's the project's relationship with LEAP 71?</h3>
+      <p>voxelforge uses PicoGK, an open-source voxel kernel from LEAP 71. That's the extent of the relationship. voxelforge is independent and not endorsed by, nor coordinated with, LEAP 71.</p>
+    </div>
+  </div>
+
+</div></section>
+
+<footer class="foot"><div class="wrap"><div class="foot__cols"><div><div class="u-row-tight" style="margin-bottom:var(--s-3);"><img src="assets/logo.svg" width="22" height="22" alt=""><span style="font-weight:600;color:var(--ink)">voxelforge</span></div><p style="margin:0;max-width:360px;">A 3D-printable rocket engine, generated from a handful of parameters.</p></div><div><div class="foot__title">Reference</div><div class="foot__links"><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a></div></div><div><div class="foot__title">Project</div><div class="foot__links"><a href="architecture.html">Architecture</a><a href="roadmap.html">Roadmap</a><a href="faq.html">FAQ</a><a href="design-system.html">Brand</a></div></div><div><div class="foot__title">Source</div><div class="foot__links"><a href="https://github.com/poetac/voxelforge">GitHub</a><a href="https://github.com/poetac/voxelforge/blob/main/LICENSE">License (MIT)</a></div></div></div></div></footer>
+</body></html>

@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>voxelforge — 3D-printable rocket engines from a handful of parameters</title>
+<link rel="stylesheet" href="assets/brand.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* page-specific */
+  .hero {
+    padding: var(--s-12) 0 var(--s-16);
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(28, 32, 36, 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(28, 32, 36, 0.035) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+    mask-image: radial-gradient(circle at 70% 30%, black 0%, transparent 70%);
+  }
+  .hero__inner { position: relative; display: grid; grid-template-columns: 1.05fr 1fr; gap: var(--s-12); align-items: center; }
+  @media (max-width: 980px) { .hero__inner { grid-template-columns: 1fr; } }
+  .hero__title {
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    margin: 0 0 var(--s-5);
+  }
+  .hero__title em {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ignition);
+  }
+  .hero__lead {
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    margin: 0 0 var(--s-6);
+    max-width: 540px;
+  }
+  .hero__cta { display: flex; gap: var(--s-3); flex-wrap: wrap; margin-bottom: var(--s-6); }
+  .hero__meta { display: flex; gap: var(--s-6); flex-wrap: wrap; align-items: center; padding-top: var(--s-4); border-top: 1px solid var(--rule); }
+  .hero__meta dt { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+  .hero__meta dd { font-family: var(--font-mono); font-size: var(--t-mono); color: var(--ink); margin: 2px 0 0; }
+
+  /* hero render frame */
+  .render-frame {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: var(--graphite-950);
+    border-radius: var(--r-3);
+    overflow: hidden;
+    box-shadow: var(--shadow-deep);
+  }
+  .render-frame__chrome {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    border-radius: var(--r-3);
+  }
+  .render-frame__label {
+    position: absolute;
+    top: 12px; left: 14px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: rgba(245, 243, 238, 0.55);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .render-frame__readout {
+    position: absolute;
+    bottom: 12px; left: 14px; right: 14px;
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: rgba(245, 243, 238, 0.55);
+    letter-spacing: 0.04em;
+  }
+  .render-frame__readout span:first-child { color: var(--ignition); }
+
+  /* trust strip */
+  .trust {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .trust__cell { background: var(--bg); padding: var(--s-6) var(--s-8); }
+  .trust__num { font-family: var(--font-display); font-size: 44px; font-weight: 500; line-height: 1; color: var(--ink); letter-spacing: -0.02em; }
+  .trust__lbl { font-family: var(--font-mono); font-size: var(--t-mono-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); margin-top: var(--s-2); }
+  @media (max-width: 880px) { .trust { grid-template-columns: 1fr 1fr; } }
+
+  /* feature cards */
+  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-1); background: var(--rule); border: 1px solid var(--rule); border-radius: var(--r-3); overflow: hidden; }
+  @media (max-width: 880px) { .features { grid-template-columns: 1fr; } }
+  .feat { background: var(--bg-elev); padding: var(--s-8); }
+  .feat__icon {
+    width: 36px; height: 36px;
+    display: grid; place-items: center;
+    margin-bottom: var(--s-5);
+    color: var(--ignition);
+  }
+  .feat__title { font-size: var(--t-md); font-weight: 600; letter-spacing: -0.01em; margin: 0 0 var(--s-2); }
+  .feat__body { font-size: var(--t-sm); line-height: 1.55; color: var(--ink-2); margin: 0; }
+  .feat__list { list-style: none; padding: 0; margin: var(--s-3) 0 0; font-family: var(--font-mono); font-size: var(--t-mono-sm); color: var(--ink-2); }
+  .feat__list li { padding: 3px 0; border-top: 1px dashed var(--rule); }
+
+  /* the pipeline */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    align-items: stretch;
+    margin-top: var(--s-8);
+  }
+  @media (max-width: 980px) { .pipeline { grid-template-columns: 1fr; } }
+  .pipe-step {
+    padding: var(--s-6);
+    border-right: 1px dashed var(--rule);
+    position: relative;
+  }
+  .pipe-step:last-child { border-right: 0; }
+  .pipe-step__num { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); letter-spacing: 0.06em; }
+  .pipe-step__title { font-size: var(--t-md); font-weight: 600; letter-spacing: -0.01em; margin: var(--s-2) 0 var(--s-2); }
+  .pipe-step__body { font-size: var(--t-sm); color: var(--ink-2); line-height: 1.5; margin: 0; }
+
+  /* big quote / philosophy */
+  .quote {
+    border-top: 1px solid var(--graphite);
+    border-bottom: 1px solid var(--graphite);
+    padding: var(--s-12) 0;
+  }
+  .quote p {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 3.5vw, 44px);
+    font-weight: 400;
+    line-height: 1.18;
+    letter-spacing: -0.015em;
+    margin: 0;
+    max-width: 880px;
+  }
+  .quote p em { font-style: italic; color: var(--forge-blue); }
+
+  /* example chip */
+  .ex-card {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: var(--s-8);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-3);
+    background: var(--bg-elev);
+    overflow: hidden;
+  }
+  @media (max-width: 880px) { .ex-card { grid-template-columns: 1fr; } }
+  .ex-card__viz {
+    background: var(--graphite-950);
+    aspect-ratio: 1 / 1;
+    position: relative;
+  }
+  .ex-card__body { padding: var(--s-8); }
+
+  /* CTA strip */
+  .cta {
+    background: var(--graphite);
+    color: var(--bone-100);
+    border-radius: var(--r-3);
+    padding: var(--s-12) var(--s-10);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--s-8);
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  @media (max-width: 880px) { .cta { grid-template-columns: 1fr; } }
+  .cta::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+    mask-image: linear-gradient(to right, black 0%, transparent 100%);
+  }
+  .cta__title { font-family: var(--font-display); font-size: var(--t-2xl); font-weight: 500; letter-spacing: -0.02em; margin: 0; position: relative; }
+  .cta__sub { color: rgba(245,243,238,0.6); margin: var(--s-2) 0 0; position: relative; max-width: 540px; }
+</style>
+</head>
+<body>
+
+<!-- ─── nav ─── -->
+<nav class="nav" data-screen-label="00 Nav">
+  <div class="nav__brand">
+    <img src="assets/logo.svg" alt="">
+    <a href="index.html" class="nav__brand-name">voxelforge</a>
+  </div>
+  <div class="nav__links">
+    <a href="about.html">About</a>
+    <a href="architecture.html">Architecture</a>
+    <a href="physics.html">Physics</a>
+    <a href="cycles.html">Cycles</a>
+    <a href="propellants.html">Propellants</a>
+    <a href="examples.html">Examples</a>
+    <a href="roadmap.html">Roadmap</a>
+    <a href="cascade.html">Cascade</a>
+    <a href="getting-started.html">Get started</a>
+    <a href="design-system.html">Brand</a>
+    <a href="https://github.com/poetac/voxelforge">GitHub ↗</a>
+  </div>
+</nav>
+
+<!-- ─── hero ─── -->
+<header class="hero" data-screen-label="01 Hero">
+  <div class="wrap-full hero__inner">
+    <div>
+      <div class="u-row-tight" style="margin-bottom: var(--s-5);">
+        <span class="tag tag--accent">v0.37b</span>
+        <span class="tag">.NET 9 · Windows · MIT</span>
+        <span class="tag tag--ok">5,700+ tests passing</span>
+      </div>
+      <h1 class="hero__title">3D-printable rocket engines, <em>generated</em> from a handful of parameters.</h1>
+      <p class="hero__lead">
+        Give voxelforge a thrust target, a chamber pressure, and a propellant pair.
+        It returns a printable LOX/CH4 (or LOX/H2, or LOX/RP-1) regen-cooled
+        thrust chamber — contour, channels, injector face, flanges, bosses —
+        as a single STL ready for laser powder-bed fusion.
+      </p>
+      <div class="hero__cta">
+        <a href="getting-started.html" class="btn btn--primary unlinked">Get started →</a>
+        <a href="https://github.com/poetac/voxelforge" class="btn btn--ghost unlinked">View on GitHub</a>
+        <a href="examples.html" class="btn btn--ghost unlinked">See examples</a>
+      </div>
+      <dl class="hero__meta">
+        <div><dt>Search space</dt><dd>34 dims</dd></div>
+        <div><dt>Feasibility gates</dt><dd>196</dd></div>
+        <div><dt>Pillars</dt><dd>5 physics + SU2 verification harness (rocket · air · EP · marine · nuclear)</dd></div>
+        <div><dt>Engine cycles</dt><dd>7 rocket · 12 air-breathing · 4 EP</dd></div>
+      </dl>
+    </div>
+
+    <div class="render-frame" aria-label="Generated regen-cooled thrust chamber preview">
+      <!-- inline SVG technical drawing of a chamber cross-section -->
+      <svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block;">
+        <defs>
+          <linearGradient id="hot" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#D94F00"/>
+            <stop offset="35%" stop-color="#A83C00"/>
+            <stop offset="100%" stop-color="#7A2C00"/>
+          </linearGradient>
+          <linearGradient id="cu" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#5a3a28"/>
+            <stop offset="50%" stop-color="#86563d"/>
+            <stop offset="100%" stop-color="#5a3a28"/>
+          </linearGradient>
+          <pattern id="grid600" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(245,243,238,0.05)" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect width="600" height="600" fill="#0F1216"/>
+        <rect width="600" height="600" fill="url(#grid600)"/>
+
+        <!-- chamber contour: converging-diverging bell -->
+        <!-- top half -->
+        <path d="M 60 200 L 240 200 Q 280 200 300 240 L 320 280 Q 330 295 340 280 L 365 235 Q 380 215 400 220 L 540 280"
+              fill="none" stroke="url(#cu)" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+        <!-- bottom half (mirrored) -->
+        <path d="M 60 400 L 240 400 Q 280 400 300 360 L 320 320 Q 330 305 340 320 L 365 365 Q 380 385 400 380 L 540 320"
+              fill="none" stroke="url(#cu)" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+
+        <!-- gas-side hot zone fill -->
+        <path d="M 60 207 L 240 207 Q 285 207 305 245 L 325 285 L 335 285 L 360 240 Q 380 222 400 227 L 540 287
+                 L 540 313 L 400 373 Q 380 378 360 360 L 335 315 L 325 315 L 305 355 Q 285 393 240 393 L 60 393 Z"
+              fill="url(#hot)" opacity="0.35"/>
+
+        <!-- regen channels (62 ticks) -->
+        <g stroke="#0B4F7A" stroke-width="2" opacity="0.85">
+          <!-- top channels -->
+          <g>
+            <line x1="80" y1="190" x2="80" y2="180"/>
+            <line x1="100" y1="190" x2="100" y2="180"/>
+            <line x1="120" y1="190" x2="120" y2="180"/>
+            <line x1="140" y1="190" x2="140" y2="180"/>
+            <line x1="160" y1="190" x2="160" y2="180"/>
+            <line x1="180" y1="190" x2="180" y2="180"/>
+            <line x1="200" y1="190" x2="200" y2="180"/>
+            <line x1="220" y1="190" x2="220" y2="180"/>
+            <line x1="245" y1="188" x2="248" y2="178"/>
+            <line x1="265" y1="180" x2="270" y2="172"/>
+            <line x1="290" y1="208" x2="295" y2="200"/>
+            <line x1="310" y1="252" x2="316" y2="246"/>
+            <line x1="325" y1="278" x2="332" y2="274"/>
+            <line x1="350" y1="246" x2="356" y2="240"/>
+            <line x1="370" y1="220" x2="376" y2="212"/>
+            <line x1="395" y1="218" x2="398" y2="208"/>
+            <line x1="420" y1="227" x2="423" y2="217"/>
+            <line x1="445" y1="237" x2="448" y2="227"/>
+            <line x1="470" y1="247" x2="473" y2="237"/>
+            <line x1="495" y1="258" x2="498" y2="248"/>
+            <line x1="520" y1="270" x2="523" y2="260"/>
+          </g>
+          <!-- bottom channels (mirrored y) -->
+          <g transform="translate(0,600) scale(1,-1)">
+            <line x1="80" y1="190" x2="80" y2="180"/>
+            <line x1="100" y1="190" x2="100" y2="180"/>
+            <line x1="120" y1="190" x2="120" y2="180"/>
+            <line x1="140" y1="190" x2="140" y2="180"/>
+            <line x1="160" y1="190" x2="160" y2="180"/>
+            <line x1="180" y1="190" x2="180" y2="180"/>
+            <line x1="200" y1="190" x2="200" y2="180"/>
+            <line x1="220" y1="190" x2="220" y2="180"/>
+            <line x1="245" y1="188" x2="248" y2="178"/>
+            <line x1="265" y1="180" x2="270" y2="172"/>
+            <line x1="290" y1="208" x2="295" y2="200"/>
+            <line x1="310" y1="252" x2="316" y2="246"/>
+            <line x1="325" y1="278" x2="332" y2="274"/>
+            <line x1="350" y1="246" x2="356" y2="240"/>
+            <line x1="370" y1="220" x2="376" y2="212"/>
+            <line x1="395" y1="218" x2="398" y2="208"/>
+            <line x1="420" y1="227" x2="423" y2="217"/>
+            <line x1="445" y1="237" x2="448" y2="227"/>
+            <line x1="470" y1="247" x2="473" y2="237"/>
+            <line x1="495" y1="258" x2="498" y2="248"/>
+            <line x1="520" y1="270" x2="523" y2="260"/>
+          </g>
+        </g>
+
+        <!-- centerline -->
+        <line x1="40" y1="300" x2="560" y2="300" stroke="rgba(245,243,238,0.18)" stroke-dasharray="6 4" stroke-width="1"/>
+
+        <!-- annotations -->
+        <g font-family="JetBrains Mono, monospace" font-size="10" fill="rgba(245,243,238,0.65)">
+          <!-- station tick + label -->
+          <line x1="330" y1="100" x2="330" y2="290" stroke="rgba(217,79,0,0.6)" stroke-width="1"/>
+          <text x="335" y="110">THROAT</text>
+          <text x="335" y="124">d_t = 28.4 mm</text>
+
+          <line x1="540" y1="120" x2="540" y2="290" stroke="rgba(11,79,122,0.6)" stroke-width="1"/>
+          <text x="450" y="115">EXIT · ε = 8.0</text>
+
+          <line x1="150" y1="150" x2="150" y2="200" stroke="rgba(11,79,122,0.6)" stroke-width="1"/>
+          <text x="60" y="145">CHAMBER · ε_c = 6.0</text>
+
+          <text x="60" y="525">PROPELLANT  LOX/CH4</text>
+          <text x="60" y="540">CYCLE       PRESSURE-FED</text>
+          <text x="60" y="555">CHANNELS    80 axial</text>
+        </g>
+      </svg>
+      <div class="render-frame__label">VOXELFORGE / RENDER</div>
+      <div class="render-frame__readout">
+        <span>● LIVE</span>
+        <span>5 kN / 50 bar</span>
+        <span>0.6 mm voxel</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ─── trust strip ─── -->
+<section class="trust" data-screen-label="02 Trust">
+  <div class="trust__cell"><div class="trust__num">34</div><div class="trust__lbl">Dimensional design space</div></div>
+  <div class="trust__cell"><div class="trust__num">196</div><div class="trust__lbl">Feasibility gates</div></div>
+  <div class="trust__cell"><div class="trust__num">5,700+</div><div class="trust__lbl">Tests passing</div></div>
+  <div class="trust__cell"><div class="trust__num">0</div><div class="trust__lbl">TODO / FIXME / HACK in source</div></div>
+</section>
+
+<!-- ─── what it does ─── -->
+<section class="section" data-screen-label="03 What it does">
+  <div class="wrap">
+    <div style="max-width: 720px; margin-bottom: var(--s-12);">
+      <p class="eyebrow">What it does</p>
+      <h2 class="t-h2" style="margin-top: var(--s-3);">Mesh-based CAD struggles with what additive manufacturing actually unlocks.</h2>
+      <p class="t-lead" style="margin-top: var(--s-4);">
+        Conformal TPMS coolant channels. Monolithic fusion of chamber, turbopump, and feed manifold into a single part.
+        Aerospike plug cooling with internally-routed regen passages. voxelforge runs on a voxel-implicit kernel
+        (PicoGK 2.2.0) where those operations are boolean-trivial. A coolant channel isn't a swept surface —
+        it's the negative of a Schwarz P field clipped to a chamber shell.
+      </p>
+    </div>
+
+    <div class="features">
+      <article class="feat">
+        <div class="feat__icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <rect x="3" y="9" width="30" height="22" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M3 9 L18 2 L33 9" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+            <path d="M3 9 L18 16 L33 9 M18 16 L18 31" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <h3 class="feat__title">Combustion &amp; thermo</h3>
+        <p class="feat__body">Equilibrium-corrected propellant tables, Bartz hot-gas heat flux, atomisation SMD, Crocco N-τ stability screen, start-transient simulation.</p>
+        <ul class="feat__list">
+          <li>LOX/CH4 · LOX/H2 · LOX/RP-1</li>
+          <li>Chug · buzz · screech screening</li>
+          <li>Film cooling + ablative fallback</li>
+        </ul>
+      </article>
+
+      <article class="feat">
+        <div class="feat__icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <path d="M6 6 Q18 2 30 6 Q34 18 30 30 Q18 34 6 30 Q2 18 6 6 Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M6 18 Q18 14 30 18 M18 6 Q14 18 18 30" stroke="currentColor" stroke-width="1.2" opacity="0.6"/>
+          </svg>
+        </div>
+        <h3 class="feat__title">Coolant &amp; heat transfer</h3>
+        <p class="feat__body">Dittus-Boelter, Gnielinski, Sieder-Tate plus TPMS-channel variants. Full regen solver with chilldown transient. Dean-number Nu for helical channels.</p>
+        <ul class="feat__list">
+          <li>H2 · CH4 · RP-1 coolant fluids</li>
+          <li>Haaland LPBF roughness friction</li>
+          <li>Purge-flow modelling</li>
+        </ul>
+      </article>
+
+      <article class="feat">
+        <div class="feat__icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <rect x="6" y="6" width="8" height="8" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <rect x="14" y="14" width="8" height="8" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <rect x="22" y="22" width="8" height="8" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <line x1="14" y1="10" x2="22" y2="10" stroke="currentColor" stroke-width="1"/>
+            <line x1="22" y1="18" x2="30" y2="18" stroke="currentColor" stroke-width="1"/>
+          </svg>
+        </div>
+        <h3 class="feat__title">Geometry &amp; manufacturing</h3>
+        <p class="feat__body">Implicit chamber contours, aerospike plugs, preburners, turbine impellers. TPMS channels generated directly from implicits. Build-orientation advisor.</p>
+        <ul class="feat__list">
+          <li>Schwarz P · Gyroid TPMS</li>
+          <li>Coax · pintle · impinging · swirl</li>
+          <li>STL · 3MF · CFD-field export</li>
+        </ul>
+      </article>
+
+      <article class="feat">
+        <div class="feat__icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M18 8 L18 12 M18 24 L18 28 M8 18 L12 18 M24 18 L28 18" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="18" cy="18" r="13" stroke="currentColor" stroke-width="1" fill="none" stroke-dasharray="2 2"/>
+          </svg>
+        </div>
+        <h3 class="feat__title">Feed system</h3>
+        <p class="feat__body">Full propellant-line pressure stackup. Line-loss, valve Cv, filter catalogues. Turbopump and turbine sizing with shaft critical-speed check.</p>
+        <ul class="feat__list">
+          <li>Pressure-fed · electric pump</li>
+          <li>Gas-gen · staged · expander · ORSC · tap-off</li>
+          <li>Auto-routed feed manifolds</li>
+        </ul>
+      </article>
+
+      <article class="feat">
+        <div class="feat__icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <path d="M3 30 Q12 8 18 18 Q24 28 33 6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <circle cx="3" cy="30" r="2" fill="currentColor"/>
+            <circle cx="33" cy="6" r="2" fill="currentColor"/>
+            <circle cx="18" cy="18" r="2" fill="currentColor" opacity="0.5"/>
+          </svg>
+        </div>
+        <h3 class="feat__title">Optimisation</h3>
+        <p class="feat__body">Simulated annealing over a unified design record. Pareto-front tracking, run provenance, auto-seeder, solver-warning collation.</p>
+        <ul class="feat__list">
+          <li>34-D continuous + categorical</li>
+          <li>196 feasibility gates as admission</li>
+          <li>Deterministic — same seed, same STL</li>
+        </ul>
+      </article>
+
+      <article class="feat">
+        <div class="feat__icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <rect x="6" y="6" width="24" height="24" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <line x1="6" y1="14" x2="30" y2="14" stroke="currentColor" stroke-width="1"/>
+            <line x1="6" y1="22" x2="30" y2="22" stroke="currentColor" stroke-width="1"/>
+            <line x1="14" y1="6" x2="14" y2="30" stroke="currentColor" stroke-width="1"/>
+            <line x1="22" y1="6" x2="22" y2="30" stroke="currentColor" stroke-width="1"/>
+            <circle cx="10" cy="10" r="1.5" fill="currentColor"/>
+            <circle cx="26" cy="26" r="1.5" fill="currentColor"/>
+          </svg>
+        </div>
+        <h3 class="feat__title">Verification</h3>
+        <p class="feat__body">Every shipped sprint has a frozen JSONL fingerprint baseline. The post-cascade diff is the cascade's measured impact — physics changes are tracked, not assumed.</p>
+        <ul class="feat__list">
+          <li>5 canonical-design SA fingerprints</li>
+          <li>JSONL schema v1 (ADR-013)</li>
+          <li>Bench-regression CI on every PR</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ─── pipeline ─── -->
+<section class="section" style="padding-top: 0;" data-screen-label="04 Pipeline">
+  <div class="wrap">
+    <div style="max-width: 720px; margin-bottom: var(--s-6);">
+      <p class="eyebrow">Pipeline</p>
+      <h2 class="t-h2" style="margin-top: var(--s-3);">From parameters to printable STL.</h2>
+    </div>
+    <div class="pipeline" style="border: 1px solid var(--rule); border-radius: var(--r-3); overflow: hidden; background: var(--bg-elev);">
+      <div class="pipe-step">
+        <div class="pipe-step__num">01 / INPUT</div>
+        <div class="pipe-step__title">Operating conditions</div>
+        <p class="pipe-step__body">Thrust, chamber pressure, mixture ratio, propellant pair, ambient.</p>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-step__num">02 / SEED</div>
+        <div class="pipe-step__title">Auto-seeder</div>
+        <p class="pipe-step__body">Bell geometry, channel count, L*, MR — physics-grounded starting point.</p>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-step__num">03 / SEARCH</div>
+        <div class="pipe-step__title">SA + 196 gates</div>
+        <p class="pipe-step__body">34-D simulated annealing. Every candidate clears 196 admission criteria before scoring.</p>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-step__num">04 / VOXELISE</div>
+        <div class="pipe-step__title">PicoGK kernel</div>
+        <p class="pipe-step__body">Implicit SDF for shell, channels, flanges, bosses. Boolean-trivial composition.</p>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-step__num">05 / EXPORT</div>
+        <div class="pipe-step__title">STL · 3MF · CFD</div>
+        <p class="pipe-step__body">Single STL ready for laser powder-bed fusion. Plus build sheet, safety report, CFD field.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── philosophy ─── -->
+<section class="quote" data-screen-label="05 Philosophy">
+  <div class="wrap">
+    <p class="eyebrow" style="margin-bottom: var(--s-4);">Design philosophy</p>
+    <p>
+      Most preliminary-design tools optimise first and validate second. voxelforge inverts that:
+      <em>physics reality is an admission criterion</em>, not a penalty term. The scoring function only ever sees designs
+      that are already buildable, cool-able, startable, and structurally sound.
+    </p>
+  </div>
+</section>
+
+<!-- ─── example case ─── -->
+<section class="section" data-screen-label="06 Example">
+  <div class="wrap">
+    <div style="max-width: 720px; margin-bottom: var(--s-8);">
+      <p class="eyebrow">Reference case</p>
+      <h2 class="t-h2" style="margin-top: var(--s-3);">5 kN LOX/CH4 pressure-fed.</h2>
+      <p class="t-lead" style="margin-top: var(--s-4);">The bread-and-butter starter. No turbopump, no preburner, axial regen channels. Solves in seconds; voxelises in minutes.</p>
+    </div>
+
+    <div class="ex-card">
+      <div class="ex-card__viz">
+        <svg viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+          <rect width="280" height="280" fill="#0F1216"/>
+          <g stroke="rgba(245,243,238,0.07)" stroke-width="1">
+            <line x1="0" y1="140" x2="280" y2="140"/>
+            <line x1="140" y1="0" x2="140" y2="280"/>
+          </g>
+          <!-- chamber -->
+          <path d="M 30 100 L 130 100 Q 150 100 158 115 L 168 138 Q 172 145 176 138 L 188 110 Q 195 95 210 95 L 250 115
+                   L 250 165 L 210 185 Q 195 185 188 170 L 176 142 Q 172 135 168 142 L 158 165 Q 150 180 130 180 L 30 180 Z"
+                fill="#86563d" stroke="#5a3a28" stroke-width="1.5"/>
+          <path d="M 35 105 L 130 105 Q 148 105 156 117 L 167 138 L 173 138 L 187 113 Q 195 100 209 100 L 246 117
+                   L 246 163 L 209 180 Q 195 180 187 167 L 173 142 L 167 142 L 156 163 Q 148 175 130 175 L 35 175 Z"
+                fill="url(#hot2)" opacity="0.55"/>
+          <defs><linearGradient id="hot2"><stop offset="0%" stop-color="#D94F00"/><stop offset="100%" stop-color="#7A2C00"/></linearGradient></defs>
+          <g font-family="JetBrains Mono, monospace" font-size="9" fill="rgba(245,243,238,0.6)">
+            <text x="20" y="245">examples/small-pressure-fed-5kn</text>
+            <text x="20" y="260" fill="rgba(217,79,0,0.7)">SHA-256 verified · receipts in repo</text>
+          </g>
+        </svg>
+      </div>
+      <div class="ex-card__body">
+        <div class="u-row-tight" style="margin-bottom: var(--s-4);">
+          <span class="tag tag--blue">PRESSURE-FED</span>
+          <span class="tag">LOX/CH4</span>
+          <span class="tag">AXIAL REGEN</span>
+        </div>
+        <h3 class="t-h3">Tank ullage · valves · injector → 5,000 N at sea level</h3>
+        <p class="t-body" style="color: var(--ink-2); margin-top: var(--s-3);">
+          Stress-tests the <code>FEED_PRESSURE_INSUFFICIENT</code> gate: tank ullage must clear
+          line + valve + filter + umbilical + injector stackup to hit target Pc.
+        </p>
+        <div class="spec-grid" style="margin-top: var(--s-5);">
+          <div class="spec"><div class="spec__label">Thrust</div><div class="spec__value">5 kN</div></div>
+          <div class="spec"><div class="spec__label">Pc</div><div class="spec__value">50 bar</div></div>
+          <div class="spec"><div class="spec__label">MR (O/F)</div><div class="spec__value">3.3</div></div>
+          <div class="spec"><div class="spec__label">ε_c · ε</div><div class="spec__value">6.0 · 8.0</div></div>
+          <div class="spec"><div class="spec__label">L*</div><div class="spec__value">1.10 m</div></div>
+          <div class="spec"><div class="spec__label">Channels</div><div class="spec__value">80 ax</div></div>
+          <div class="spec"><div class="spec__label">Tank ullage</div><div class="spec__value">75 bar</div></div>
+          <div class="spec"><div class="spec__label">Voxel</div><div class="spec__value">0.6 mm</div></div>
+        </div>
+        <div style="margin-top: var(--s-6);">
+          <a href="examples.html" class="btn btn--ghost unlinked">Open in gallery →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── final CTA ─── -->
+<section class="section" data-screen-label="07 CTA">
+  <div class="wrap">
+    <div class="cta">
+      <div>
+        <p class="eyebrow" style="color: rgba(245,243,238,0.5); margin-bottom: var(--s-3);">For aerospace engineers evaluating the tool</p>
+        <h2 class="cta__title">Read the gates. Run the example. Generate a chamber.</h2>
+        <p class="cta__sub">Every doc is grounded in live source, not marketing. Every gate has a citation. Every example reproduces bit-identically from a SHA-256 receipt.</p>
+      </div>
+      <div style="display: flex; gap: var(--s-2); flex-wrap: wrap; position: relative;">
+        <a href="getting-started.html" class="btn btn--primary unlinked">Get started</a>
+        <a href="physics.html" class="btn btn--ghost unlinked" style="background: transparent; color: var(--bone-100); border-color: rgba(245,243,238,0.25);">Read the physics</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── footer ─── -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__cols">
+      <div>
+        <div class="u-row-tight" style="margin-bottom: var(--s-3);">
+          <img src="assets/logo.svg" width="22" height="22" alt="">
+          <span style="font-weight: 600; color: var(--ink); letter-spacing: -0.01em;">voxelforge</span>
+        </div>
+        <p style="margin: 0; max-width: 360px;">A 3D-printable rocket engine, generated from a handful of parameters. MIT-licensed; built on PicoGK by LEAP 71.</p>
+      </div>
+      <div>
+        <div class="foot__title">Reference</div>
+        <div class="foot__links">
+          <a href="physics.html">Physics</a>
+          <a href="cycles.html">Engine cycles</a>
+          <a href="propellants.html">Propellants</a>
+          <a href="examples.html">Examples</a>
+        </div>
+      </div>
+      <div>
+        <div class="foot__title">Project</div>
+        <div class="foot__links">
+          <a href="architecture.html">Architecture</a>
+          <a href="roadmap.html">Roadmap</a>
+          <a href="cascade.html">Cascade</a>
+          <a href="faq.html">FAQ</a>
+          <a href="design-system.html">Brand</a>
+        </div>
+      </div>
+      <div>
+        <div class="foot__title">Source</div>
+        <div class="foot__links">
+          <a href="https://github.com/poetac/voxelforge">GitHub</a>
+          <a href="https://github.com/poetac/voxelforge/blob/main/LICENSE">License (MIT)</a>
+          <a href="https://github.com/poetac/voxelforge/blob/main/CITATION.cff">Citation</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

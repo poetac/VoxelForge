@@ -1,0 +1,51 @@
+# Nightly BenchmarkDotNet microbench suite + baseline diff (#652).
+#
+# ADR-045 D1: cron 04:30 UTC Mon–Fri (staggered after nightly fingerprint).
+# Runs all 16 BDN kernels in Voxelforge.MicroBenchmarks, diffs each against
+# its committed baseline (Voxelforge.MicroBenchmarks/baselines/), and posts
+# a drift table to the GitHub Job Summary.
+#
+# Diff script: tools/Diff-BdnBaselines.ps1
+# Thresholds: mean_ns > 10% = regression (exit 1); > 5% = warning.
+#
+# Acceptance criteria (#652):
+# - Scheduled workflow at this path                                   ✓
+# - Pinned BDN baseline committed at landing time (done by #674)      ✓
+# - Diff logic: mean_ns (wall-time), alloc_bytes, stddev_ns (spread)  ✓ (tools/Diff-BdnBaselines.ps1)
+# - Provenance per ADR-013 (VF_GIT_SHA / VF_MACHINE_ID env)          ✓ (template)
+# - 30-day artifact retention (template default)                       ✓
+
+name: Nightly BDN Microbench
+
+on:
+  schedule:
+    - cron: '30 4 * * 1-5'   # 04:30 UTC Mon–Fri (ADR-045 D1, staggered after fingerprint)
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  microbench:
+    uses: ./.github/workflows/_scheduled-bench-template.yml
+    with:
+      bench-name: microbench-bdn-full
+      # BDN --filter '*' runs all [Benchmark] methods in Voxelforge.MicroBenchmarks.
+      # --artifacts current/bdn sets the BDN artifacts root; JSONL files land in
+      # current/bdn/results/<ClassName>-<timestamp>-bdn.jsonl.
+      # After BDN finishes, Diff-BdnBaselines.ps1 compares against committed baselines.
+      bench-command: |
+        mkdir -p current/bdn
+        dotnet run --project Voxelforge.MicroBenchmarks/Voxelforge.MicroBenchmarks.csproj \
+          --no-build --configuration Release \
+          -- --filter '*' --artifacts current/bdn
+        pwsh -NonInteractive -File tools/Diff-BdnBaselines.ps1 \
+          -CurrentDir current/bdn/results \
+          -BaselineDir Voxelforge.MicroBenchmarks/baselines \
+          -ThresholdPct 10
+      output-path: current/bdn/results/*.jsonl
+      timeout-minutes: 90

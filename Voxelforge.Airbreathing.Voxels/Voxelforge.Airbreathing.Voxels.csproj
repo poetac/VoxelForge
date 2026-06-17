@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Voxelforge.Airbreathing.Voxels — PicoGK voxel/SDF/STL builder for
+       the air-breathing pillar (ramjet today, turbojet/turbofan when their
+       voxel passes land).
+
+       Sibling to Voxelforge.Voxels (rocket-side). Parallel-pillar
+       architecture for Air-breathing
+       propulsion: each engine pillar has its own Voxels project
+       so the rocket pipeline never depends on air-breathing PicoGK code
+       and vice versa. The shared abstraction is `IVoxelHandle` in
+       Voxelforge.Core (a marker interface); each pillar's Voxels project
+       owns its own concrete `PicoGKVoxelHandle`.
+
+       Folder + namespace + AssemblyName all use the `Voxelforge.*`
+       convention (rocket-side folder rename completed 2026-05-04).
+       The 5 documented magic strings (DesignPersistence AppName,
+       ThreeMFExport meta tag, AnalyticalPreviewMesh + tiled STL header,
+       PrinterParameterPresets schema tag) remain literal for JSON/3MF/STL
+       round-trip — pinned by Sprint0Pr2OnDiskFormatStringTests. -->
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Nullable + ImplicitUsings + TreatWarningsAsErrors live in
+         Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge.Airbreathing</RootNamespace>
+    <AssemblyName>Voxelforge.Airbreathing.Voxels</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PicoGK" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ExcludeAssets="analyzers": same rationale as
+         Voxelforge.Airbreathing.Core's ProjectReference to
+         Voxelforge.Core. The DesignVariableBinder source generator
+         emits a partial type that conflicts with the imported type
+         from Voxelforge.Core's DLL when there are zero
+         [SaDesignVariable] properties. -->
+    <ProjectReference Include="..\Voxelforge.Airbreathing.Core\Voxelforge.Airbreathing.Core.csproj"
+                      ExcludeAssets="analyzers" />
+    <!-- VFA001 + VFA002 family-purity guards (Sprint 0 / Wave 1). See
+         Voxelforge.Airbreathing.Core.csproj for the rationale on the
+         direct Analyzers reference. -->
+    <ProjectReference Include="..\Voxelforge.Analyzers\Voxelforge.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge.Airbreathing.StlExporter" />
+    <InternalsVisibleTo Include="Voxelforge.Airbreathing.Tests" />
+  </ItemGroup>
+
+</Project>

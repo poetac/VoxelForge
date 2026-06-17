@@ -1,0 +1,584 @@
+#nullable enable
+const Voxelforge.Chamber.PreburnerVoxel.DefaultLengthToDiameterRatio = 1 -> double
+const Voxelforge.Chamber.PreburnerVoxel.DefaultWallThickness_mm = 3 -> double
+const Voxelforge.Chamber.PreburnerVoxel.WallMaterialDensity_gcm3 = 8.9 -> double
+const Voxelforge.FeedSystem.FeedManifoldRouter.DefaultBendFilletRadius_mm = 8 -> double
+const Voxelforge.FeedSystem.FeedManifoldRouter.DefaultTubeOuterRadius_mm = 8 -> double
+const Voxelforge.FeedSystem.FeedManifoldRouter.DefaultTubeWallThickness_mm = 2 -> double
+const Voxelforge.FeedSystem.FeedManifoldRouter.TubeMaterialDensity_gcm3 = 8.9 -> double
+const Voxelforge.Geometry.ChamberAxialTileBuilder.DefaultOverlap_mm = 2 -> double
+const Voxelforge.Geometry.ChamberAxialTileBuilder.MinTileLength_mm = 40 -> double
+const Voxelforge.Geometry.MonolithicEngineBuilder.DefaultBendFilletRadius_mm = 8 -> double
+const Voxelforge.Geometry.MonolithicFeasibility.DefaultClearance_mm = 2 -> double
+const Voxelforge.Geometry.MonolithicFeasibility.InteriorSampleCount = 8 -> int
+const Voxelforge.Turbopump.PumpMountFlange.DefaultBoltCount = 8 -> int
+const Voxelforge.Turbopump.PumpMountFlange.DefaultBoltHoleDiameter_mm = 6.4 -> double
+const Voxelforge.Turbopump.PumpMountFlange.DefaultRadialProjection_mm = 12 -> double
+const Voxelforge.Turbopump.PumpMountFlange.DefaultThickness_mm = 6 -> double
+const Voxelforge.Turbopump.PumpMountFlange.MaterialDensity_gcm3 = 8.9 -> double
+const Voxelforge.Turbopump.TurbineGeometryGenerator.HousingRadialClearance_mm = 5 -> double
+const Voxelforge.Turbopump.TurbineGeometryGenerator.R_universal = 8314.5 -> double
+const Voxelforge.Turbopump.TurbineGeometryGenerator.RotorMaterialDensity_gcm3 = 8.9 -> double
+const Voxelforge.Turbopump.TurbineGeometryGenerator.StatorHeightRatio = 0.35 -> double
+const Voxelforge.Turbopump.TurbineGeometryGenerator.StatorWheelAxialGap_mm = 2.5 -> double
+const Voxelforge.Turbopump.TurbineGeometryGenerator.WheelHubToTipRatio = 0.55 -> double
+const Voxelforge.Turbopump.TurbineGeometryGenerator.WheelThicknessRatio = 0.2 -> double
+const Voxelforge.Turbopump.TurbopumpGeometryGenerator.CasingWallThickness_mm = 3 -> double
+const Voxelforge.Turbopump.TurbopumpGeometryGenerator.g0 = 9.80665 -> double
+const Voxelforge.Turbopump.TurbopumpGeometryGenerator.HeadCoefficient = 0.45 -> double
+const Voxelforge.Turbopump.TurbopumpGeometryGenerator.HubToTipRatio = 0.35 -> double
+const Voxelforge.Turbopump.TurbopumpGeometryGenerator.ImpellerBladeCount = 8 -> int
+const Voxelforge.Turbopump.TurbopumpGeometryGenerator.ImpellerThicknessRatio = 0.25 -> double
+const Voxelforge.Turbopump.TurbopumpGeometryGenerator.InducerBladeCount = 3 -> int
+const Voxelforge.Turbopump.TurbopumpGeometryGenerator.InducerToHubRatio = 1.1 -> double
+const Voxelforge.Turbopump.TurbopumpGeometryGenerator.InterstageGap_mm = 5 -> double
+const Voxelforge.Turbopump.TurbopumpGeometryGenerator.RotorMaterialDensity_gcm3 = 8.9 -> double
+const Voxelforge.Turbopump.TurbopumpGeometryGenerator.VoluteMinorEndRatio = 0.45 -> double
+const Voxelforge.Turbopump.TurbopumpGeometryGenerator.VoluteMinorStartRatio = 0.18 -> double
+override Voxelforge.Chamber.PreburnerVoxelGeometry.Equals(object? obj) -> bool
+override Voxelforge.Chamber.PreburnerVoxelGeometry.GetHashCode() -> int
+override Voxelforge.Chamber.PreburnerVoxelGeometry.ToString() -> string!
+override Voxelforge.FeedSystem.FeedManifoldLayout.Equals(object? obj) -> bool
+override Voxelforge.FeedSystem.FeedManifoldLayout.GetHashCode() -> int
+override Voxelforge.FeedSystem.FeedManifoldLayout.ToString() -> string!
+override Voxelforge.FeedSystem.FeedTube.Equals(object? obj) -> bool
+override Voxelforge.FeedSystem.FeedTube.GetHashCode() -> int
+override Voxelforge.FeedSystem.FeedTube.ToString() -> string!
+override Voxelforge.Geometry.AcousticDamperGeometrySpec.Equals(object? obj) -> bool
+override Voxelforge.Geometry.AcousticDamperGeometrySpec.GetHashCode() -> int
+override Voxelforge.Geometry.AcousticDamperGeometrySpec.ToString() -> string!
+override Voxelforge.Geometry.AxialTileBounds.Equals(object? obj) -> bool
+override Voxelforge.Geometry.AxialTileBounds.GetHashCode() -> int
+override Voxelforge.Geometry.AxialTileBounds.ToString() -> string!
+override Voxelforge.Geometry.AxialTileBuildResult.Equals(object? obj) -> bool
+override Voxelforge.Geometry.AxialTileBuildResult.GetHashCode() -> int
+override Voxelforge.Geometry.AxialTileBuildResult.ToString() -> string!
+override Voxelforge.Geometry.AxialTilePlan.GetHashCode() -> int
+override Voxelforge.Geometry.AxialTilingPlan.Equals(object? obj) -> bool
+override Voxelforge.Geometry.AxialTilingPlan.GetHashCode() -> int
+override Voxelforge.Geometry.AxialTilingPlan.ToString() -> string!
+override Voxelforge.Geometry.ExportStlResult.Equals(object? obj) -> bool
+override Voxelforge.Geometry.ExportStlResult.GetHashCode() -> int
+override Voxelforge.Geometry.ExportStlResult.ToString() -> string!
+override Voxelforge.Geometry.InjectorFaceImportResult.Equals(object? obj) -> bool
+override Voxelforge.Geometry.InjectorFaceImportResult.GetHashCode() -> int
+override Voxelforge.Geometry.InjectorFaceImportResult.ToString() -> string!
+override Voxelforge.Geometry.MonolithicBodyEnvelopes.Equals(object? obj) -> bool
+override Voxelforge.Geometry.MonolithicBodyEnvelopes.GetHashCode() -> int
+override Voxelforge.Geometry.MonolithicBodyEnvelopes.ToString() -> string!
+override Voxelforge.Geometry.MonolithicEngineResult.Equals(object? obj) -> bool
+override Voxelforge.Geometry.MonolithicEngineResult.GetHashCode() -> int
+override Voxelforge.Geometry.MonolithicEngineResult.ToString() -> string!
+override Voxelforge.Geometry.ThrustTakeoutAdapterSpec.Equals(object? obj) -> bool
+override Voxelforge.Geometry.ThrustTakeoutAdapterSpec.GetHashCode() -> int
+override Voxelforge.Geometry.ThrustTakeoutAdapterSpec.ToString() -> string!
+override Voxelforge.Geometry.TiledBuildSummary.Equals(object? obj) -> bool
+override Voxelforge.Geometry.TiledBuildSummary.GetHashCode() -> int
+override Voxelforge.Geometry.TiledBuildSummary.ToString() -> string!
+override Voxelforge.Turbopump.PumpMountFlangeGeometry.Equals(object? obj) -> bool
+override Voxelforge.Turbopump.PumpMountFlangeGeometry.GetHashCode() -> int
+override Voxelforge.Turbopump.PumpMountFlangeGeometry.ToString() -> string!
+static Voxelforge.Chamber.PreburnerVoxel.BuildImplicit(Voxelforge.Chamber.PreburnerVoxelGeometry! geom) -> PicoGK.IImplicit!
+static Voxelforge.Chamber.PreburnerVoxel.Size(Voxelforge.Chamber.PreburnerResult! result, double wallThickness_mm = 0, double lengthToDiameterRatio = 0) -> Voxelforge.Chamber.PreburnerVoxelGeometry!
+static Voxelforge.Chamber.PreburnerVoxelGeometry.operator !=(Voxelforge.Chamber.PreburnerVoxelGeometry? left, Voxelforge.Chamber.PreburnerVoxelGeometry? right) -> bool
+static Voxelforge.Chamber.PreburnerVoxelGeometry.operator ==(Voxelforge.Chamber.PreburnerVoxelGeometry? left, Voxelforge.Chamber.PreburnerVoxelGeometry? right) -> bool
+static Voxelforge.FeedSystem.FeedManifoldLayout.operator !=(Voxelforge.FeedSystem.FeedManifoldLayout? left, Voxelforge.FeedSystem.FeedManifoldLayout? right) -> bool
+static Voxelforge.FeedSystem.FeedManifoldLayout.operator ==(Voxelforge.FeedSystem.FeedManifoldLayout? left, Voxelforge.FeedSystem.FeedManifoldLayout? right) -> bool
+static Voxelforge.FeedSystem.FeedManifoldRouter.BuildImplicits(Voxelforge.FeedSystem.FeedManifoldLayout! layout) -> System.Collections.Generic.IReadOnlyList<PicoGK.IImplicit!>!
+static Voxelforge.FeedSystem.FeedManifoldRouter.Route(Voxelforge.FeedSystem.EngineCycle cycle, System.Numerics.Vector3 injectorDomeCenter, System.Numerics.Vector3 turbopumpFuelInlet, System.Numerics.Vector3 turbopumpFuelDischarge, System.Numerics.Vector3 turbopumpOxInlet, System.Numerics.Vector3 turbopumpOxDischarge, System.Numerics.Vector3? preburnerExhaust = null, double tubeOuterRadius_mm = 8, double bendFilletRadius_mm = 0) -> Voxelforge.FeedSystem.FeedManifoldLayout!
+static Voxelforge.FeedSystem.FeedTube.operator !=(Voxelforge.FeedSystem.FeedTube? left, Voxelforge.FeedSystem.FeedTube? right) -> bool
+static Voxelforge.FeedSystem.FeedTube.operator ==(Voxelforge.FeedSystem.FeedTube? left, Voxelforge.FeedSystem.FeedTube? right) -> bool
+static Voxelforge.Geometry.AcousticDamperGeometry.AddDamperArray(PicoGK.Voxels! shell, PicoGK.BBox3 bounds, Voxelforge.Geometry.AcousticDamperGeometrySpec! spec, double chamberLength_mm) -> void
+static Voxelforge.Geometry.AcousticDamperGeometrySpec.operator !=(Voxelforge.Geometry.AcousticDamperGeometrySpec? left, Voxelforge.Geometry.AcousticDamperGeometrySpec? right) -> bool
+static Voxelforge.Geometry.AcousticDamperGeometrySpec.operator ==(Voxelforge.Geometry.AcousticDamperGeometrySpec? left, Voxelforge.Geometry.AcousticDamperGeometrySpec? right) -> bool
+static Voxelforge.Geometry.AerospikeBuilder.Build(Voxelforge.Geometry.AerospikeSpec! spec, double voxelSize_mm = 0.4) -> Voxelforge.Geometry.AerospikeBuildResult!
+static Voxelforge.Geometry.AerospikeBuilder.BuildLinear(Voxelforge.Geometry.AerospikeSpec! spec, double voxelSize_mm = 0.4) -> Voxelforge.Geometry.AerospikeBuildResult!
+static Voxelforge.Geometry.AerospikeBuilder.BuildLinearPhysicsOnly(Voxelforge.Geometry.AerospikeSpec! spec) -> Voxelforge.Geometry.AerospikeBuildResult!
+static Voxelforge.Geometry.AerospikeBuilder.BuildPhysicsOnly(Voxelforge.Geometry.AerospikeSpec! spec) -> Voxelforge.Geometry.AerospikeBuildResult!
+static Voxelforge.Geometry.AxialTileBounds.operator !=(Voxelforge.Geometry.AxialTileBounds? left, Voxelforge.Geometry.AxialTileBounds? right) -> bool
+static Voxelforge.Geometry.AxialTileBounds.operator ==(Voxelforge.Geometry.AxialTileBounds? left, Voxelforge.Geometry.AxialTileBounds? right) -> bool
+static Voxelforge.Geometry.AxialTileBuildResult.operator !=(Voxelforge.Geometry.AxialTileBuildResult? left, Voxelforge.Geometry.AxialTileBuildResult? right) -> bool
+static Voxelforge.Geometry.AxialTileBuildResult.operator ==(Voxelforge.Geometry.AxialTileBuildResult? left, Voxelforge.Geometry.AxialTileBuildResult? right) -> bool
+static Voxelforge.Geometry.AxialTilePlan.operator !=(Voxelforge.Geometry.AxialTilePlan left, Voxelforge.Geometry.AxialTilePlan right) -> bool
+static Voxelforge.Geometry.AxialTilePlan.operator ==(Voxelforge.Geometry.AxialTilePlan left, Voxelforge.Geometry.AxialTilePlan right) -> bool
+static Voxelforge.Geometry.AxialTilingPlan.operator !=(Voxelforge.Geometry.AxialTilingPlan? left, Voxelforge.Geometry.AxialTilingPlan? right) -> bool
+static Voxelforge.Geometry.AxialTilingPlan.operator ==(Voxelforge.Geometry.AxialTilingPlan? left, Voxelforge.Geometry.AxialTilingPlan? right) -> bool
+static Voxelforge.Geometry.ChamberAxialTileBuilder.BuildTile(Voxelforge.Geometry.ChamberBuildOptions! opt, Voxelforge.Geometry.AxialTilePlan tile, int totalTiles) -> Voxelforge.Geometry.AxialTileBuildResult!
+static Voxelforge.Geometry.ChamberAxialTileBuilder.BuildTiled(Voxelforge.Geometry.ChamberBuildOptions! opt, Voxelforge.Geometry.AxialTilingPlan! plan, string! outputStlPath, string? tempDir = null) -> Voxelforge.Geometry.TiledBuildSummary!
+static Voxelforge.Geometry.ChamberAxialTileBuilder.ComputeTileBounds(Voxelforge.Geometry.ChamberBuildOptions! opt, Voxelforge.Geometry.AxialTilePlan tile) -> Voxelforge.Geometry.AxialTileBounds!
+static Voxelforge.Geometry.ChamberAxialTileBuilder.PlanTiles(Voxelforge.Chamber.ChamberContour! contour, int targetTileCount, double injectorFlangeThickness_mm = 0, double mountFlangeThickness_mm = 0, double gimbalAftExtension_mm = 0, double overlap_mm = 2) -> Voxelforge.Geometry.AxialTilingPlan!
+static Voxelforge.Geometry.ChamberVoxelBuilder.Build(Voxelforge.Geometry.ChamberBuildOptions! opt, double voxelSize_mm = 0) -> Voxelforge.Geometry.ChamberGeometryResult!
+static Voxelforge.Geometry.ChamberVoxelBuilder.BuildAnalytical(Voxelforge.Geometry.ChamberBuildOptions! opt) -> Voxelforge.Geometry.ChamberGeometryResult!
+static Voxelforge.Geometry.ChamberVoxelBuilder.ExportStl(PicoGK.Voxels! vox, string! path) -> string!
+static Voxelforge.Geometry.ChamberVoxelBuilder.ExportStlProfiled(PicoGK.Voxels! vox, string! path) -> Voxelforge.Geometry.ExportStlResult!
+static Voxelforge.Geometry.ExpansionDeflectionPlugGeometry.AddPlug(PicoGK.Voxels! shell, PicoGK.BBox3 bounds, Voxelforge.Chamber.ChamberContour! contour, double innerOuterRatio) -> void
+static Voxelforge.Geometry.ExportStlResult.operator !=(Voxelforge.Geometry.ExportStlResult? left, Voxelforge.Geometry.ExportStlResult? right) -> bool
+static Voxelforge.Geometry.ExportStlResult.operator ==(Voxelforge.Geometry.ExportStlResult? left, Voxelforge.Geometry.ExportStlResult? right) -> bool
+static Voxelforge.Geometry.InjectorFaceImport.Load(Voxelforge.Geometry.InjectorFaceImportOptions! opt, PicoGK.BBox3 chamberBounds) -> Voxelforge.Geometry.InjectorFaceImportResult!
+static Voxelforge.Geometry.InjectorFaceImportResult.operator !=(Voxelforge.Geometry.InjectorFaceImportResult? left, Voxelforge.Geometry.InjectorFaceImportResult? right) -> bool
+static Voxelforge.Geometry.InjectorFaceImportResult.operator ==(Voxelforge.Geometry.InjectorFaceImportResult? left, Voxelforge.Geometry.InjectorFaceImportResult? right) -> bool
+static Voxelforge.Geometry.MonolithicBodyEnvelopes.operator !=(Voxelforge.Geometry.MonolithicBodyEnvelopes? left, Voxelforge.Geometry.MonolithicBodyEnvelopes? right) -> bool
+static Voxelforge.Geometry.MonolithicBodyEnvelopes.operator ==(Voxelforge.Geometry.MonolithicBodyEnvelopes? left, Voxelforge.Geometry.MonolithicBodyEnvelopes? right) -> bool
+static Voxelforge.Geometry.MonolithicEngineBuilder.Build(Voxelforge.Optimization.EngineSpec! spec, double voxelSize_mm = 0.4, double bendFilletRadius_mm = 8, bool includePumpMountFlanges = true, bool includePreburnerBody = true) -> Voxelforge.Geometry.MonolithicEngineResult!
+static Voxelforge.Geometry.MonolithicEngineBuilder.BuildAerospike(Voxelforge.Optimization.EngineSpec! spec, double voxelSize_mm = 0.4, double bendFilletRadius_mm = 8, bool includePumpMountFlanges = true, bool includePreburnerBody = true) -> Voxelforge.Geometry.MonolithicEngineResult!
+static Voxelforge.Geometry.MonolithicEngineBuilder.BuildFromDesign(Voxelforge.Optimization.OperatingConditions! cond, Voxelforge.Optimization.RegenChamberDesign! design, double voxelSize_mm = 0.4, double bendFilletRadius_mm = 8, bool includePumpMountFlanges = true, bool includePreburnerBody = true) -> Voxelforge.Geometry.MonolithicEngineResult!
+static Voxelforge.Geometry.MonolithicEngineResult.operator !=(Voxelforge.Geometry.MonolithicEngineResult? left, Voxelforge.Geometry.MonolithicEngineResult? right) -> bool
+static Voxelforge.Geometry.MonolithicEngineResult.operator ==(Voxelforge.Geometry.MonolithicEngineResult? left, Voxelforge.Geometry.MonolithicEngineResult? right) -> bool
+static Voxelforge.Geometry.MonolithicFeasibility.Evaluate(Voxelforge.FeedSystem.FeedManifoldLayout! layout, Voxelforge.Geometry.MonolithicBodyEnvelopes! envelopes, double clearance_mm = 2) -> Voxelforge.Optimization.FeasibilityGateResult!
+static Voxelforge.Geometry.PortGeometry.Build(PicoGK.BBox3 bounds, Voxelforge.Geometry.PortSpec! spec, System.Numerics.Vector3 faceCenter, System.Numerics.Vector3 outward, float backPenetrationMM, float frontExtensionMM) -> Voxelforge.Geometry.PortGeometry.PortBuild
+static Voxelforge.Geometry.PortGeometry.RequiredClearanceMM(Voxelforge.Geometry.PortSpec! spec, float backPenetrationMM) -> float
+static Voxelforge.Geometry.ThrustTakeoutAdapterGeometry.AddAdapterFull(PicoGK.Voxels! shell, PicoGK.BBox3 bounds, float xStart_mm, float exitRadius_mm, Voxelforge.Geometry.ThrustTakeoutAdapterSpec! spec) -> void
+static Voxelforge.Geometry.ThrustTakeoutAdapterGeometry.ResolveOuterDiameter(double designOuterDiameter_mm, double mountingFlangeOuterDiameter_mm) -> double
+static Voxelforge.Geometry.ThrustTakeoutAdapterSpec.operator !=(Voxelforge.Geometry.ThrustTakeoutAdapterSpec? left, Voxelforge.Geometry.ThrustTakeoutAdapterSpec? right) -> bool
+static Voxelforge.Geometry.ThrustTakeoutAdapterSpec.operator ==(Voxelforge.Geometry.ThrustTakeoutAdapterSpec? left, Voxelforge.Geometry.ThrustTakeoutAdapterSpec? right) -> bool
+static Voxelforge.Geometry.TiledBuildSummary.operator !=(Voxelforge.Geometry.TiledBuildSummary? left, Voxelforge.Geometry.TiledBuildSummary? right) -> bool
+static Voxelforge.Geometry.TiledBuildSummary.operator ==(Voxelforge.Geometry.TiledBuildSummary? left, Voxelforge.Geometry.TiledBuildSummary? right) -> bool
+static Voxelforge.Geometry.VoxelOpExtensions.BoolAddTemp(this PicoGK.Voxels! target, PicoGK.IImplicit! impl, PicoGK.BBox3 bounds) -> void
+static Voxelforge.Geometry.VoxelOpExtensions.BoolSubtractTemp(this PicoGK.Voxels! target, PicoGK.IImplicit! impl, PicoGK.BBox3 bounds) -> void
+static Voxelforge.Turbopump.PumpMountFlange.BuildImplicit(Voxelforge.Turbopump.PumpMountFlangeGeometry! geom) -> PicoGK.IImplicit!
+static Voxelforge.Turbopump.PumpMountFlange.Size(double casingOuterRadius_mm, double radialProjection_mm = 0, double thickness_mm = 0, int boltCount = 0, double boltHoleDiameter_mm = 0) -> Voxelforge.Turbopump.PumpMountFlangeGeometry!
+static Voxelforge.Turbopump.PumpMountFlangeGeometry.operator !=(Voxelforge.Turbopump.PumpMountFlangeGeometry? left, Voxelforge.Turbopump.PumpMountFlangeGeometry? right) -> bool
+static Voxelforge.Turbopump.PumpMountFlangeGeometry.operator ==(Voxelforge.Turbopump.PumpMountFlangeGeometry? left, Voxelforge.Turbopump.PumpMountFlangeGeometry? right) -> bool
+static Voxelforge.Turbopump.TurbineGeometryGenerator.BuildImplicit(Voxelforge.Turbopump.TurbineGeometry! geom) -> Voxelforge.Geometry.TurbineStageAssemblyImplicit!
+static Voxelforge.Turbopump.TurbineGeometryGenerator.Generate(Voxelforge.FeedSystem.TurbineStage! stage) -> Voxelforge.Turbopump.TurbineGeometry?
+static Voxelforge.Turbopump.TurbopumpGeometryGenerator.BuildImplicit(Voxelforge.Turbopump.TurbopumpGeometry! geom) -> Voxelforge.Geometry.TurbopumpAssemblyImplicit!
+static Voxelforge.Turbopump.TurbopumpGeometryGenerator.Generate(Voxelforge.FeedSystem.PumpSizing! pump) -> Voxelforge.Turbopump.TurbopumpGeometry?
+static Voxelforge.VoxelHandleExtensions.AsPicoGK(this Voxelforge.IVoxelHandle! handle) -> PicoGK.Voxels!
+Voxelforge.Chamber.PreburnerCapsuleImplicit
+Voxelforge.Chamber.PreburnerCapsuleImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Chamber.PreburnerCapsuleImplicit.PreburnerCapsuleImplicit(float cylLength_mm, float outerR_mm, float wallThickness_mm) -> void
+Voxelforge.Chamber.PreburnerVoxel
+Voxelforge.Chamber.PreburnerVoxelGeometry
+Voxelforge.Chamber.PreburnerVoxelGeometry.<Clone>$() -> Voxelforge.Chamber.PreburnerVoxelGeometry!
+Voxelforge.Chamber.PreburnerVoxelGeometry.CylinderLength_mm.get -> double
+Voxelforge.Chamber.PreburnerVoxelGeometry.CylinderLength_mm.init -> void
+Voxelforge.Chamber.PreburnerVoxelGeometry.Deconstruct(out double CylinderLength_mm, out double InnerRadius_mm, out double OuterRadius_mm, out double TotalLength_mm, out double WallThickness_mm, out double EstimatedMass_g) -> void
+Voxelforge.Chamber.PreburnerVoxelGeometry.Equals(Voxelforge.Chamber.PreburnerVoxelGeometry? other) -> bool
+Voxelforge.Chamber.PreburnerVoxelGeometry.EstimatedMass_g.get -> double
+Voxelforge.Chamber.PreburnerVoxelGeometry.EstimatedMass_g.init -> void
+Voxelforge.Chamber.PreburnerVoxelGeometry.InnerRadius_mm.get -> double
+Voxelforge.Chamber.PreburnerVoxelGeometry.InnerRadius_mm.init -> void
+Voxelforge.Chamber.PreburnerVoxelGeometry.OuterRadius_mm.get -> double
+Voxelforge.Chamber.PreburnerVoxelGeometry.OuterRadius_mm.init -> void
+Voxelforge.Chamber.PreburnerVoxelGeometry.PreburnerVoxelGeometry(double CylinderLength_mm, double InnerRadius_mm, double OuterRadius_mm, double TotalLength_mm, double WallThickness_mm, double EstimatedMass_g) -> void
+Voxelforge.Chamber.PreburnerVoxelGeometry.TotalLength_mm.get -> double
+Voxelforge.Chamber.PreburnerVoxelGeometry.TotalLength_mm.init -> void
+Voxelforge.Chamber.PreburnerVoxelGeometry.WallThickness_mm.get -> double
+Voxelforge.Chamber.PreburnerVoxelGeometry.WallThickness_mm.init -> void
+Voxelforge.FeedSystem.FeedBendImplicit
+Voxelforge.FeedSystem.FeedBendImplicit.FeedBendImplicit(System.Numerics.Vector3 start, System.Numerics.Vector3 corner, System.Numerics.Vector3 end, float outerRadius_mm) -> void
+Voxelforge.FeedSystem.FeedBendImplicit.FeedBendImplicit(System.Numerics.Vector3 start, System.Numerics.Vector3 corner, System.Numerics.Vector3 end, float outerRadius_mm, float filletRadius_mm) -> void
+Voxelforge.FeedSystem.FeedBendImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.FeedSystem.FeedManifoldLayout
+Voxelforge.FeedSystem.FeedManifoldLayout.<Clone>$() -> Voxelforge.FeedSystem.FeedManifoldLayout!
+Voxelforge.FeedSystem.FeedManifoldLayout.Cycle.get -> Voxelforge.FeedSystem.EngineCycle
+Voxelforge.FeedSystem.FeedManifoldLayout.Cycle.init -> void
+Voxelforge.FeedSystem.FeedManifoldLayout.Deconstruct(out Voxelforge.FeedSystem.EngineCycle Cycle, out System.Collections.Generic.IReadOnlyList<Voxelforge.FeedSystem.FeedTube!>! Tubes, out double TotalTubeLength_mm, out double EstimatedTubeMass_g, out string! Notes) -> void
+Voxelforge.FeedSystem.FeedManifoldLayout.Equals(Voxelforge.FeedSystem.FeedManifoldLayout? other) -> bool
+Voxelforge.FeedSystem.FeedManifoldLayout.EstimatedTubeMass_g.get -> double
+Voxelforge.FeedSystem.FeedManifoldLayout.EstimatedTubeMass_g.init -> void
+Voxelforge.FeedSystem.FeedManifoldLayout.FeedManifoldLayout(Voxelforge.FeedSystem.EngineCycle Cycle, System.Collections.Generic.IReadOnlyList<Voxelforge.FeedSystem.FeedTube!>! Tubes, double TotalTubeLength_mm, double EstimatedTubeMass_g, string! Notes) -> void
+Voxelforge.FeedSystem.FeedManifoldLayout.Notes.get -> string!
+Voxelforge.FeedSystem.FeedManifoldLayout.Notes.init -> void
+Voxelforge.FeedSystem.FeedManifoldLayout.TotalTubeLength_mm.get -> double
+Voxelforge.FeedSystem.FeedManifoldLayout.TotalTubeLength_mm.init -> void
+Voxelforge.FeedSystem.FeedManifoldLayout.Tubes.get -> System.Collections.Generic.IReadOnlyList<Voxelforge.FeedSystem.FeedTube!>!
+Voxelforge.FeedSystem.FeedManifoldLayout.Tubes.init -> void
+Voxelforge.FeedSystem.FeedManifoldRouter
+Voxelforge.FeedSystem.FeedTube
+Voxelforge.FeedSystem.FeedTube.<Clone>$() -> Voxelforge.FeedSystem.FeedTube!
+Voxelforge.FeedSystem.FeedTube.Corner_mm.get -> System.Numerics.Vector3?
+Voxelforge.FeedSystem.FeedTube.Corner_mm.init -> void
+Voxelforge.FeedSystem.FeedTube.Deconstruct(out string! Label, out System.Numerics.Vector3 Start_mm, out System.Numerics.Vector3? Corner_mm, out System.Numerics.Vector3 End_mm, out double OuterRadius_mm, out double FilletRadius_mm) -> void
+Voxelforge.FeedSystem.FeedTube.End_mm.get -> System.Numerics.Vector3
+Voxelforge.FeedSystem.FeedTube.End_mm.init -> void
+Voxelforge.FeedSystem.FeedTube.Equals(Voxelforge.FeedSystem.FeedTube? other) -> bool
+Voxelforge.FeedSystem.FeedTube.FeedTube(string! Label, System.Numerics.Vector3 Start_mm, System.Numerics.Vector3? Corner_mm, System.Numerics.Vector3 End_mm, double OuterRadius_mm, double FilletRadius_mm = 0) -> void
+Voxelforge.FeedSystem.FeedTube.FilletRadius_mm.get -> double
+Voxelforge.FeedSystem.FeedTube.FilletRadius_mm.init -> void
+Voxelforge.FeedSystem.FeedTube.Label.get -> string!
+Voxelforge.FeedSystem.FeedTube.Label.init -> void
+Voxelforge.FeedSystem.FeedTube.OuterRadius_mm.get -> double
+Voxelforge.FeedSystem.FeedTube.OuterRadius_mm.init -> void
+Voxelforge.FeedSystem.FeedTube.Start_mm.get -> System.Numerics.Vector3
+Voxelforge.FeedSystem.FeedTube.Start_mm.init -> void
+Voxelforge.FeedSystem.FeedTubeImplicit
+Voxelforge.FeedSystem.FeedTubeImplicit.FeedTubeImplicit(System.Numerics.Vector3 p0, System.Numerics.Vector3 p1, float outerRadius_mm) -> void
+Voxelforge.FeedSystem.FeedTubeImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.AcousticDamperGeometry
+Voxelforge.Geometry.AcousticDamperGeometrySpec
+Voxelforge.Geometry.AcousticDamperGeometrySpec.<Clone>$() -> Voxelforge.Geometry.AcousticDamperGeometrySpec!
+Voxelforge.Geometry.AcousticDamperGeometrySpec.AcousticDamperGeometrySpec(Voxelforge.Combustion.Stability.AcousticDamperType Type, int Count, double NeckDiameter_mm, double NeckLength_mm, double CavityDiameter_mm, double CavityLength_mm, double QuarterWaveLength_mm, double QuarterWaveDiameter_mm, double AxialFraction, double InnerRadius_mm, double OuterJacketRadius_mm) -> void
+Voxelforge.Geometry.AcousticDamperGeometrySpec.AxialFraction.get -> double
+Voxelforge.Geometry.AcousticDamperGeometrySpec.AxialFraction.init -> void
+Voxelforge.Geometry.AcousticDamperGeometrySpec.CavityDiameter_mm.get -> double
+Voxelforge.Geometry.AcousticDamperGeometrySpec.CavityDiameter_mm.init -> void
+Voxelforge.Geometry.AcousticDamperGeometrySpec.CavityLength_mm.get -> double
+Voxelforge.Geometry.AcousticDamperGeometrySpec.CavityLength_mm.init -> void
+Voxelforge.Geometry.AcousticDamperGeometrySpec.Count.get -> int
+Voxelforge.Geometry.AcousticDamperGeometrySpec.Count.init -> void
+Voxelforge.Geometry.AcousticDamperGeometrySpec.Deconstruct(out Voxelforge.Combustion.Stability.AcousticDamperType Type, out int Count, out double NeckDiameter_mm, out double NeckLength_mm, out double CavityDiameter_mm, out double CavityLength_mm, out double QuarterWaveLength_mm, out double QuarterWaveDiameter_mm, out double AxialFraction, out double InnerRadius_mm, out double OuterJacketRadius_mm) -> void
+Voxelforge.Geometry.AcousticDamperGeometrySpec.Equals(Voxelforge.Geometry.AcousticDamperGeometrySpec? other) -> bool
+Voxelforge.Geometry.AcousticDamperGeometrySpec.InnerRadius_mm.get -> double
+Voxelforge.Geometry.AcousticDamperGeometrySpec.InnerRadius_mm.init -> void
+Voxelforge.Geometry.AcousticDamperGeometrySpec.IsActive.get -> bool
+Voxelforge.Geometry.AcousticDamperGeometrySpec.NeckDiameter_mm.get -> double
+Voxelforge.Geometry.AcousticDamperGeometrySpec.NeckDiameter_mm.init -> void
+Voxelforge.Geometry.AcousticDamperGeometrySpec.NeckLength_mm.get -> double
+Voxelforge.Geometry.AcousticDamperGeometrySpec.NeckLength_mm.init -> void
+Voxelforge.Geometry.AcousticDamperGeometrySpec.OuterJacketRadius_mm.get -> double
+Voxelforge.Geometry.AcousticDamperGeometrySpec.OuterJacketRadius_mm.init -> void
+Voxelforge.Geometry.AcousticDamperGeometrySpec.QuarterWaveDiameter_mm.get -> double
+Voxelforge.Geometry.AcousticDamperGeometrySpec.QuarterWaveDiameter_mm.init -> void
+Voxelforge.Geometry.AcousticDamperGeometrySpec.QuarterWaveLength_mm.get -> double
+Voxelforge.Geometry.AcousticDamperGeometrySpec.QuarterWaveLength_mm.init -> void
+Voxelforge.Geometry.AcousticDamperGeometrySpec.Type.get -> Voxelforge.Combustion.Stability.AcousticDamperType
+Voxelforge.Geometry.AcousticDamperGeometrySpec.Type.init -> void
+Voxelforge.Geometry.AerospikeAssemblyImplicit
+Voxelforge.Geometry.AerospikeAssemblyImplicit.AerospikeAssemblyImplicit(Voxelforge.Geometry.RevolvedContourImplicit! chamberOuter, float chamberXMin_mm, float chamberXMax_mm, Voxelforge.Geometry.AnnularThroatImplicit! throatRing, Voxelforge.Geometry.RevolvedPlugImplicit! plug, Voxelforge.Geometry.RevolvedContourImplicit? chamberInner = null, Voxelforge.Geometry.SpiderStrutsImplicit? spider = null) -> void
+Voxelforge.Geometry.AerospikeAssemblyImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.AerospikeBuilder
+Voxelforge.Geometry.AerospikeBuilderAdapter
+Voxelforge.Geometry.AerospikeBuilderAdapter.AerospikeBuilderAdapter() -> void
+Voxelforge.Geometry.AerospikeBuilderAdapter.BuildPhysicsOnly(Voxelforge.Geometry.AerospikeSpec! spec) -> Voxelforge.Geometry.AerospikeBuildResult!
+Voxelforge.Geometry.AerospikePlugChannelArray
+Voxelforge.Geometry.AerospikePlugChannelArray.AerospikePlugChannelArray(Voxelforge.Chamber.AerospikeContour! contour, int count, float tWall_mm, float depth_mm, float width_mm) -> void
+Voxelforge.Geometry.AerospikePlugChannelArray.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.AerospikePlugChannelImplicit
+Voxelforge.Geometry.AerospikePlugChannelImplicit.AerospikePlugChannelImplicit(Voxelforge.Chamber.AerospikeContour! contour, float tWall_mm, float depth_mm, float width_mm, float thetaCenterRad) -> void
+Voxelforge.Geometry.AerospikePlugChannelImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.AnnularThroatImplicit
+Voxelforge.Geometry.AnnularThroatImplicit.AnnularThroatImplicit(float xMin_mm, float xMax_mm, float rInner_mm, float rOuter_mm) -> void
+Voxelforge.Geometry.AnnularThroatImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.AnnulusImplicit
+Voxelforge.Geometry.AnnulusImplicit.AnnulusImplicit(float xMin, float xMax, float rInner, float rOuter) -> void
+Voxelforge.Geometry.AnnulusImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.AxialChannelImplicit
+Voxelforge.Geometry.AxialChannelImplicit.AxialChannelImplicit(Voxelforge.Geometry.RevolvedContourImplicit! innerWall, float tWall_mm, float hChamber, float hThroat, float hExit, float xStart_mm, float xThroat_mm, float xEnd_mm, int channelCount, float ribThickness_mm, float thetaCenterRad, float manifoldFilletRadius_mm = 0, float helixPitchAngle_deg = 0) -> void
+Voxelforge.Geometry.AxialChannelImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.AxialChannelPatternImplicit
+Voxelforge.Geometry.AxialChannelPatternImplicit.AxialChannelPatternImplicit(Voxelforge.Geometry.RevolvedContourImplicit! innerWall, float tWall_mm, float hChamber, float hThroat, float hExit, float xStart_mm, float xThroat_mm, float xEnd_mm, int channelCount, float ribThickness_mm, float phaseOffsetRad = 0, float manifoldFilletRadius_mm = 0, float helixPitchAngle_deg = 0) -> void
+Voxelforge.Geometry.AxialChannelPatternImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.AxialTileBounds
+Voxelforge.Geometry.AxialTileBounds.<Clone>$() -> Voxelforge.Geometry.AxialTileBounds!
+Voxelforge.Geometry.AxialTileBounds.AxialTileBounds(Voxelforge.Geometry.AxialTilePlan Tile, PicoGK.BBox3 Bounds, double MaxOuterRadius_mm) -> void
+Voxelforge.Geometry.AxialTileBounds.Bounds.get -> PicoGK.BBox3
+Voxelforge.Geometry.AxialTileBounds.Bounds.init -> void
+Voxelforge.Geometry.AxialTileBounds.Deconstruct(out Voxelforge.Geometry.AxialTilePlan Tile, out PicoGK.BBox3 Bounds, out double MaxOuterRadius_mm) -> void
+Voxelforge.Geometry.AxialTileBounds.Equals(Voxelforge.Geometry.AxialTileBounds? other) -> bool
+Voxelforge.Geometry.AxialTileBounds.MaxOuterRadius_mm.get -> double
+Voxelforge.Geometry.AxialTileBounds.MaxOuterRadius_mm.init -> void
+Voxelforge.Geometry.AxialTileBounds.Tile.get -> Voxelforge.Geometry.AxialTilePlan
+Voxelforge.Geometry.AxialTileBounds.Tile.init -> void
+Voxelforge.Geometry.AxialTileBuildResult
+Voxelforge.Geometry.AxialTileBuildResult.<Clone>$() -> Voxelforge.Geometry.AxialTileBuildResult!
+Voxelforge.Geometry.AxialTileBuildResult.AxialTileBuildResult(Voxelforge.Geometry.AxialTilePlan Tile, Voxelforge.Geometry.TileWeldRange CoreRange, PicoGK.Voxels? TileVoxels, int SubtractedChannelCount, bool IncludedInletManifold, bool IncludedOutletManifold, bool IncludedInletPort, bool IncludedOutletPort, bool IncludedInjectorFlange, bool IncludedMountingFlange, double BuildWallMs) -> void
+Voxelforge.Geometry.AxialTileBuildResult.BuildWallMs.get -> double
+Voxelforge.Geometry.AxialTileBuildResult.BuildWallMs.init -> void
+Voxelforge.Geometry.AxialTileBuildResult.CoreRange.get -> Voxelforge.Geometry.TileWeldRange
+Voxelforge.Geometry.AxialTileBuildResult.CoreRange.init -> void
+Voxelforge.Geometry.AxialTileBuildResult.Deconstruct(out Voxelforge.Geometry.AxialTilePlan Tile, out Voxelforge.Geometry.TileWeldRange CoreRange, out PicoGK.Voxels? TileVoxels, out int SubtractedChannelCount, out bool IncludedInletManifold, out bool IncludedOutletManifold, out bool IncludedInletPort, out bool IncludedOutletPort, out bool IncludedInjectorFlange, out bool IncludedMountingFlange, out double BuildWallMs) -> void
+Voxelforge.Geometry.AxialTileBuildResult.Equals(Voxelforge.Geometry.AxialTileBuildResult? other) -> bool
+Voxelforge.Geometry.AxialTileBuildResult.IncludedInjectorFlange.get -> bool
+Voxelforge.Geometry.AxialTileBuildResult.IncludedInjectorFlange.init -> void
+Voxelforge.Geometry.AxialTileBuildResult.IncludedInletManifold.get -> bool
+Voxelforge.Geometry.AxialTileBuildResult.IncludedInletManifold.init -> void
+Voxelforge.Geometry.AxialTileBuildResult.IncludedInletPort.get -> bool
+Voxelforge.Geometry.AxialTileBuildResult.IncludedInletPort.init -> void
+Voxelforge.Geometry.AxialTileBuildResult.IncludedMountingFlange.get -> bool
+Voxelforge.Geometry.AxialTileBuildResult.IncludedMountingFlange.init -> void
+Voxelforge.Geometry.AxialTileBuildResult.IncludedOutletManifold.get -> bool
+Voxelforge.Geometry.AxialTileBuildResult.IncludedOutletManifold.init -> void
+Voxelforge.Geometry.AxialTileBuildResult.IncludedOutletPort.get -> bool
+Voxelforge.Geometry.AxialTileBuildResult.IncludedOutletPort.init -> void
+Voxelforge.Geometry.AxialTileBuildResult.SubtractedChannelCount.get -> int
+Voxelforge.Geometry.AxialTileBuildResult.SubtractedChannelCount.init -> void
+Voxelforge.Geometry.AxialTileBuildResult.Tile.get -> Voxelforge.Geometry.AxialTilePlan
+Voxelforge.Geometry.AxialTileBuildResult.Tile.init -> void
+Voxelforge.Geometry.AxialTileBuildResult.TileVoxels.get -> PicoGK.Voxels?
+Voxelforge.Geometry.AxialTileBuildResult.TileVoxels.init -> void
+Voxelforge.Geometry.AxialTilePlan
+Voxelforge.Geometry.AxialTilePlan.AxialTilePlan() -> void
+Voxelforge.Geometry.AxialTilePlan.AxialTilePlan(int TileIndex, double XMin_mm, double XMax_mm, double OverlapWithPrev_mm, double OverlapWithNext_mm) -> void
+Voxelforge.Geometry.AxialTilePlan.Deconstruct(out int TileIndex, out double XMin_mm, out double XMax_mm, out double OverlapWithPrev_mm, out double OverlapWithNext_mm) -> void
+Voxelforge.Geometry.AxialTilePlan.Equals(Voxelforge.Geometry.AxialTilePlan other) -> bool
+Voxelforge.Geometry.AxialTilePlan.IsFirst.get -> bool
+Voxelforge.Geometry.AxialTilePlan.IsLast(int totalTiles) -> bool
+Voxelforge.Geometry.AxialTilePlan.Length_mm.get -> double
+Voxelforge.Geometry.AxialTilePlan.OverlapWithNext_mm.get -> double
+Voxelforge.Geometry.AxialTilePlan.OverlapWithNext_mm.init -> void
+Voxelforge.Geometry.AxialTilePlan.OverlapWithPrev_mm.get -> double
+Voxelforge.Geometry.AxialTilePlan.OverlapWithPrev_mm.init -> void
+Voxelforge.Geometry.AxialTilePlan.TileIndex.get -> int
+Voxelforge.Geometry.AxialTilePlan.TileIndex.init -> void
+Voxelforge.Geometry.AxialTilePlan.XMax_mm.get -> double
+Voxelforge.Geometry.AxialTilePlan.XMax_mm.init -> void
+Voxelforge.Geometry.AxialTilePlan.XMin_mm.get -> double
+Voxelforge.Geometry.AxialTilePlan.XMin_mm.init -> void
+Voxelforge.Geometry.AxialTilingPlan
+Voxelforge.Geometry.AxialTilingPlan.<Clone>$() -> Voxelforge.Geometry.AxialTilingPlan!
+Voxelforge.Geometry.AxialTilingPlan.AxialTilingPlan(System.Collections.Generic.IReadOnlyList<Voxelforge.Geometry.AxialTilePlan>! Tiles, double ChamberXMin_mm, double ChamberXMax_mm, double PlannedOverlap_mm, string! Rationale) -> void
+Voxelforge.Geometry.AxialTilingPlan.ChamberXMax_mm.get -> double
+Voxelforge.Geometry.AxialTilingPlan.ChamberXMax_mm.init -> void
+Voxelforge.Geometry.AxialTilingPlan.ChamberXMin_mm.get -> double
+Voxelforge.Geometry.AxialTilingPlan.ChamberXMin_mm.init -> void
+Voxelforge.Geometry.AxialTilingPlan.Count.get -> int
+Voxelforge.Geometry.AxialTilingPlan.CoveredLength_mm.get -> double
+Voxelforge.Geometry.AxialTilingPlan.Deconstruct(out System.Collections.Generic.IReadOnlyList<Voxelforge.Geometry.AxialTilePlan>! Tiles, out double ChamberXMin_mm, out double ChamberXMax_mm, out double PlannedOverlap_mm, out string! Rationale) -> void
+Voxelforge.Geometry.AxialTilingPlan.Equals(Voxelforge.Geometry.AxialTilingPlan? other) -> bool
+Voxelforge.Geometry.AxialTilingPlan.IsFullyCovered() -> bool
+Voxelforge.Geometry.AxialTilingPlan.PlannedOverlap_mm.get -> double
+Voxelforge.Geometry.AxialTilingPlan.PlannedOverlap_mm.init -> void
+Voxelforge.Geometry.AxialTilingPlan.Rationale.get -> string!
+Voxelforge.Geometry.AxialTilingPlan.Rationale.init -> void
+Voxelforge.Geometry.AxialTilingPlan.Tiles.get -> System.Collections.Generic.IReadOnlyList<Voxelforge.Geometry.AxialTilePlan>!
+Voxelforge.Geometry.AxialTilingPlan.Tiles.init -> void
+Voxelforge.Geometry.BoxImplicit
+Voxelforge.Geometry.BoxImplicit.BoxImplicit(System.Numerics.Vector3 min, System.Numerics.Vector3 max) -> void
+Voxelforge.Geometry.BoxImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.ChamberAxialTileBuilder
+Voxelforge.Geometry.ChamberVoxelBuilder
+Voxelforge.Geometry.ChamberVoxelBuilderAdapter
+Voxelforge.Geometry.ChamberVoxelBuilderAdapter.Build(Voxelforge.Geometry.ChamberBuildOptions! opts, double voxelSize_mm) -> Voxelforge.Geometry.ChamberGeometryResult!
+Voxelforge.Geometry.ChamberVoxelBuilderAdapter.BuildAnalytical(Voxelforge.Geometry.ChamberBuildOptions! opts) -> Voxelforge.Geometry.ChamberGeometryResult!
+Voxelforge.Geometry.ChamberVoxelBuilderAdapter.ChamberVoxelBuilderAdapter() -> void
+Voxelforge.Geometry.CylinderImplicit
+Voxelforge.Geometry.CylinderImplicit.CylinderImplicit(System.Numerics.Vector3 start, System.Numerics.Vector3 direction, float radius, float length) -> void
+Voxelforge.Geometry.CylinderImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.DiscImplicit
+Voxelforge.Geometry.DiscImplicit.DiscImplicit(float xStart_mm, float thickness_mm, float radius_mm) -> void
+Voxelforge.Geometry.DiscImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.ExpansionDeflectionPlugGeometry
+Voxelforge.Geometry.ExportStlResult
+Voxelforge.Geometry.ExportStlResult.<Clone>$() -> Voxelforge.Geometry.ExportStlResult!
+Voxelforge.Geometry.ExportStlResult.Deconstruct(out string! Message, out double Meshing_ms, out double StlWrite_ms, out int TriangleCount, out long StlBytes) -> void
+Voxelforge.Geometry.ExportStlResult.Equals(Voxelforge.Geometry.ExportStlResult? other) -> bool
+Voxelforge.Geometry.ExportStlResult.ExportStlResult(string! Message, double Meshing_ms, double StlWrite_ms, int TriangleCount, long StlBytes) -> void
+Voxelforge.Geometry.ExportStlResult.Meshing_ms.get -> double
+Voxelforge.Geometry.ExportStlResult.Meshing_ms.init -> void
+Voxelforge.Geometry.ExportStlResult.Message.get -> string!
+Voxelforge.Geometry.ExportStlResult.Message.init -> void
+Voxelforge.Geometry.ExportStlResult.StlBytes.get -> long
+Voxelforge.Geometry.ExportStlResult.StlBytes.init -> void
+Voxelforge.Geometry.ExportStlResult.StlWrite_ms.get -> double
+Voxelforge.Geometry.ExportStlResult.StlWrite_ms.init -> void
+Voxelforge.Geometry.ExportStlResult.TriangleCount.get -> int
+Voxelforge.Geometry.ExportStlResult.TriangleCount.init -> void
+Voxelforge.Geometry.ImpellerImplicit
+Voxelforge.Geometry.ImpellerImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.ImpellerImplicit.ImpellerImplicit(float rHub_mm, float rTip_mm, float zMin_mm, float zMax_mm, int bladeCount = 8, float bladeThickness_mm = 2.5, float backwardAngleDeg = 30) -> void
+Voxelforge.Geometry.InducerImplicit
+Voxelforge.Geometry.InducerImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.InducerImplicit.InducerImplicit(float rHub_mm, float rTip_mm, float zMin_mm, float zMax_mm, int bladeCount = 3, float pitch_mm = 20, float bladeThickness_mm = 2.5) -> void
+Voxelforge.Geometry.InjectorFaceImport
+Voxelforge.Geometry.InjectorFaceImportResult
+Voxelforge.Geometry.InjectorFaceImportResult.<Clone>$() -> Voxelforge.Geometry.InjectorFaceImportResult!
+Voxelforge.Geometry.InjectorFaceImportResult.Deconstruct(out PicoGK.Voxels? Voxels, out string! Message, out int TriangleCount, out System.Numerics.Vector3 PlacedMinCorner, out System.Numerics.Vector3 PlacedMaxCorner) -> void
+Voxelforge.Geometry.InjectorFaceImportResult.Equals(Voxelforge.Geometry.InjectorFaceImportResult? other) -> bool
+Voxelforge.Geometry.InjectorFaceImportResult.InjectorFaceImportResult(PicoGK.Voxels? Voxels, string! Message, int TriangleCount, System.Numerics.Vector3 PlacedMinCorner, System.Numerics.Vector3 PlacedMaxCorner) -> void
+Voxelforge.Geometry.InjectorFaceImportResult.Message.get -> string!
+Voxelforge.Geometry.InjectorFaceImportResult.Message.init -> void
+Voxelforge.Geometry.InjectorFaceImportResult.PlacedMaxCorner.get -> System.Numerics.Vector3
+Voxelforge.Geometry.InjectorFaceImportResult.PlacedMaxCorner.init -> void
+Voxelforge.Geometry.InjectorFaceImportResult.PlacedMinCorner.get -> System.Numerics.Vector3
+Voxelforge.Geometry.InjectorFaceImportResult.PlacedMinCorner.init -> void
+Voxelforge.Geometry.InjectorFaceImportResult.TriangleCount.get -> int
+Voxelforge.Geometry.InjectorFaceImportResult.TriangleCount.init -> void
+Voxelforge.Geometry.InjectorFaceImportResult.Voxels.get -> PicoGK.Voxels?
+Voxelforge.Geometry.InjectorFaceImportResult.Voxels.init -> void
+Voxelforge.Geometry.LinearAerospikeAssemblyImplicit
+Voxelforge.Geometry.LinearAerospikeAssemblyImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.LinearAerospikeAssemblyImplicit.LinearAerospikeAssemblyImplicit(Voxelforge.Geometry.RevolvedContourImplicit! chamberOuter, float chamberXMin_mm, float chamberXMax_mm, Voxelforge.Geometry.RectangularPlugImplicit! plug) -> void
+Voxelforge.Geometry.MonolithicBodyEnvelopes
+Voxelforge.Geometry.MonolithicBodyEnvelopes.<Clone>$() -> Voxelforge.Geometry.MonolithicBodyEnvelopes!
+Voxelforge.Geometry.MonolithicBodyEnvelopes.AerospikePlug.get -> Voxelforge.Geometry.AerospikeBuildResult?
+Voxelforge.Geometry.MonolithicBodyEnvelopes.AerospikePlug.init -> void
+Voxelforge.Geometry.MonolithicBodyEnvelopes.AerospikePlugOrigin.get -> System.Numerics.Vector3
+Voxelforge.Geometry.MonolithicBodyEnvelopes.AerospikePlugOrigin.init -> void
+Voxelforge.Geometry.MonolithicBodyEnvelopes.ChamberLength_mm.get -> double
+Voxelforge.Geometry.MonolithicBodyEnvelopes.ChamberLength_mm.init -> void
+Voxelforge.Geometry.MonolithicBodyEnvelopes.ChamberOuterRadius_mm.get -> double
+Voxelforge.Geometry.MonolithicBodyEnvelopes.ChamberOuterRadius_mm.init -> void
+Voxelforge.Geometry.MonolithicBodyEnvelopes.Deconstruct(out double ChamberOuterRadius_mm, out double ChamberLength_mm, out Voxelforge.Turbopump.TurbopumpGeometry? FuelPumpGeometry, out System.Numerics.Vector3 FuelPumpOrigin, out Voxelforge.Turbopump.TurbopumpGeometry? OxPumpGeometry, out System.Numerics.Vector3 OxPumpOrigin, out Voxelforge.Chamber.PreburnerVoxelGeometry? PreburnerGeometry, out System.Numerics.Vector3 PreburnerOrigin, out Voxelforge.Turbopump.TurbineGeometry? FuelTurbineGeometry, out Voxelforge.Turbopump.TurbineGeometry? OxTurbineGeometry, out Voxelforge.Geometry.AerospikeBuildResult? AerospikePlug, out System.Numerics.Vector3 AerospikePlugOrigin) -> void
+Voxelforge.Geometry.MonolithicBodyEnvelopes.Equals(Voxelforge.Geometry.MonolithicBodyEnvelopes? other) -> bool
+Voxelforge.Geometry.MonolithicBodyEnvelopes.FuelPumpGeometry.get -> Voxelforge.Turbopump.TurbopumpGeometry?
+Voxelforge.Geometry.MonolithicBodyEnvelopes.FuelPumpGeometry.init -> void
+Voxelforge.Geometry.MonolithicBodyEnvelopes.FuelPumpOrigin.get -> System.Numerics.Vector3
+Voxelforge.Geometry.MonolithicBodyEnvelopes.FuelPumpOrigin.init -> void
+Voxelforge.Geometry.MonolithicBodyEnvelopes.FuelTurbineGeometry.get -> Voxelforge.Turbopump.TurbineGeometry?
+Voxelforge.Geometry.MonolithicBodyEnvelopes.FuelTurbineGeometry.init -> void
+Voxelforge.Geometry.MonolithicBodyEnvelopes.MonolithicBodyEnvelopes(double ChamberOuterRadius_mm, double ChamberLength_mm, Voxelforge.Turbopump.TurbopumpGeometry? FuelPumpGeometry, System.Numerics.Vector3 FuelPumpOrigin, Voxelforge.Turbopump.TurbopumpGeometry? OxPumpGeometry, System.Numerics.Vector3 OxPumpOrigin, Voxelforge.Chamber.PreburnerVoxelGeometry? PreburnerGeometry, System.Numerics.Vector3 PreburnerOrigin, Voxelforge.Turbopump.TurbineGeometry? FuelTurbineGeometry = null, Voxelforge.Turbopump.TurbineGeometry? OxTurbineGeometry = null, Voxelforge.Geometry.AerospikeBuildResult? AerospikePlug = null, System.Numerics.Vector3 AerospikePlugOrigin = default(System.Numerics.Vector3)) -> void
+Voxelforge.Geometry.MonolithicBodyEnvelopes.OxPumpGeometry.get -> Voxelforge.Turbopump.TurbopumpGeometry?
+Voxelforge.Geometry.MonolithicBodyEnvelopes.OxPumpGeometry.init -> void
+Voxelforge.Geometry.MonolithicBodyEnvelopes.OxPumpOrigin.get -> System.Numerics.Vector3
+Voxelforge.Geometry.MonolithicBodyEnvelopes.OxPumpOrigin.init -> void
+Voxelforge.Geometry.MonolithicBodyEnvelopes.OxTurbineGeometry.get -> Voxelforge.Turbopump.TurbineGeometry?
+Voxelforge.Geometry.MonolithicBodyEnvelopes.OxTurbineGeometry.init -> void
+Voxelforge.Geometry.MonolithicBodyEnvelopes.PreburnerGeometry.get -> Voxelforge.Chamber.PreburnerVoxelGeometry?
+Voxelforge.Geometry.MonolithicBodyEnvelopes.PreburnerGeometry.init -> void
+Voxelforge.Geometry.MonolithicBodyEnvelopes.PreburnerOrigin.get -> System.Numerics.Vector3
+Voxelforge.Geometry.MonolithicBodyEnvelopes.PreburnerOrigin.init -> void
+Voxelforge.Geometry.MonolithicEngineBuilder
+Voxelforge.Geometry.MonolithicEngineResult
+Voxelforge.Geometry.MonolithicEngineResult.<Clone>$() -> Voxelforge.Geometry.MonolithicEngineResult!
+Voxelforge.Geometry.MonolithicEngineResult.AerospikeChamber.get -> Voxelforge.Geometry.AerospikeBuildResult?
+Voxelforge.Geometry.MonolithicEngineResult.AerospikeChamber.init -> void
+Voxelforge.Geometry.MonolithicEngineResult.BodyIntersectionGate.get -> Voxelforge.Optimization.FeasibilityGateResult?
+Voxelforge.Geometry.MonolithicEngineResult.BodyIntersectionGate.init -> void
+Voxelforge.Geometry.MonolithicEngineResult.ChamberResult.get -> Voxelforge.Optimization.RegenGenerationResult!
+Voxelforge.Geometry.MonolithicEngineResult.ChamberResult.init -> void
+Voxelforge.Geometry.MonolithicEngineResult.ComponentBodyCount.get -> int
+Voxelforge.Geometry.MonolithicEngineResult.ComponentBodyCount.init -> void
+Voxelforge.Geometry.MonolithicEngineResult.Deconstruct(out PicoGK.Voxels! EngineVoxels, out Voxelforge.Optimization.RegenGenerationResult! ChamberResult, out Voxelforge.Turbopump.TurbopumpGeometry? FuelPumpGeometry, out Voxelforge.Turbopump.TurbopumpGeometry? OxPumpGeometry, out Voxelforge.FeedSystem.FeedManifoldLayout! ManifoldLayout, out int ComponentBodyCount, out double EstimatedEngineMass_g, out string! Description, out Voxelforge.Chamber.PreburnerVoxelGeometry? PreburnerGeometry, out Voxelforge.Turbopump.PumpMountFlangeGeometry? FuelPumpFlangeGeometry, out Voxelforge.Turbopump.PumpMountFlangeGeometry? OxPumpFlangeGeometry, out Voxelforge.Optimization.FeasibilityGateResult? BodyIntersectionGate, out Voxelforge.Geometry.AerospikeBuildResult? AerospikeChamber) -> void
+Voxelforge.Geometry.MonolithicEngineResult.Description.get -> string!
+Voxelforge.Geometry.MonolithicEngineResult.Description.init -> void
+Voxelforge.Geometry.MonolithicEngineResult.EngineVoxels.get -> PicoGK.Voxels!
+Voxelforge.Geometry.MonolithicEngineResult.EngineVoxels.init -> void
+Voxelforge.Geometry.MonolithicEngineResult.Equals(Voxelforge.Geometry.MonolithicEngineResult? other) -> bool
+Voxelforge.Geometry.MonolithicEngineResult.EstimatedEngineMass_g.get -> double
+Voxelforge.Geometry.MonolithicEngineResult.EstimatedEngineMass_g.init -> void
+Voxelforge.Geometry.MonolithicEngineResult.FuelPumpFlangeGeometry.get -> Voxelforge.Turbopump.PumpMountFlangeGeometry?
+Voxelforge.Geometry.MonolithicEngineResult.FuelPumpFlangeGeometry.init -> void
+Voxelforge.Geometry.MonolithicEngineResult.FuelPumpGeometry.get -> Voxelforge.Turbopump.TurbopumpGeometry?
+Voxelforge.Geometry.MonolithicEngineResult.FuelPumpGeometry.init -> void
+Voxelforge.Geometry.MonolithicEngineResult.ManifoldLayout.get -> Voxelforge.FeedSystem.FeedManifoldLayout!
+Voxelforge.Geometry.MonolithicEngineResult.ManifoldLayout.init -> void
+Voxelforge.Geometry.MonolithicEngineResult.MonolithicEngineResult(PicoGK.Voxels! EngineVoxels, Voxelforge.Optimization.RegenGenerationResult! ChamberResult, Voxelforge.Turbopump.TurbopumpGeometry? FuelPumpGeometry, Voxelforge.Turbopump.TurbopumpGeometry? OxPumpGeometry, Voxelforge.FeedSystem.FeedManifoldLayout! ManifoldLayout, int ComponentBodyCount, double EstimatedEngineMass_g, string! Description, Voxelforge.Chamber.PreburnerVoxelGeometry? PreburnerGeometry = null, Voxelforge.Turbopump.PumpMountFlangeGeometry? FuelPumpFlangeGeometry = null, Voxelforge.Turbopump.PumpMountFlangeGeometry? OxPumpFlangeGeometry = null, Voxelforge.Optimization.FeasibilityGateResult? BodyIntersectionGate = null, Voxelforge.Geometry.AerospikeBuildResult? AerospikeChamber = null) -> void
+Voxelforge.Geometry.MonolithicEngineResult.OxPumpFlangeGeometry.get -> Voxelforge.Turbopump.PumpMountFlangeGeometry?
+Voxelforge.Geometry.MonolithicEngineResult.OxPumpFlangeGeometry.init -> void
+Voxelforge.Geometry.MonolithicEngineResult.OxPumpGeometry.get -> Voxelforge.Turbopump.TurbopumpGeometry?
+Voxelforge.Geometry.MonolithicEngineResult.OxPumpGeometry.init -> void
+Voxelforge.Geometry.MonolithicEngineResult.PreburnerGeometry.get -> Voxelforge.Chamber.PreburnerVoxelGeometry?
+Voxelforge.Geometry.MonolithicEngineResult.PreburnerGeometry.init -> void
+Voxelforge.Geometry.MonolithicFeasibility
+Voxelforge.Geometry.PortGeometry
+Voxelforge.Geometry.PortGeometry.PortBuild
+Voxelforge.Geometry.PortGeometry.PortBuild.BoreSubtract.get -> PicoGK.Voxels!
+Voxelforge.Geometry.PortGeometry.PortBuild.BoreSubtract.init -> void
+Voxelforge.Geometry.PortGeometry.PortBuild.BossAdd.get -> PicoGK.Voxels!
+Voxelforge.Geometry.PortGeometry.PortBuild.BossAdd.init -> void
+Voxelforge.Geometry.PortGeometry.PortBuild.PortBuild() -> void
+Voxelforge.Geometry.RectangularPlugImplicit
+Voxelforge.Geometry.RectangularPlugImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.RectangularPlugImplicit.RectangularPlugImplicit(Voxelforge.Chamber.AerospikeContour! contour, float offsetX_mm = 0) -> void
+Voxelforge.Geometry.RevolvedContourImplicit
+Voxelforge.Geometry.RevolvedContourImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.RevolvedContourImplicit.RadiusAt(float x) -> float
+Voxelforge.Geometry.RevolvedContourImplicit.RevolvedContourImplicit(System.Collections.Generic.IEnumerable<(double x_mm, double r_mm)>! contourPoints) -> void
+Voxelforge.Geometry.RevolvedContourImplicit.XMax.get -> float
+Voxelforge.Geometry.RevolvedContourImplicit.XMin.get -> float
+Voxelforge.Geometry.RevolvedDomeImplicit
+Voxelforge.Geometry.RevolvedDomeImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.RevolvedDomeImplicit.RevolvedDomeImplicit(float xStart_mm, float depth_mm, float radius_mm) -> void
+Voxelforge.Geometry.RevolvedPlenumImplicit
+Voxelforge.Geometry.RevolvedPlenumImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.RevolvedPlenumImplicit.RevolvedPlenumImplicit(Voxelforge.Geometry.RevolvedContourImplicit! innerContour, float xMin_mm, float xMax_mm, float tWall_mm, float channelHeight_mm, float radialClearance_mm = 0.4) -> void
+Voxelforge.Geometry.RevolvedPlugImplicit
+Voxelforge.Geometry.RevolvedPlugImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.RevolvedPlugImplicit.RevolvedPlugImplicit(Voxelforge.Chamber.AerospikeContour! contour, float offsetX_mm = 0) -> void
+Voxelforge.Geometry.SpiderStrutsImplicit
+Voxelforge.Geometry.SpiderStrutsImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.SpiderStrutsImplicit.SpiderStrutsImplicit(float xMin_mm, float xMax_mm, float rInner_mm, float rOuter_mm, float thickness_mm, int count, float phaseRad = 0) -> void
+Voxelforge.Geometry.ThrustTakeoutAdapterGeometry
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.<Clone>$() -> Voxelforge.Geometry.ThrustTakeoutAdapterSpec!
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.Deconstruct(out double OuterDiameter_mm, out double Height_mm, out Voxelforge.Geometry.MountingFlangeStandard MountStandard, out int UmbilicalPassThroughCount, out double UmbilicalPassThroughDiameter_mm, out double ExitClearanceRadius_mm) -> void
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.Equals(Voxelforge.Geometry.ThrustTakeoutAdapterSpec? other) -> bool
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.ExitClearanceRadius_mm.get -> double
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.ExitClearanceRadius_mm.init -> void
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.Height_mm.get -> double
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.Height_mm.init -> void
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.MountStandard.get -> Voxelforge.Geometry.MountingFlangeStandard
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.MountStandard.init -> void
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.OuterDiameter_mm.get -> double
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.OuterDiameter_mm.init -> void
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.ThrustTakeoutAdapterSpec(double OuterDiameter_mm, double Height_mm, Voxelforge.Geometry.MountingFlangeStandard MountStandard, int UmbilicalPassThroughCount, double UmbilicalPassThroughDiameter_mm, double ExitClearanceRadius_mm = 0.5) -> void
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.UmbilicalPassThroughCount.get -> int
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.UmbilicalPassThroughCount.init -> void
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.UmbilicalPassThroughDiameter_mm.get -> double
+Voxelforge.Geometry.ThrustTakeoutAdapterSpec.UmbilicalPassThroughDiameter_mm.init -> void
+Voxelforge.Geometry.TiledBuildSummary
+Voxelforge.Geometry.TiledBuildSummary.<Clone>$() -> Voxelforge.Geometry.TiledBuildSummary!
+Voxelforge.Geometry.TiledBuildSummary.Deconstruct(out Voxelforge.Geometry.AxialTilingPlan! Plan, out System.Collections.Generic.IReadOnlyList<Voxelforge.Geometry.AxialTileBuildResult!>! TileResults, out Voxelforge.Geometry.StlWeldResult! WeldResult, out string! OutputStlPath, out double PerTileBuild_ms, out double Weld_ms) -> void
+Voxelforge.Geometry.TiledBuildSummary.Equals(Voxelforge.Geometry.TiledBuildSummary? other) -> bool
+Voxelforge.Geometry.TiledBuildSummary.OutputStlPath.get -> string!
+Voxelforge.Geometry.TiledBuildSummary.OutputStlPath.init -> void
+Voxelforge.Geometry.TiledBuildSummary.PerTileBuild_ms.get -> double
+Voxelforge.Geometry.TiledBuildSummary.PerTileBuild_ms.init -> void
+Voxelforge.Geometry.TiledBuildSummary.Plan.get -> Voxelforge.Geometry.AxialTilingPlan!
+Voxelforge.Geometry.TiledBuildSummary.Plan.init -> void
+Voxelforge.Geometry.TiledBuildSummary.TiledBuildSummary(Voxelforge.Geometry.AxialTilingPlan! Plan, System.Collections.Generic.IReadOnlyList<Voxelforge.Geometry.AxialTileBuildResult!>! TileResults, Voxelforge.Geometry.StlWeldResult! WeldResult, string! OutputStlPath, double PerTileBuild_ms, double Weld_ms) -> void
+Voxelforge.Geometry.TiledBuildSummary.TileResults.get -> System.Collections.Generic.IReadOnlyList<Voxelforge.Geometry.AxialTileBuildResult!>!
+Voxelforge.Geometry.TiledBuildSummary.TileResults.init -> void
+Voxelforge.Geometry.TiledBuildSummary.Weld_ms.get -> double
+Voxelforge.Geometry.TiledBuildSummary.Weld_ms.init -> void
+Voxelforge.Geometry.TiledBuildSummary.WeldResult.get -> Voxelforge.Geometry.StlWeldResult!
+Voxelforge.Geometry.TiledBuildSummary.WeldResult.init -> void
+Voxelforge.Geometry.TopologyOptimizedChannelImplicit
+Voxelforge.Geometry.TopologyOptimizedChannelImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.TopologyOptimizedChannelImplicit.TopologyOptimizedChannelImplicit(Voxelforge.Geometry.RevolvedContourImplicit! innerWall, float tWall_mm, float hChamber, float hThroat, float hExit, float xStart_mm, float xThroat_mm, float xEnd_mm, System.Collections.Generic.IReadOnlyList<double>! xCoords_mm, System.Collections.Generic.IReadOnlyList<int>! channelsPerStation, float ribThickness_mm, float phaseOffsetRad = 0, float manifoldFilletRadius_mm = 0) -> void
+Voxelforge.Geometry.TpmsAnnularImplicit
+Voxelforge.Geometry.TpmsAnnularImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.TpmsAnnularImplicit.TpmsAnnularImplicit(Voxelforge.Geometry.RevolvedContourImplicit! innerContour, Voxelforge.HeatTransfer.TpmsKind kind, float cellEdge_mm, float solidFraction, float tWall_mm, float hChamber_mm, float hThroat_mm, float hExit_mm, float xStart_mm, float xThroat_mm, float xEnd_mm) -> void
+Voxelforge.Geometry.TpmsUnitCellImplicit
+Voxelforge.Geometry.TpmsUnitCellImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.TpmsUnitCellImplicit.TpmsUnitCellImplicit(Voxelforge.HeatTransfer.TpmsKind kind, float cellEdge_mm, float solidFraction) -> void
+Voxelforge.Geometry.TurbineStageAssemblyImplicit
+Voxelforge.Geometry.TurbineStageAssemblyImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.TurbineStageAssemblyImplicit.TurbineStageAssemblyImplicit(Voxelforge.Geometry.TurbineStatorImplicit! stator, Voxelforge.Geometry.TurbineWheelImplicit! wheel, float housingRadius_mm, float housingZMin_mm, float housingZMax_mm) -> void
+Voxelforge.Geometry.TurbineStatorImplicit
+Voxelforge.Geometry.TurbineStatorImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.TurbineStatorImplicit.TurbineStatorImplicit(float rInner_mm, float rOuter_mm, float zMin_mm, float zMax_mm, int vaneCount = 24, float vaneThickness_mm = 1.5, float ringThicknessFraction = 0.15) -> void
+Voxelforge.Geometry.TurbineWheelImplicit
+Voxelforge.Geometry.TurbineWheelImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.TurbineWheelImplicit.TurbineWheelImplicit(float rHub_mm, float rTip_mm, float zMin_mm, float zMax_mm, int bladeCount = 36, float bladeThickness_mm = 2) -> void
+Voxelforge.Geometry.TurbopumpAssemblyImplicit
+Voxelforge.Geometry.TurbopumpAssemblyImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.TurbopumpAssemblyImplicit.TurbopumpAssemblyImplicit(Voxelforge.Geometry.InducerImplicit! inducer, Voxelforge.Geometry.ImpellerImplicit! impeller, Voxelforge.Geometry.VoluteImplicit! voluteCavity, float casingRadius_mm, float casingZMin_mm, float casingZMax_mm) -> void
+Voxelforge.Geometry.TurbopumpAssemblyImplicit.TurbopumpAssemblyImplicit(Voxelforge.Geometry.InducerImplicit! inducer, Voxelforge.Geometry.ImpellerImplicit![]! impellers, Voxelforge.Geometry.VoluteImplicit! voluteCavity, float casingRadius_mm, float casingZMin_mm, float casingZMax_mm) -> void
+Voxelforge.Geometry.UnionImplicit
+Voxelforge.Geometry.UnionImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.UnionImplicit.UnionImplicit(params PicoGK.IImplicit![]! parts) -> void
+Voxelforge.Geometry.VoluteImplicit
+Voxelforge.Geometry.VoluteImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Geometry.VoluteImplicit.VoluteImplicit(float rTipImpeller_mm, float rMinor0_mm, float growthPerRevolution_mm, float zMin_mm, float zMax_mm, float gapFromImpeller_mm = 2) -> void
+Voxelforge.Geometry.VoxelOpExtensions
+Voxelforge.PicoGKVoxelHandle
+Voxelforge.PicoGKVoxelHandle.Inner.get -> PicoGK.Voxels!
+Voxelforge.PicoGKVoxelHandle.PicoGKVoxelHandle(PicoGK.Voxels! inner) -> void
+Voxelforge.Turbopump.PumpMountFlange
+Voxelforge.Turbopump.PumpMountFlangeGeometry
+Voxelforge.Turbopump.PumpMountFlangeGeometry.<Clone>$() -> Voxelforge.Turbopump.PumpMountFlangeGeometry!
+Voxelforge.Turbopump.PumpMountFlangeGeometry.BoltCircleRadius_mm.get -> double
+Voxelforge.Turbopump.PumpMountFlangeGeometry.BoltCircleRadius_mm.init -> void
+Voxelforge.Turbopump.PumpMountFlangeGeometry.BoltCount.get -> int
+Voxelforge.Turbopump.PumpMountFlangeGeometry.BoltCount.init -> void
+Voxelforge.Turbopump.PumpMountFlangeGeometry.BoltHoleDiameter_mm.get -> double
+Voxelforge.Turbopump.PumpMountFlangeGeometry.BoltHoleDiameter_mm.init -> void
+Voxelforge.Turbopump.PumpMountFlangeGeometry.Deconstruct(out double InnerRadius_mm, out double OuterRadius_mm, out double Thickness_mm, out int BoltCount, out double BoltCircleRadius_mm, out double BoltHoleDiameter_mm, out double EstimatedMass_g, out string! Notes) -> void
+Voxelforge.Turbopump.PumpMountFlangeGeometry.Equals(Voxelforge.Turbopump.PumpMountFlangeGeometry? other) -> bool
+Voxelforge.Turbopump.PumpMountFlangeGeometry.EstimatedMass_g.get -> double
+Voxelforge.Turbopump.PumpMountFlangeGeometry.EstimatedMass_g.init -> void
+Voxelforge.Turbopump.PumpMountFlangeGeometry.InnerRadius_mm.get -> double
+Voxelforge.Turbopump.PumpMountFlangeGeometry.InnerRadius_mm.init -> void
+Voxelforge.Turbopump.PumpMountFlangeGeometry.Notes.get -> string!
+Voxelforge.Turbopump.PumpMountFlangeGeometry.Notes.init -> void
+Voxelforge.Turbopump.PumpMountFlangeGeometry.OuterRadius_mm.get -> double
+Voxelforge.Turbopump.PumpMountFlangeGeometry.OuterRadius_mm.init -> void
+Voxelforge.Turbopump.PumpMountFlangeGeometry.PumpMountFlangeGeometry(double InnerRadius_mm, double OuterRadius_mm, double Thickness_mm, int BoltCount, double BoltCircleRadius_mm, double BoltHoleDiameter_mm, double EstimatedMass_g, string! Notes) -> void
+Voxelforge.Turbopump.PumpMountFlangeGeometry.Thickness_mm.get -> double
+Voxelforge.Turbopump.PumpMountFlangeGeometry.Thickness_mm.init -> void
+Voxelforge.Turbopump.PumpMountFlangeImplicit
+Voxelforge.Turbopump.PumpMountFlangeImplicit.fSignedDistance(in System.Numerics.Vector3 p) -> float
+Voxelforge.Turbopump.PumpMountFlangeImplicit.PumpMountFlangeImplicit(Voxelforge.Turbopump.PumpMountFlangeGeometry! geom) -> void
+Voxelforge.Turbopump.TurbineGeneratorAdapter
+Voxelforge.Turbopump.TurbineGeneratorAdapter.Generate(Voxelforge.FeedSystem.TurbineStage! stage) -> Voxelforge.Turbopump.TurbineGeometry?
+Voxelforge.Turbopump.TurbineGeneratorAdapter.TurbineGeneratorAdapter() -> void
+Voxelforge.Turbopump.TurbineGeometryGenerator
+Voxelforge.Turbopump.TurbopumpGeneratorAdapter
+Voxelforge.Turbopump.TurbopumpGeneratorAdapter.Generate(Voxelforge.FeedSystem.PumpSizing! pump) -> Voxelforge.Turbopump.TurbopumpGeometry?
+Voxelforge.Turbopump.TurbopumpGeneratorAdapter.TurbopumpGeneratorAdapter() -> void
+Voxelforge.Turbopump.TurbopumpGeometryGenerator
+Voxelforge.VoxelHandleExtensions
+~override Voxelforge.Geometry.AxialTilePlan.Equals(object obj) -> bool
+~override Voxelforge.Geometry.AxialTilePlan.ToString() -> string

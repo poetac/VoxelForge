@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Roadmap — voxelforge</title>
+<link rel="stylesheet" href="assets/brand.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  .timeline { position: relative; padding-left: 0; }
+  .timeline-rail { position: absolute; left: 78px; top: 0; bottom: 0; width: 2px; background: var(--rule); }
+  .sprint { position: relative; padding: var(--s-5) 0 var(--s-5) 130px; min-height: 80px; }
+  .sprint__num { position: absolute; left: 0; top: var(--s-5); width: 56px; text-align: right; font-family: var(--font-mono); font-size: var(--t-mono-sm); color: var(--ink-3); }
+  .sprint__dot { position: absolute; left: 70px; top: calc(var(--s-5) + 4px); width: 18px; height: 18px; border-radius: 50%; background: var(--bg-elev); border: 2px solid var(--rule); z-index: 1; }
+  .sprint__dot.shipped { background: var(--green); border-color: var(--green); }
+  .sprint__dot.shipped::after { content: '✓'; position: absolute; left: 0; top: -2px; width: 14px; text-align: center; font-size: 10px; color: white; line-height: 18px; font-weight: 600; }
+  .sprint__dot.current { background: var(--ignition); border-color: var(--ignition); animation: pulse 2s ease-in-out infinite; }
+  .sprint__dot.future { background: var(--bg-elev); }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(217,79,0,0.4); } 50% { box-shadow: 0 0 0 8px rgba(217,79,0,0); } }
+  .sprint__body { background: var(--bg-elev); border: 1px solid var(--rule); border-radius: var(--r-3); padding: var(--s-4) var(--s-5); }
+  .sprint--current .sprint__body { border-color: var(--ignition); box-shadow: 0 0 0 1px var(--ignition); }
+  .sprint__head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); flex-wrap: wrap; }
+  .sprint__title { font-size: var(--t-md); font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+  .sprint__when { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .sprint__desc { margin: var(--s-2) 0 0; font-size: var(--t-sm); color: var(--ink-2); line-height: 1.55; }
+  .sprint__deliverables { margin-top: var(--s-3); display: flex; flex-wrap: wrap; gap: 4px; }
+  .deliverable { font-family: var(--font-mono); font-size: var(--t-mono-xs); padding: 2px 8px; background: var(--bone-100); border-radius: 4px; color: var(--ink-2); }
+  .filter { display: flex; gap: var(--s-2); margin-bottom: var(--s-6); flex-wrap: wrap; }
+  .filter button { padding: 6px 14px; background: transparent; border: 1px solid var(--rule); border-radius: 99px; font-family: var(--font-sans); font-size: var(--t-sm); color: var(--ink-2); cursor: pointer; }
+  .filter button.active { background: var(--graphite); border-color: var(--graphite); color: white; }
+</style></head><body>
+
+<nav class="nav"><div class="nav__brand"><img src="assets/logo.svg" alt=""><a href="index.html" class="nav__brand-name">voxelforge</a></div>
+<div class="nav__links"><a href="about.html">About</a><a href="architecture.html">Architecture</a><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a><a href="roadmap.html" class="is-current">Roadmap</a><a href="cascade.html">Cascade</a><a href="getting-started.html">Get started</a><a href="design-system.html">Brand</a><a href="https://github.com/poetac/voxelforge">GitHub ↗</a></div></nav>
+
+<header class="section" style="border-bottom:1px solid var(--rule);padding-bottom:var(--s-12);"><div class="wrap">
+  <p class="eyebrow">Roadmap</p>
+  <h1 class="t-h1" style="margin-top:var(--s-3);max-width:820px;">Forty sprints shipped through 2026-04-26. Cascade tail in flight.</h1>
+  <p class="t-lead" style="margin-top:var(--s-5);max-width:720px;">Each sprint freezes a JSONL fingerprint baseline. Cascade #N+1 measures itself against #N — that diff <em>is</em> the sprint's impact. Sprints below are grouped by track and reflect the live <a href="https://github.com/poetac/voxelforge/blob/main/ROADMAP.md">ROADMAP.md</a> and <a href="https://github.com/poetac/voxelforge/blob/main/CHANGELOG.md">CHANGELOG.md</a>. Sprint numbers are stable; specific dates are not promised.</p>
+  <div class="u-row" style="gap:var(--s-6);margin-top:var(--s-8);flex-wrap:wrap;">
+    <div><div class="t-mono" style="font-size:var(--t-mono-xs);color:var(--ink-3);">PHYSICS-AUDIT FINDINGS CLOSED</div><div class="t-h3 mono" style="margin-top:4px;">50 / 50</div></div>
+    <div><div class="t-mono" style="font-size:var(--t-mono-xs);color:var(--ink-3);">CASCADE REMAINING</div><div class="t-h3 mono" style="margin-top:4px;">Closed · OOB tail</div></div>
+    <div><div class="t-mono" style="font-size:var(--t-mono-xs);color:var(--ink-3);">TESTS</div><div class="t-h3 mono" style="margin-top:4px;">5,700+ ✓</div></div>
+    <div><div class="t-mono" style="font-size:var(--t-mono-xs);color:var(--ink-3);">GATES</div><div class="t-h3 mono" style="margin-top:4px;">196</div></div>
+  </div>
+</div></header>
+
+<section class="section"><div class="wrap">
+
+  <div class="filter" id="filter">
+    <button class="active" data-f="all">All</button>
+    <button data-f="shipped">Shipped</button>
+    <button data-f="current">In-flight</button>
+    <button data-f="future">Planned</button>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-rail"></div>
+
+    <!-- ============ FOUNDATION (S 01–26) — shipped, compressed view ============ -->
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">S 01–10</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Foundation — chamber sizing through regen jacket</h3><span class="sprint__when">Shipped</span></div>
+        <p class="sprint__desc">Rao bell, isentropic flow, Bartz, Dittus-Boelter, helical regen channels, basic injector face, propellant tables for LOX/CH4 + LOX/H2 + LOX/RP-1. The first STL out.</p>
+        <div class="sprint__deliverables"><span class="deliverable">RaoContour</span><span class="deliverable">RegenJacket</span><span class="deliverable">PropellantTables</span><span class="deliverable">FirstSTL</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">S 11–17</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Optimisation — SA · 24-D registry · first feasibility gates</h3><span class="sprint__when">Shipped</span></div>
+        <p class="sprint__desc">Simulated-annealing optimiser, initial 24-dimension search-space registry (since grown to 31), ParetoFront, SA convergence diagnostics, the first regen + monolithic gates.</p>
+        <div class="sprint__deliverables"><span class="deliverable">SAOptimizer</span><span class="deliverable">DesignVariables×24</span><span class="deliverable">ParetoFront</span><span class="deliverable">FeasibilityGates</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">S 18–26</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Engine-topology + cycle complete (less E‑D)</h3><span class="sprint__when">Shipped</span></div>
+        <p class="sprint__desc">Cycle solvers (GG, expander, staged combustion, ORSC, tap-off), turbopump rotordynamics, aerospike + linear-aerospike topologies with parallel feasibility gates, monolithic composition fusion. Every roadmap item from the engine-topology track shipped except E-D (expansion-deflection).</p>
+        <div class="sprint__deliverables"><span class="deliverable">CycleSolvers</span><span class="deliverable">Aerospike</span><span class="deliverable">LinearAerospike</span><span class="deliverable">Monolithic</span><span class="deliverable">ShaftDynamics</span></div>
+      </div>
+    </div>
+
+    <!-- ============ HOT-FIRE READINESS (S 27–29) — shipped ============ -->
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">S 27</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">LPBF printability gates</h3><span class="sprint__when">Shipped</span></div>
+        <p class="sprint__desc">Per-alloy overhang advisor (IN718 35° / GRCop 40° / CuCrZr 45°), trapped-powder flood-fill, drain-path graph check. Three new gates: <code>OVERHANG_ANGLE_EXCEEDED</code>, <code>TRAPPED_POWDER_REGION</code>, <code>DRAIN_PATH_MISSING</code>.</p>
+        <div class="sprint__deliverables"><span class="deliverable">PrintabilityGates+3</span><span class="deliverable">PrintabilityAdvisor</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">S 28</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Instrumentation clash detection</h3><span class="sprint__when">Shipped</span></div>
+        <p class="sprint__desc">Sensor-boss vs cooling-channel arc-distance check, boss-vs-boss spacing. Gate <code>INSTRUMENTATION_TAP_INTERFERENCE</code>. Silent on every pre-Sprint-28 design (empty boss list short-circuits).</p>
+        <div class="sprint__deliverables"><span class="deliverable">SensorBosses</span><span class="deliverable">ClashGate</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">S 29</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Per-pair ignition energy + modality gates</h3><span class="sprint__when">Shipped</span></div>
+        <p class="sprint__desc">Replaces pre-S29 universal 50&nbsp;mJ floor with per-pair floors (LOX/CH4 50&nbsp;mJ, LOX/H2 5&nbsp;mJ, LOX/RP-1 500&nbsp;mJ). New gates <code>IGNITER_MISSING</code>, <code>IGNITER_MODALITY_UNSUITABLE</code>; tightens <code>IGNITER_ENERGY_INSUFFICIENT</code>.</p>
+        <div class="sprint__deliverables"><span class="deliverable">IgnitionRequirements</span><span class="deliverable">Gates+3</span></div>
+      </div>
+    </div>
+
+    <!-- ============ ARCHITECTURE SPLIT (Sprint A1/A2) — shipped ============ -->
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">S A1·A2</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Core / Voxels / App split (ADR-015 + ADR-016)</h3><span class="sprint__when">Shipped · 2026-04-25</span></div>
+        <p class="sprint__desc">117 .cs files moved into <code>.Core</code>; 19 voxel builders into <code>.Voxels</code>; <code>IVoxelHandle</code> retired the 9 <code>object?</code> cast sites; PublicApiAnalyzers track the ~5,200-entry public surface. The split that unlocks any external Python / SU2 / R consumer of the headless physics.</p>
+        <div class="sprint__deliverables"><span class="deliverable">.Core</span><span class="deliverable">.Voxels</span><span class="deliverable">IVoxelHandle</span><span class="deliverable">PublicAPI</span></div>
+      </div>
+    </div>
+
+    <!-- ============ PHYSICS-CORRECTNESS CASCADE — partially shipped ============ -->
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">S 30–32</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Physics audit — Criticals + 4 Majors</h3><span class="sprint__when">Shipped · 2026-04-24</span></div>
+        <p class="sprint__desc">Both Criticals (PH-1 Angelino plug cone; PH-2 NPSHR constant) plus four Majors (PH-3, PH-5, PH-15, PH-25) from the 2026-04-23 physics audit. Companion: BB-0 + BB-1 + BB-2 froze pre-cascade fingerprints + JSONL schema v1 (ADR-013) + 5 canonical-design SA baselines.</p>
+        <div class="sprint__deliverables"><span class="deliverable">PH-1·2·3·5·15·25</span><span class="deliverable">BB-0</span><span class="deliverable">BB-1</span><span class="deliverable">BB-2</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">S 33·36</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Coolant correlations + advisory gate bundle</h3><span class="sprint__when">Shipped · 2026-04-25</span></div>
+        <p class="sprint__desc">PH-6 (Dravid Dean-number Nu enhancement on helical channels), PH-7 (Haaland LPBF friction), plus five advisory feasibility gates: <code>CONTRACTION_RATIO_OUT_OF_BAND</code>, <code>CHANNEL_ASPECT_RATIO_EXCEEDED</code>, <code>G_INJ_TOO_LOW/HIGH</code>, <code>L_STAR_BELOW_PROPELLANT_MIN</code>, <code>INSTRUMENTATION_THERMAL_BRIDGE_RISK</code>.</p>
+        <div class="sprint__deliverables"><span class="deliverable">PH-6</span><span class="deliverable">PH-7</span><span class="deliverable">Gates+5</span></div>
+      </div>
+    </div>
+
+    <!-- ============ ON DECK — cascade tail ============ -->
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">S 34a</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Turbine choke + shaft-layout split</h3><span class="sprint__when">Shipped · 2026-04-25</span></div>
+        <p class="sprint__desc">PH-26 — new <code>TURBINE_UNCHOKED</code> gate (computes π_crit = (2/(γ+1))^(γ/(γ-1)) per Sutton §10.4). PH-10 — new <code>ShaftLayout</code> enum (Straddled / Overhung) with cantilever ω_n drop ~6× vs straddled. Gate census 43 → 44.</p>
+        <div class="sprint__deliverables"><span class="deliverable">PH-10</span><span class="deliverable">PH-26</span><span class="deliverable">TURBINE_UNCHOKED</span><span class="deliverable">ShaftLayout</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">S 37a·b·34b</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Cascade tail — face fin-eff, dual-bell, aerospike Bartz, plug base drag, pump N_s</h3><span class="sprint__when">Shipped · 2026-04-25</span></div>
+        <p class="sprint__desc">PH-13 (injector-face cylindrical-fin efficiency); PH-20 (dual-bell sea-level/altitude ε mode switch); PH-14 (aerospike face recovery factor + Bartz h_g); PH-18 (truncated-plug base-drag correction); PH-8 minimum-viable (user-overridable <code>PumpRpm_rpm</code> + <code>PUMP_SPECIFIC_SPEED_OFF_BAND</code> gate). Gate census 44 → 45.</p>
+        <div class="sprint__deliverables"><span class="deliverable">PH-8</span><span class="deliverable">PH-13</span><span class="deliverable">PH-14</span><span class="deliverable">PH-18</span><span class="deliverable">PH-20</span><span class="deliverable">PUMP_SPECIFIC_SPEED_OFF_BAND</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">S 38a</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">γ split + Rao bell table + voxelforge-eval + Sobol indices + CI contracts</h3><span class="sprint__when">Shipped · 2026-04-25</span></div>
+        <p class="sprint__desc">Six items in one bundle on top of the Core/Voxels/App split. PH-24 (γ_chamber/γ_throat split with back-compat alias). PH-30 (<code>IsFrozen</code> flag + idempotent equilibrium correction). PH-16 (Rao bell-nozzle angle lookup table; bilinear over 11×5 grid digitised from Sutton RPE 9e fig. 3-7). B3 (CI contract checks: schema-bump + gate-census enforcement on PR). T2.2 (<code>voxelforge-eval</code> subprocess oracle for Python/Julia/R). OOB-5 (Sobol sensitivity indices via Saltelli sampling).</p>
+        <div class="sprint__deliverables"><span class="deliverable">PH-16</span><span class="deliverable">PH-24</span><span class="deliverable">PH-30</span><span class="deliverable">voxelforge-eval</span><span class="deliverable">SobolSensitivity</span><span class="deliverable">CI-contracts</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">OPT T1</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Multi-chain parallel SA with Sobol seeding (ADR-017)</h3><span class="sprint__when">Shipped · 2026-04-25</span></div>
+        <p class="sprint__desc">N independent <code>SimulatedAnnealingOptimizer</code> chains run in parallel via <code>MultiChainOptimizer</code> + <code>Barrier</code>-enforced lockstep elite migration. Per-chain Sobol slice for low-discrepancy initial coverage. UI checkbox &ldquo;Multi-chain SA&rdquo; in the Optimization panel; auto-scales to <code>ProcessorCount − 2</code> clamped 1–16. Strict determinism: same seed + chain count → identical result.</p>
+        <div class="sprint__deliverables"><span class="deliverable">MultiChainOptimizer</span><span class="deliverable">SobolSeeding</span><span class="deliverable">ADR-017</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">FA-018</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Feasibility-investigation audit (ADR-018)</h3><span class="sprint__when">Shipped · 2026-04-26</span></div>
+        <p class="sprint__desc">Five-phase investigation into &ldquo;every canonical bench-sa preset returns 0 feasible candidates.&rdquo; Found and shipped 3 bugs: <code>G_INJ</code> ceiling units error 30–100× too low; face-thermal area metric wrong by 6×; AutoSeeder missing film-cooling defaults + LRE-realistic params. RL-10 now feasible on <code>WALL_TEMP</code>; remaining 4 presets blocked on material-library gaps + missing film-T term in face-thermal model + NPSH model issues. Recommends 5 prioritised follow-up sprints.</p>
+        <div class="sprint__deliverables"><span class="deliverable">ADR-018</span></div>
+      </div>
+    </div>
+
+    <!-- ============ PHASE 7 — POST-AUDIT EXPANSION (2026-04-29 → 04-30) ============ -->
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · OOB-3 v11</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Published-engine validation library — 16 → 20 fixtures</h3><span class="sprint__when">Shipped · 2026-04-30</span></div>
+        <p class="sprint__desc">Adds LE-5B (JAXA H-IIA upper, 137 kN closed-expander), LE-7A (JAXA H-IIA first stage, 1 MN staged-combustion), RD-170 (Energomash 7.26 MN per-chamber test, 1.815 MN), Vulcain 1 (ESA/Snecma 1.075 MN gas-generator). Voxelforge predictions land inside per-property tolerance bands (Isp ±8 %, thrust ±5 %, ṁ ±6 %, geometry ±10 %). +16 theory-row tests. Suite now 2,399 / 2,400 passing.</p>
+        <div class="sprint__deliverables"><span class="deliverable">LE-5B</span><span class="deliverable">LE-7A</span><span class="deliverable">RD-170</span><span class="deliverable">Vulcain 1</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · OOB-13 E-D</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Expansion-deflection nozzle physics + gate</h3><span class="sprint__when">Shipped · 2026-04-30</span></div>
+        <p class="sprint__desc">New <code>ChannelTopology.ExpansionDeflection</code>; cowl radius inflated by 1/√(1−0.40²) ≈ 1.091× (Angelino inner/outer ratio 0.40); outer bell runs full regen-bell pipeline. New advisory gate <code>EXPANSION_DEFLECTION_PLUG_CLEARANCE</code> (gate census 52 → 53). Schema v24 → v25 identity migration. Inner-plug PicoGK voxel geometry deferred to a follow-on sprint — physics + gate are live.</p>
+        <div class="sprint__deliverables"><span class="deliverable">E-D</span><span class="deliverable">Angelino-0.40</span><span class="deliverable">Schema-v25</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · OOB-6</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Acoustic dampers — Helmholtz + quarter-wave as SA dims</h3><span class="sprint__when">Shipped · 2026-04-30</span></div>
+        <p class="sprint__desc">Closed-form sizing as first-class SA variables. Two damper families: Helmholtz (neck + buried cavity) and quarter-wave (long radial cavity). Standard f₀ formulas (Helmholtz with 0.85·r unflanged end correction; quarter-wave c/(4·L)); Harrje &amp; Reardon §8 damping (Δζ_peak = 0.04 per resonator, Q = 15 Lorentzian, √N coherent-combining capped at 8). Three new SA dims (31 → 34). Schema v23 → v24. Two new gates: <code>ACOUSTIC_DAMPER_DETUNED</code>, <code>ACOUSTIC_DAMPER_OVERSIZED</code> (gate census 50 → 52).</p>
+        <div class="sprint__deliverables"><span class="deliverable">Helmholtz</span><span class="deliverable">QuarterWave</span><span class="deliverable">SA-dims+3</span><span class="deliverable">Gates+2</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · OOB-8</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">STEP CAD export — pure C# AP214 MANIFOLD_SOLID_BREP</h3><span class="sprint__when">Shipped · 2026-04-30</span></div>
+        <p class="sprint__desc">ISO 10303-21 AP214 writer with zero new NuGet deps — avoids OpenCASCADE LGPL-2.1 binding, stays Apache 2.0 clean for downstream forks. Closed-solid <code>MANIFOLD_SOLID_BREP</code>: inner + outer wall <code>SURFACE_OF_REVOLUTION</code> from <code>ChamberContour.Stations[]</code>, two annular <code>PLANE</code> endcaps, full seam-edge topology for 360° revolution. OOB-15 provenance (git SHA + gate manifest) embedded in <code>PRODUCT</code> description.</p>
+        <div class="sprint__deliverables"><span class="deliverable">STEP-AP214</span><span class="deliverable">Apache-2.0-clean</span><span class="deliverable">OOB-15-provenance</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · ADR-021</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Orchestrator decoupling — App → Core / Voxels (Phase 1 + 2)</h3><span class="sprint__when">Shipped · 2026-04-30</span></div>
+        <p class="sprint__desc">Phase 1: <code>IVoxelGenerator</code> / <code>IAerospikeBuilder</code> / <code>ITurbopumpGenerator</code> / <code>ITurbineGenerator</code> seam interfaces in Core; <code>AnalyticalOnlyVoxelGenerator</code> for headless tests; <code>ChamberVoxelBuilderAdapter</code> in Voxels. Phase 2: <code>RegenChamberOptimization</code> + <code>AerospikeOptimization</code> + <code>ToleranceAnalysis</code> + <code>MemoryProjectionGate</code> moved to Core/Optimization + Core/Analysis; <code>MonolithicEngineBuilder</code> moved to Voxels/Geometry. App retains WinForms callbacks + 4 adapters.</p>
+        <div class="sprint__deliverables"><span class="deliverable">ADR-021</span><span class="deliverable">IVoxelGenerator</span><span class="deliverable">HeadlessOrchestrators</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · T2.4a/b</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">NSGA-II Pareto algorithm + live UI panel</h3><span class="sprint__when">Shipped · 2026-04-28 → 04-30</span></div>
+        <p class="sprint__desc">Constrained multi-objective NSGA-II (Deb-Pratap-Agarwal-Meyarivan 2002, constrained-dominance), shaped by the <code>IObjective</code> contract. Live WinForms panel: <code>ManualResetEventSlim</code>-based pause/resume between generations without discarding state; live Pareto scatter + convergence panel updated each UI poll tick via <code>BeginInvoke</code>.</p>
+        <div class="sprint__deliverables"><span class="deliverable">NSGA-II</span><span class="deliverable">ParetoLiveUI</span><span class="deliverable">Pause/Resume</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · CMA-ES + SrcGen</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">CMA-ES inner loop + source-generator binder</h3><span class="sprint__when">Shipped · 2026-04-28 → 04-29</span></div>
+        <p class="sprint__desc">Full Hansen 2001/2016 CMA-ES on the <code>IObjective</code> surface, with bounded sampling (Hansen 2016 §3.3 reflection-at-bound). Hybrid SA + CMA-ES orchestrator: multi-chain SA outer loop, CMA-ES inner refinement on the elite. Roslyn incremental source generator emits a compile-time-checked <code>DesignVariableBinder</code> accessor table — AOT-clean, retires reflection.</p>
+        <div class="sprint__deliverables"><span class="deliverable">CMA-ES</span><span class="deliverable">HybridSACMA</span><span class="deliverable">SrcGen</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · OOB-4</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Bayesian optimisation — GP surrogate over SA</h3><span class="sprint__when">Shipped · 2026-04-29</span></div>
+        <p class="sprint__desc">Gaussian-process surrogate with RBF kernel + ARD length scales; Expected-Improvement and LCB acquisition functions. Sits over the <code>IObjective</code> surface; reuses determinism guarantees. MLE auto-fit of length scales tracked as a follow-on.</p>
+        <div class="sprint__deliverables"><span class="deliverable">GP-RBF-ARD</span><span class="deliverable">EI+LCB</span><span class="deliverable">+20 tests</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · ADR-020</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">[Deterministic] Roslyn analyzer</h3><span class="sprint__when">Shipped · 2026-04-29</span></div>
+        <p class="sprint__desc">Compile-time enforcement of determinism inside the optimiser inner loops. Flags non-deterministic calls (<code>DateTime.Now</code>, <code>Guid.NewGuid()</code>, <code>Random</code>'s default-seed ctor, <code>Environment.TickCount</code>). Narrowed to skip <code>Stopwatch.GetTimestamp()</code> — observability, not flow control. Lambda + transitive call-graph closure included.</p>
+        <div class="sprint__deliverables"><span class="deliverable">VFD001-004</span><span class="deliverable">CallGraphClosure</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · ADR-019</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Gate registry + OOB-13 causal explainer (slice 1)</h3><span class="sprint__when">Shipped · 2026-04-29</span></div>
+        <p class="sprint__desc"><code>GateRegistry</code> centralises every gate's id, family, ADR reference. New <code>GateExplainer</code> emits a structured <code>GateExplanation</code> per <code>FeasibilityViolation</code> — ConstraintId, OffendingValue, Limit, hand-authored Levers, ReferenceDoc — plus a Markdown report mirroring the SafetyReport template. 15 most-frequently-fired gates covered with bespoke levers; the rest fall through to a registry-sourced fallback. Sobol-driven lever ranking + UI panel deferred.</p>
+        <div class="sprint__deliverables"><span class="deliverable">GateRegistry</span><span class="deliverable">GateExplainer</span><span class="deliverable">ADR-019</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · PH-40</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Low-cycle fatigue gate (Coffin-Manson) + audit closures 49 → 50</h3><span class="sprint__when">Shipped · 2026-04-29 → 04-30</span></div>
+        <p class="sprint__desc">Coffin-Manson LCF prediction on the chamber-wall through-wall thermal gradient; new <code>LCF_LIFE_INSUFFICIENT</code> gate gated on a new <code>MissionCycles</code> mission spec. Schema v21 → v22 (identity migration; default <code>MissionCycles = 1</code> preserves bit-identical feasibility). Below the 100-cycle advisory threshold the gate is silent and a <code>[PH-40 disclosure]</code> Notes string is stamped. <strong>With PH-27 + PH-28 closing on 2026-04-30, all 50 physics-audit findings are now closed.</strong></p>
+        <div class="sprint__deliverables"><span class="deliverable">PH-40</span><span class="deliverable">PH-27</span><span class="deliverable">PH-28</span><span class="deliverable">50/50-closed</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · Wall thermal</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Wall-thermal bundle — PH-44 / PH-45 / PH-46 + aerospike Bartz fixes</h3><span class="sprint__when">Shipped · 2026-04-29</span></div>
+        <p class="sprint__desc">Aerospike-plug fixes. PH-44 — Bartz σ wall-T floor 400 → 200 K (fixes silent flooring on cryogenic LH₂ ≈ 20 K, LCH4 ≈ 112 K). PH-45 — log-mean cylindrical conduction (replaces parallel-plate approximation in regen channels). PH-46 — preburner mid-bulk-T one-step Picard refinement. PH-41 — drop fictitious curvature enhancement on aerospike plug Bartz. PH-43 — replace disk-area formula with isentropic compressible-flow on plug-cooling annulus.</p>
+        <div class="sprint__deliverables"><span class="deliverable">PH-41</span><span class="deliverable">PH-43</span><span class="deliverable">PH-44</span><span class="deliverable">PH-45</span><span class="deliverable">PH-46</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · Turbopump</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Turbopump bundle — PH-47 + PH-48 + PH-49</h3><span class="sprint__when">Shipped · 2026-04-29</span></div>
+        <p class="sprint__desc">NPSH follow-on. PH-47 electric-pump battery-energy budget (<code>BurnTime_s</code> + <code>BatteryEnergyDensity_kg_per_MJ</code>). PH-48 common-shaft RPM enforcement on GG/SC/ORSC/Open/Closed/TapOff cycles + new <code>COMMON_SHAFT_RPM_INCONSISTENT</code> regression-guard gate; replaces the geometric-mean compromise with NPSH-aware golden-section search (deterministic, ~20 iterations, soft 1e15 W penalty on NPSHR-infeasible RPMs). PH-49 tap-off cycle axial-station knob (<code>TapOffAxialStation_frac</code>, default 0.5). Schema v19 → v20 → v21.</p>
+        <div class="sprint__deliverables"><span class="deliverable">PH-47</span><span class="deliverable">PH-48</span><span class="deliverable">PH-49</span><span class="deliverable">NPSH-aware-GSS</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · OOB-15</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Forever-traceable artefacts — git-embedded 3MF / STL metadata</h3><span class="sprint__when">Shipped · 2026-04-29</span></div>
+        <p class="sprint__desc"><code>ExportMetadata.GitSha</code> / <code>SchemaVersion</code> / <code>GatePassManifest</code> embedded in the 3MF metadata block; <code>StampStlHeader</code> post-processes the PicoGK 80-byte STL header with a <code>voxelforge|sha7|schema|gate</code> magic stamp; <code>ReadStlHeaderStamp</code> for round-trip. Every exported artefact carries the exact commit + schema + gate-pass set that produced it.</p>
+        <div class="sprint__deliverables"><span class="deliverable">ExportMetadata</span><span class="deliverable">3MF</span><span class="deliverable">STL-stamp</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--shipped" data-state="shipped"><div class="sprint__num">P7 · BB-3·4·5</div><div class="sprint__dot shipped"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Benchmarking expansion — BenchmarkDotNet harness + 50 microbenches</h3><span class="sprint__when">Shipped · 2026-04-29</span></div>
+        <p class="sprint__desc">New <code>Voxelforge.MicroBenchmarks/</code> project (10 projects total in <code>voxelforge.sln</code>); restored <code>--bench-cfd-export</code>; per-gate + coolant-correlation + Bartz BDN benches; coverage-breadth benches (LpbfPrintability × 2, EngineCycles × 9, JsonRoundTrip × 2, 3MfExport, ToleranceSweep × 3); <code>--bench-dual-bell</code> + <code>--bench-linear-aerospike</code> CLI subcommands. Total BDN bench count 13 → 50.</p>
+        <div class="sprint__deliverables"><span class="deliverable">BB-3</span><span class="deliverable">BB-4</span><span class="deliverable">BB-5a</span><span class="deliverable">BB-5b</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--current" data-state="current"><div class="sprint__num">S 34b</div><div class="sprint__dot current"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Cycle-balance remainders — Stepanoff curve + expander Picard</h3><span class="sprint__when" style="color:var(--ignition)">Next</span></div>
+        <p class="sprint__desc">Closes the rest of S 34: replace constant <code>DefaultPumpEfficiency = 0.65</code> with the Stepanoff η-vs-N_s correlation (cascades through every cycle-balance fixture); PH-9 expander Picard iteration (audit's iteration target ambiguous for closed-expander where ṁ_c is fixed by mass conservation — needs subject-matter review).</p>
+        <div class="sprint__deliverables"><span class="deliverable">StepanoffEta</span><span class="deliverable">ExpanderPicard</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--current" data-state="current"><div class="sprint__num">S 35</div><div class="sprint__dot current"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Combustion fidelity — 2-D propellant tables (PH-4)</h3><span class="sprint__when" style="color:var(--ignition)">Next · ~3–5 days</span></div>
+        <p class="sprint__desc">PH-24 (γ split) + PH-30 (frozen flag) shipped in S 38a. Remaining: 2-D propellant tables (MR × Pc grid) replace the 1-D MR-only lookup. Removes table-edge ringing on extreme O/F sweeps. γ_chamber and γ_throat will diverge naturally under the 2-D tables; today they’re populated to the same scalar from the 1-D path.</p>
+        <div class="sprint__deliverables"><span class="deliverable">PH-4</span><span class="deliverable">2DTables</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--future" data-state="future"><div class="sprint__num">FA-018 follow-ups</div><div class="sprint__dot future"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Restore canonical-preset feasibility — 5 prioritised sprints</h3><span class="sprint__when">Planned</span></div>
+        <p class="sprint__desc">Per ADR-018: (1) extend material library above 1100 K; (2) add film-T term to face-thermal model; (3) tune NPSHR Thoma defaults for LRE-class designs; (4) coolant-side h_c floor for hot-design exits; (5) per-preset wall-T budget calibration. Order TBD; each sprint individually shippable.</p>
+        <div class="sprint__deliverables"><span class="deliverable">MaterialLibrary</span><span class="deliverable">FilmTerm</span><span class="deliverable">NPSHTune</span></div>
+      </div>
+    </div>
+
+    <!-- ============ NEXT TRACKS — unscheduled ============ -->
+    <div class="sprint sprint--future" data-state="future"><div class="sprint__num">HF 6</div><div class="sprint__dot future"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Hot-fire readiness 6 — voxel thrust-takeout geometry</h3><span class="sprint__when">Demand-driven</span></div>
+        <p class="sprint__desc">Items 1–3 shipped as S 27 / 28-instr / 29; Items 5 + 6 shipped (<code>SafetyReport.BuildMarkdown</code> + <code>BuildSheet.BuildMarkdown</code>); Item 4 shipped 2026-04-28 (<code>ShutdownBlowdownSim</code> + <code>HARD_START_RISK</code> + <code>CHILLDOWN_BUDGET_EXCEEDED</code>, ID-4 / ID-7 closed). <strong>Only Item 6 remains</strong> — voxel thrust-takeout geometry that draws new voxel features. No claim issue; demand-driven (open one when a real test-stand integration drives the requirement).</p>
+        <div class="sprint__deliverables"><span class="deliverable">ThrustTakeout</span><span class="deliverable">demand-driven</span></div>
+      </div>
+    </div>
+
+    <!-- ============ TIER 1 / 2 OPTIMISATION INFRASTRUCTURE — unscheduled ============ -->
+    <div class="sprint sprint--future" data-state="future"><div class="sprint__num">T2.3</div><div class="sprint__dot future"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">CFD validation closed loop (SU2 subprocess on top-K Pareto)</h3><span class="sprint__when">Unscheduled · ~3–4 days</span></div>
+        <p class="sprint__desc">Final remaining Tier 1 / Tier 2 optimisation-infrastructure item. SU2 subprocess oracle on top-K Pareto designs from NSGA-II, returning per-station M(x) tables that close the always-on PH-42 advisory note on aerospike plug Mach. Blocked on SU2 setup. Tier 1 (CMA-ES, source-generator binder, progressive-fidelity, multi-chain SA) and Tier 2 (Core extraction, voxelforge-eval, NSGA-II + live UI) all SHIPPED.</p>
+        <div class="sprint__deliverables"><span class="deliverable">SU2Oracle</span><span class="deliverable">PH-42-closure</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--future" data-state="future"><div class="sprint__num">OOTB</div><div class="sprint__dot future"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Out-of-the-box improvements — 8 of 15 shipped</h3><span class="sprint__when">Later</span></div>
+        <p class="sprint__desc"><strong>Shipped:</strong> OOB-3 published-engine library (now 20 fixtures), OOB-4 Bayesian GP layer, OOB-5 Sobol indices, OOB-6 acoustic dampers, OOB-8 STEP CAD export, OOB-13 causal gate explainer (slice 1) + E-D nozzle physics, OOB-15 traceable artefacts (3MF + STL header). <strong>Remaining top picks:</strong> OOB-1 test-data assimilation loop, OOB-2 topology-optimised regen channel routing, OOB-13 Sobol-driven lever ranking + UI panel (slice 2), OOB-16 Blender render pipeline (closes the 90 % of the Voxelforge-vs-Noyron visual gap that is rendering, not geometry).</p>
+        <div class="sprint__deliverables"><span class="deliverable">OOB-1</span><span class="deliverable">OOB-2</span><span class="deliverable">OOB-13-slice2</span><span class="deliverable">OOB-16</span></div>
+      </div>
+    </div>
+
+    <div class="sprint sprint--future" data-state="future"><div class="sprint__num">SCOPE</div><div class="sprint__dot future"></div>
+      <div class="sprint__body">
+        <div class="sprint__head"><h3 class="sprint__title">Scope expansion (~9–12 months out)</h3><span class="sprint__when">Long-term</span></div>
+        <p class="sprint__desc">Three-step staircase from rocket-only: <strong>propulsion</strong> (air-breathing entry: ramjet → turbojet → turbofan → scramjet → RBCC) → <strong>power generation</strong> (gas turbine → steam → ICE → fuel cell) → <strong>general computational engineering</strong>. Architectural finding: ~40&thinsp;% of voxelforge reuses as-is for any new engine family; ~60&thinsp;% net-new per family. Recommended shape: parallel pillar (no upfront platform refactor). Trigger: S&nbsp;37 ships AND ≥3 hot-fire readiness items done.</p>
+        <div class="sprint__deliverables"><span class="deliverable">AirBreathing</span><span class="deliverable">PowerGen</span><span class="deliverable">GeneralCE</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ EVALUATED-AND-DECLINED PANEL ============ -->
+  <div style="margin-top:var(--s-12);padding:var(--s-6);background:var(--bone-50);border:1px solid var(--rule);border-radius:var(--r-3);">
+    <p class="eyebrow">Evaluated and declined</p>
+    <h2 class="t-h3" style="margin-top:var(--s-2);">Items consciously not on the roadmap.</h2>
+    <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);max-width:820px;">Considered during the 2026-04-22 pre-production audit and 2026-04-23 audits, declined with rationale. <strong>Do not re-evaluate without new evidence.</strong></p>
+    <ul style="margin-top:var(--s-4);padding-left:var(--s-5);color:var(--ink-2);font-size:var(--t-sm);line-height:1.65;">
+      <li><strong>Unified <code>IEngineResult</code> supertype</strong> — dispatch fits cleanly in a ~40-LOC branch inside <code>Evaluate</code>. Revisit only if a third engine topology appears.</li>
+      <li><strong>SIMD vectorisation</strong> and <strong><code>double → float</code></strong> — deferred per the performance audit; no cost justification today.</li>
+      <li><strong>GPU voxelisation</strong> (CUDA / HLSL compute shader for PicoGK SDF) — determinism risk: shader FP rounding ≠ CPU, breaking byte-identical round-trip.</li>
+      <li><strong>Differentiable physics / full autodiff</strong> — physics-fidelity rewrite cost vastly exceeds value over CMA-ES + multi-chain SA. Bartz + Dittus-Boelter empirical polytropes don't port cleanly to dual numbers.</li>
+      <li><strong>Thermoacoustic instability solver</strong> — empirical, nonlinear, data-starved. One false-negative is catastrophic false confidence. Existing <code>StabilityScreening</code> covers chugging + JANNAF screen.</li>
+      <li><strong>LPBF slicer integration (vendor API)</strong> — vendor-locked, license-blocked. Better as a partnership than an in-house feature. S&nbsp;27 printability gates cover the DfM screen.</li>
+    </ul>
+  </div>
+</div></section>
+
+<script>
+document.getElementById('filter').addEventListener('click', e => {
+  if (!e.target.dataset.f) return;
+  const f = e.target.dataset.f;
+  document.querySelectorAll('#filter button').forEach(b => b.classList.toggle('active', b.dataset.f === f));
+  document.querySelectorAll('.sprint').forEach(s => {
+    s.style.display = (f === 'all' || s.dataset.state === f) ? '' : 'none';
+  });
+});
+</script>
+
+<footer class="foot"><div class="wrap"><div class="foot__cols"><div><div class="u-row-tight" style="margin-bottom:var(--s-3);"><img src="assets/logo.svg" width="22" height="22" alt=""><span style="font-weight:600;color:var(--ink)">voxelforge</span></div><p style="margin:0;max-width:360px;">A 3D-printable rocket engine, generated from a handful of parameters.</p></div><div><div class="foot__title">Reference</div><div class="foot__links"><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a></div></div><div><div class="foot__title">Project</div><div class="foot__links"><a href="architecture.html">Architecture</a><a href="roadmap.html">Roadmap</a><a href="faq.html">FAQ</a><a href="design-system.html">Brand</a></div></div><div><div class="foot__title">Source</div><div class="foot__links"><a href="https://github.com/poetac/voxelforge">GitHub</a><a href="https://github.com/poetac/voxelforge/blob/main/LICENSE">License (MIT)</a></div></div></div></div></footer>
+</body></html>

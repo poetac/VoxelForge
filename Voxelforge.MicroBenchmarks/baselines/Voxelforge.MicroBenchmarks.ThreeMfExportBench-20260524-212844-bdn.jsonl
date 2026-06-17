@@ -1,0 +1,1 @@
+{"schema_version":1,"machine_id":"80c2b818c20f5aa6","git_sha":"29e579a8cd383120d92ea76c2b1117d779b51af8","bench_name":"micro-ThreeMfExportBench-Export_DefaultChamber_3MF","build_config":"Release","timestamp":"2026-05-25T04:29:19.9559221Z","mean_ns":537505,"median_ns":537382,"stddev_ns":20780.3,"min_ns":480504,"max_ns":582825,"n":47,"alloc_bytes":36361}

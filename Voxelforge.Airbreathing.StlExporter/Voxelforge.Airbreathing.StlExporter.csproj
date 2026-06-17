@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Voxelforge.Airbreathing.StlExporter — headless console exe that
+       re-generates the ramjet voxel geometry at an arbitrary voxel size
+       and writes an STL.
+
+       Sibling to Voxelforge.StlExporter (rocket-side). Lives in its own
+       project so sub-process tests in Voxelforge.Airbreathing.Tests can
+       invoke it via SubprocessRunner — the xUnit + PicoGK incompatibility
+       (CLAUDE.md pitfall #8) means we cannot run PicoGK code directly
+       from xUnit; the only safe path is Process.Start to an exe.
+
+       OutDir copies the built exe alongside the Voxels library so
+       SubprocessRunner.LocateUnderRepo discovery resolves a stable path. -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Nullable + ImplicitUsings + TreatWarningsAsErrors live in
+         Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge.Airbreathing.StlExporter</RootNamespace>
+    <AssemblyName>Voxelforge.Airbreathing.StlExporter</AssemblyName>
+    <!-- Copy the exe into the Voxels bin so sub-process tests find it
+         at a stable path: Voxelforge.Airbreathing.Voxels/bin/<cfg>/net9.0-windows/. -->
+    <OutDir>..\Voxelforge.Airbreathing.Voxels\bin\$(Configuration)\net9.0-windows\</OutDir>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Voxelforge.Airbreathing.Voxels\Voxelforge.Airbreathing.Voxels.csproj" />
+    <!-- VFA001 + VFA002 family-purity guards (Sprint 0 / Wave 1). See
+         Voxelforge.Airbreathing.Core.csproj for the rationale on the
+         direct Analyzers reference. -->
+    <ProjectReference Include="..\Voxelforge.Analyzers\Voxelforge.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge.Airbreathing.Tests" />
+  </ItemGroup>
+
+</Project>

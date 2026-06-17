@@ -1,0 +1,173 @@
+# Nightly SA physics-fingerprint sweep across all 7 canonical presets (#651).
+#
+# ADR-045 D1: cron 02:00 UTC Mon–Fri. Each preset runs in parallel on the
+# two-runner pair via the reusable bench template (ADR-045 D3/D4).
+# Diffs each current run against the most recent committed baseline;
+# exits non-zero (artifact + failure annotation via template) if drift > 5%.
+#
+# Acceptance criteria (#651):
+# - Scheduled workflow at this path                              ✓
+# - Baselines refreshed at landing time (done by #674)          ✓
+# - Drift summary: absolute vs. baseline (--bench-diff output)  ✓
+# - Provenance per ADR-013 (VF_GIT_SHA / VF_MACHINE_ID env)    ✓
+# - 30-day artifact retention (template default)                 ✓
+
+name: Nightly Bench Fingerprint
+
+on:
+  schedule:
+    - cron: '0 2 * * 1-5'   # 02:00 UTC Mon–Fri (ADR-045 D1)
+  workflow_dispatch:
+
+# Never cancel an in-progress nightly; let it finish. The github.workflow+ref
+# key serializes THIS workflow's own repeated triggers (scheduled + manual)
+# while still letting different bench workflows run in parallel (#851).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Rocket pillar (5 presets) ─────────────────────────────────────────────
+  fingerprint-rocket-merlin:
+    uses: ./.github/workflows/_scheduled-bench-template.yml
+    with:
+      bench-name: fingerprint-rocket-merlin
+      bench-command: |
+        mkdir -p current
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --bench-sa --design-preset merlin \
+          --out current/bench-sa-merlin.jsonl
+        BASELINE=$(ls -1 Voxelforge.Benchmarks/baselines/rocket/bench-sa-merlin-*.jsonl 2>/dev/null \
+          | sed 's/\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\)\.jsonl$/\1-@.jsonl/' \
+          | LC_ALL=C sort -r | sed 's/-@\.jsonl$/.jsonl/' | head -1)
+        if [ -z "$BASELINE" ]; then echo "No baseline; skipping diff."; exit 0; fi
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --bench-diff "$BASELINE" current/bench-sa-merlin.jsonl --threshold-percent 5.0
+      output-path: current/*.jsonl
+      timeout-minutes: 30
+
+  fingerprint-rocket-rl10:
+    uses: ./.github/workflows/_scheduled-bench-template.yml
+    with:
+      bench-name: fingerprint-rocket-rl10
+      bench-command: |
+        mkdir -p current
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --bench-sa --design-preset rl10 \
+          --out current/bench-sa-rl10.jsonl
+        BASELINE=$(ls -1 Voxelforge.Benchmarks/baselines/rocket/bench-sa-rl10-*.jsonl 2>/dev/null \
+          | sed 's/\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\)\.jsonl$/\1-@.jsonl/' \
+          | LC_ALL=C sort -r | sed 's/-@\.jsonl$/.jsonl/' | head -1)
+        if [ -z "$BASELINE" ]; then echo "No baseline; skipping diff."; exit 0; fi
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --bench-diff "$BASELINE" current/bench-sa-rl10.jsonl --threshold-percent 5.0
+      output-path: current/*.jsonl
+      timeout-minutes: 30
+
+  fingerprint-rocket-pressure-fed-small:
+    uses: ./.github/workflows/_scheduled-bench-template.yml
+    with:
+      bench-name: fingerprint-rocket-pressure-fed-small
+      bench-command: |
+        mkdir -p current
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --bench-sa --design-preset pressure-fed-small \
+          --out current/bench-sa-pressure-fed-small.jsonl
+        BASELINE=$(ls -1 Voxelforge.Benchmarks/baselines/rocket/bench-sa-pressure-fed-small-*.jsonl 2>/dev/null \
+          | sed 's/\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\)\.jsonl$/\1-@.jsonl/' \
+          | LC_ALL=C sort -r | sed 's/-@\.jsonl$/.jsonl/' | head -1)
+        if [ -z "$BASELINE" ]; then echo "No baseline; skipping diff."; exit 0; fi
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --bench-diff "$BASELINE" current/bench-sa-pressure-fed-small.jsonl --threshold-percent 5.0
+      output-path: current/*.jsonl
+      timeout-minutes: 30
+
+  fingerprint-rocket-aerospike:
+    uses: ./.github/workflows/_scheduled-bench-template.yml
+    with:
+      bench-name: fingerprint-rocket-aerospike
+      bench-command: |
+        mkdir -p current
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --bench-sa --design-preset aerospike \
+          --out current/bench-sa-aerospike.jsonl
+        BASELINE=$(ls -1 Voxelforge.Benchmarks/baselines/rocket/bench-sa-aerospike-*.jsonl 2>/dev/null \
+          | sed 's/\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\)\.jsonl$/\1-@.jsonl/' \
+          | LC_ALL=C sort -r | sed 's/-@\.jsonl$/.jsonl/' | head -1)
+        if [ -z "$BASELINE" ]; then echo "No baseline; skipping diff."; exit 0; fi
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --bench-diff "$BASELINE" current/bench-sa-aerospike.jsonl --threshold-percent 5.0
+      output-path: current/*.jsonl
+      timeout-minutes: 30
+
+  fingerprint-rocket-pintle:
+    uses: ./.github/workflows/_scheduled-bench-template.yml
+    with:
+      bench-name: fingerprint-rocket-pintle
+      bench-command: |
+        mkdir -p current
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --bench-sa --design-preset pintle \
+          --out current/bench-sa-pintle.jsonl
+        BASELINE=$(ls -1 Voxelforge.Benchmarks/baselines/rocket/bench-sa-pintle-*.jsonl 2>/dev/null \
+          | sed 's/\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\)\.jsonl$/\1-@.jsonl/' \
+          | LC_ALL=C sort -r | sed 's/-@\.jsonl$/.jsonl/' | head -1)
+        if [ -z "$BASELINE" ]; then echo "No baseline; skipping diff."; exit 0; fi
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --bench-diff "$BASELINE" current/bench-sa-pintle.jsonl --threshold-percent 5.0
+      output-path: current/*.jsonl
+      timeout-minutes: 30
+
+  # ── Air-breathing pillar (2 presets) ──────────────────────────────────────
+  fingerprint-airbreathing-mattingly-ramjet:
+    uses: ./.github/workflows/_scheduled-bench-template.yml
+    with:
+      bench-name: fingerprint-airbreathing-mattingly-ramjet
+      bench-command: |
+        mkdir -p current
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --bench-sa-airbreathing --preset mattingly-ramjet \
+          --out current/bench-sa-airbreathing-mattingly-ramjet.jsonl
+        BASELINE=$(ls -1 Voxelforge.Benchmarks/baselines/airbreathing/bench-sa-airbreathing-mattingly-ramjet-*.jsonl 2>/dev/null \
+          | sed 's/\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\)\.jsonl$/\1-@.jsonl/' \
+          | LC_ALL=C sort -r | sed 's/-@\.jsonl$/.jsonl/' | head -1)
+        if [ -z "$BASELINE" ]; then echo "No baseline; skipping diff."; exit 0; fi
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --bench-diff "$BASELINE" current/bench-sa-airbreathing-mattingly-ramjet.jsonl --threshold-percent 5.0
+      output-path: current/*.jsonl
+      timeout-minutes: 30
+
+  fingerprint-airbreathing-j85-turbojet:
+    uses: ./.github/workflows/_scheduled-bench-template.yml
+    with:
+      bench-name: fingerprint-airbreathing-j85-turbojet
+      bench-command: |
+        mkdir -p current
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --bench-sa-airbreathing --preset j85-turbojet \
+          --out current/bench-sa-airbreathing-j85-turbojet.jsonl
+        BASELINE=$(ls -1 Voxelforge.Benchmarks/baselines/airbreathing/bench-sa-airbreathing-j85-turbojet-*.jsonl 2>/dev/null \
+          | sed 's/\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\)\.jsonl$/\1-@.jsonl/' \
+          | LC_ALL=C sort -r | sed 's/-@\.jsonl$/.jsonl/' | head -1)
+        if [ -z "$BASELINE" ]; then echo "No baseline; skipping diff."; exit 0; fi
+        dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+          --no-build --configuration Release \
+          -- --bench-diff "$BASELINE" current/bench-sa-airbreathing-j85-turbojet.jsonl --threshold-percent 5.0
+      output-path: current/*.jsonl
+      timeout-minutes: 30

@@ -1,0 +1,249 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'Voxelforge/docs/**'
+      - '.gitignore'
+      - 'LICENSE'
+
+# Cancel superseded runs on rapid pushes to a branch. On main, github.ref
+# differs per merge so unrelated merges don't cancel each other. Saves 60 min
+# of Windows runner time per redundant push.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least-privilege token scope (audit 04-supply-chain via #664). The CI
+# job only needs read access to clone + cache; uploads use the
+# artifact-write scope granted to `actions/upload-artifact` internally.
+permissions:
+  contents: read
+
+# Sprint 0 / Wave 1 (2026-05-05): per-pillar matrix (ADR-026). Each job
+# does its own restore + build + test slice in parallel. Wall-clock target
+# ≈ Σ(slowest job) — typically ~25-30 sec total since most jobs share the
+# build and only test execution diverges. The previous serial pipeline
+# took ~6-8 min wall-clock; this saves the elapsed time of N-1 test passes.
+#
+# Adding a new pillar = add a row to `matrix.include` and an `if:` guard
+# on the "Test" step that points at that pillar's test csproj.
+
+jobs:
+  build-test:
+    # Fork-PR guard: the test matrix runs on self-hosted runners, so it must
+    # never execute untrusted code from a forked pull request. Skip the job for
+    # PRs that originate outside this repository; maintainers run CI by pushing
+    # the branch to origin (or re-targeting from a trusted branch).
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # net9.0-windows + PicoGK voxel tests — must stay on Windows (self-hosted)
+          # Performance tests are wall-clock-sensitive and excluded from CI to avoid
+          # false positives under runner CPU contention (see physics-cascade-status.md
+          # § Known CI/infrastructure flakes). Run locally: dotnet test --filter Category=Performance
+          - name: rocket-tests
+            os: self-hosted
+            build-project: voxelforge.sln
+            project: Voxelforge.Tests/Voxelforge.Tests.csproj
+            filter: "Category!=CrossFamily&Category!=Performance"
+            artifact: test-results-rocket.trx
+            # Only this job churns many PicoGK Library instances in one process,
+            # so it's the only one exposed to the 0xC0000005 at-shutdown crash
+            # (issue #868). The Test step tolerates that crash IFF the .trx
+            # reports zero failed tests.
+            tolerate-host-crash: true
+          # net9.0 (PicoGK-free) — runs on self-hosted Windows (net9.0 is cross-platform)
+          - name: airbreathing-tests
+            os: self-hosted
+            build-project: Voxelforge.Airbreathing.Tests/Voxelforge.Airbreathing.Tests.csproj
+            project: Voxelforge.Airbreathing.Tests/Voxelforge.Airbreathing.Tests.csproj
+            filter: ""
+            artifact: test-results-airbreathing.trx
+          # Uses Voxelforge.Tests (net9.0-windows) — must stay on Windows (self-hosted)
+          - name: cross-family-contract-tests
+            os: self-hosted
+            build-project: voxelforge.sln
+            project: Voxelforge.Tests/Voxelforge.Tests.csproj
+            filter: "Category=CrossFamily"
+            artifact: test-results-crossfamily.trx
+          # Builds full voxelforge.sln (includes net9.0-windows targets) — must stay on Windows (self-hosted)
+          - name: analyzers-and-typecheck
+            os: self-hosted
+            build-project: voxelforge.sln
+            project: voxelforge.sln
+            filter: ""
+            artifact: ""
+            typecheck-only: true
+          # net9.0 (PicoGK-free) — runs on self-hosted Windows (net9.0 is cross-platform)
+          - name: electric-tests
+            os: self-hosted
+            build-project: Voxelforge.ElectricPropulsion.Tests/Voxelforge.ElectricPropulsion.Tests.csproj
+            project: Voxelforge.ElectricPropulsion.Tests/Voxelforge.ElectricPropulsion.Tests.csproj
+            filter: ""
+            artifact: test-results-electric.trx
+          # net9.0 (PicoGK-free) — runs on self-hosted Windows (net9.0 is cross-platform)
+          - name: marine-tests
+            os: self-hosted
+            build-project: Voxelforge.Marine.Tests/Voxelforge.Marine.Tests.csproj
+            project: Voxelforge.Marine.Tests/Voxelforge.Marine.Tests.csproj
+            filter: ""
+            artifact: test-results-marine.trx
+          # net9.0 (PicoGK-free) — runs on self-hosted Windows (net9.0 is cross-platform).
+          # The Smoke/Su2RunnerSmokeTests test that needs the SU2_CFD binary is
+          # already [Skip(...)]-marked, so it won't fail on a runner without SU2.
+          - name: cfd-tests
+            os: self-hosted
+            build-project: Voxelforge.Cfd.Tests/Voxelforge.Cfd.Tests.csproj
+            project: Voxelforge.Cfd.Tests/Voxelforge.Cfd.Tests.csproj
+            filter: ""
+            artifact: test-results-cfd.trx
+          # net9.0 (PicoGK-free) — runs on self-hosted Windows (net9.0 is cross-platform)
+          - name: nuclear-tests
+            os: self-hosted
+            build-project: Voxelforge.Nuclear.Tests/Voxelforge.Nuclear.Tests.csproj
+            project: Voxelforge.Nuclear.Tests/Voxelforge.Nuclear.Tests.csproj
+            filter: ""
+            artifact: test-results-nuclear.trx
+
+    name: ${{ matrix.name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Setup .NET 9
+        if: runner.environment == 'github-hosted'
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7  # v5.2.0
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Cache NuGet packages
+        if: runner.environment == 'github-hosted'
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore ${{ matrix.build-project }}
+
+      - name: Build
+        run: dotnet build ${{ matrix.build-project }} --no-restore --configuration Release
+
+      - name: Verify analyzer cleanliness (analyzers-and-typecheck only)
+        if: matrix.name == 'analyzers-and-typecheck'
+        run: dotnet build voxelforge.sln --no-restore --configuration Release /p:TreatWarningsAsErrors=true
+
+      - name: Test (filtered)
+        if: matrix.typecheck-only != true
+        # Windows PowerShell 5.1 (built into every Windows runner). Do NOT use
+        # `pwsh` here — PowerShell Core is not installed on all self-hosted
+        # runners, and an explicit `shell: pwsh` removes the default shell's
+        # pwsh->powershell fallback (issue #868 fix; this script is 5.1-safe).
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Continue'
+
+          $testArgs = @(
+            'test', '${{ matrix.project }}',
+            '--no-build',
+            '--configuration', 'Release',
+            '--logger', 'console;verbosity=normal',
+            '--logger', 'trx;LogFileName=${{ matrix.artifact }}'
+          )
+          $filter = '${{ matrix.filter }}'
+          if ($filter -ne '') { $testArgs += @('--filter', $filter) }
+
+          # Capture the console output (streamed live via Tee) so we can inspect
+          # it for the crash signature.
+          $log = Join-Path $env:RUNNER_TEMP 'dotnet-test-${{ matrix.name }}.log'
+
+          function Test-HostCrashed {
+            return [bool](Select-String -Path $log -SimpleMatch 'Test host process crashed' -Quiet)
+          }
+
+          function Get-RealFailureCount {
+            # Authoritative pass/fail signal is the .trx, NOT a console substring
+            # (the old '[FAIL]' stdout grep mis-fired when the crash aborted an
+            # in-flight test -- issue #868). A GENUINE failure is a Failed result
+            # that carries an actual assertion/error message; an empty message or
+            # the host-crash/abort artifact is the teardown crash, not a real
+            # failure. Returns -1 if the .trx is missing/unparseable (unconfirmed).
+            $trx = Get-ChildItem -Path . -Recurse -Filter '${{ matrix.artifact }}' -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($null -eq $trx) { return -1 }
+            try { [xml]$doc = Get-Content -LiteralPath $trx.FullName -Raw -ErrorAction Stop } catch { return -1 }
+            if ($null -eq $doc.TestRun -or $null -eq $doc.TestRun.ResultSummary -or $null -eq $doc.TestRun.ResultSummary.Counters) { return -1 }
+            $real = 0
+            foreach ($r in $doc.TestRun.Results.UnitTestResult) {
+              if ($r.outcome -ne 'Failed') { continue }
+              $msg = ''
+              if ($r.Output -and $r.Output.ErrorInfo) { $msg = "$($r.Output.ErrorInfo.Message)" }
+              if ([string]::IsNullOrWhiteSpace($msg)) { continue }
+              if ($msg -match 'Test host process crashed|active test run was aborted|did not run to completion|0xC0000005|forcibly terminated|process was terminated') { continue }
+              $real++
+            }
+            return $real
+          }
+
+          & dotnet @testArgs 2>&1 | Tee-Object -FilePath $log
+          $code = $LASTEXITCODE
+          if ($code -eq 0) { exit 0 }
+
+          # Known PicoGK at-shutdown crash tolerance (issue #868). Only jobs with
+          # tolerate-host-crash=true opt in; every other job fails normally.
+          if ('${{ matrix.tolerate-host-crash }}' -ne 'true') {
+            Write-Host "::error::dotnet test exited $code (host-crash tolerance not enabled for this job)."
+            exit $code
+          }
+
+          # No crash signature => a real failure (or a non-crash non-zero exit),
+          # not the #868 teardown race. Fail normally.
+          if (-not (Test-HostCrashed)) {
+            Write-Host "::error::dotnet test exited $code with no 'Test host process crashed' signature -- treating as a real failure."
+            exit $code
+          }
+
+          # Crash signature present. The .trx is the source of truth: any GENUINE
+          # failure (a Failed result with a real assertion/error message) fails
+          # the job; the in-flight test the crash aborts does not.
+          $real = Get-RealFailureCount
+          if ($real -gt 0) {
+            Write-Host "::error::dotnet test exited $code with the host-crash signature, but the .trx reports $real genuine test failure(s) -- NOT the #868 flake. Failing."
+            exit 1
+          }
+
+          # Crash + no confirmed genuine failures == the #868 flake. Prefer a
+          # clean pass: re-run the suite once before tolerating (the crash is
+          # intermittent; #868 reports it can recur, so a second flake is still
+          # tolerated rather than re-kicked forever).
+          Write-Host "::warning::Attempt 1 hit the known PicoGK at-shutdown crash (0xC0000005, issue #868) with no genuine .trx failures. Re-running the suite once."
+          & dotnet @testArgs 2>&1 | Tee-Object -FilePath $log
+          $code2 = $LASTEXITCODE
+          if ($code2 -eq 0) {
+            Write-Host "::warning::Re-run passed cleanly -- attempt 1's non-zero exit was the #868 host crash."
+            exit 0
+          }
+          if ((Test-HostCrashed) -and ((Get-RealFailureCount) -le 0)) {
+            Write-Host "::warning::Re-run exited $code2 via the #868 host crash again with no genuine .trx failures. All real tests passed; tolerating to green."
+            exit 0
+          }
+          Write-Host "::error::Re-run exited $code2 with genuine failures or no host-crash signature -- treating as a real failure."
+          exit 1
+
+      - name: Upload test results
+        if: always() && matrix.artifact != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: ${{ matrix.name }}-results
+          path: "**/${{ matrix.artifact }}"
+          retention-days: 7

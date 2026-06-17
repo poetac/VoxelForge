@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Voxelforge.Marine.Core — headless physics for the marine vehicle
+       pillar (AUV mid-body M1 in Wave 1; surface hulls and propulsion
+       devices deferred to Wave 2+).
+
+       Sibling to Voxelforge.Core and Voxelforge.Airbreathing.Core.
+       Parallel-pillar architecture per
+       ADR-026 (multi-pillar coordination): a new engine family lives in
+       its own subtree with its own design records, physics solvers, and
+       feasibility-gate evaluator. The shared optimization framework
+       (IObjective, MultiChainOptimizer, DesignVariableInfo,
+       FeasibilityViolation) is reused via a Core reference; nothing in
+       Voxelforge.Core changes.
+
+       Physics domain: incompressible hydrodynamics + hydrostatics.
+       NO imports from Voxelforge.Airbreathing.* or the rocket-side
+       Combustion/HeatTransfer namespaces — VFA001 enforces.
+
+       Wave 1 / Sprint M.0-M.4 (2026-05-05). Pillar spec at
+       Voxelforge/docs/pillar-specs/marine-displacement.md. -->
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <!-- Nullable + ImplicitUsings + TreatWarningsAsErrors live in
+         Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge.Marine</RootNamespace>
+    <AssemblyName>Voxelforge.Marine.Core</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge.Marine.Tests" />
+    <InternalsVisibleTo Include="Voxelforge.Marine.Voxels" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Voxelforge.Core hosts the engine-family-agnostic optimizer
+         framework (IObjective, DesignVariableInfo, MultiChainOptimizer,
+         FeasibilityViolation, IEngine). Marine pillar consumes those;
+         it does NOT consume any rocket-shaped record (RegenChamberDesign,
+         OperatingConditions, RegenGenerationResult) or any airbreathing
+         record (AirbreathingEngineDesign, FlightConditions).
+
+         ExcludeAssets="analyzers": same rationale as
+         Voxelforge.Airbreathing.Core — the DesignVariableBinder source
+         generator emits a partial type that conflicts with the imported
+         type from Voxelforge.Core DLL when there are zero
+         [SaDesignVariable] properties. -->
+    <ProjectReference Include="..\Voxelforge.Core\Voxelforge.Core.csproj"
+                      ExcludeAssets="analyzers" />
+    <!-- VFA001 + VFA002 family-purity guards. The Core reference above
+         blocks all analyzer transit to keep the DesignVariableBinder source
+         generator from emitting into a consumer that has no
+         [SaDesignVariable] properties. The pillar-discipline analyzers live
+         in the same Voxelforge.Analyzers assembly but are independent of the
+         source generator, so we import them here directly. Matches the
+         airbreathing precedent. -->
+    <ProjectReference Include="..\Voxelforge.Analyzers\Voxelforge.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

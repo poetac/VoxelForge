@@ -1,0 +1,12 @@
+{
+  "name": "default-airbreathing",
+  "description": "Pillar-level default for air-breathing designs (Wave 2 stub — populate once ramjet STL geometry is available via IAirbreathingVoxelGenerator from PR #403)",
+  "pillar": "airbreathing",
+  "camera_azimuth_deg": 45,
+  "camera_elevation_deg": 25,
+  "hdri_name": "studio_small",
+  "material": "inconel",
+  "resolution": "high",
+  "frames": 60,
+  "frame_delay_ms": 33
+}

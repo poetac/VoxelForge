@@ -1,0 +1,56 @@
+cff-version: 1.2.0
+message: "If you use voxelforge in academic or engineering work, please cite it as below."
+title: "voxelforge: a voxel-implicit multi-pillar propulsion + power-generation optimizer (rocket, air-breathing, electric propulsion, marine, nuclear, CFD verification)"
+abstract: >-
+  voxelforge generates printable propulsion + power-generation hardware from a
+  handful of input parameters across five production propulsion pillars: rocket (LOX/CH4 /
+  LOX/H2 / LOX/RP-1 regenerative-cooled bell + aerospike + dual-bell + E-D +
+  monoprop + hybrid), air-breathing (ramjet, turbojet ± afterburner, turbofan,
+  scramjet, RBCC, gas turbine, Rankine steam, pulsejet, turboprop, turboshaft,
+  LACE, RDE), electric propulsion (resistojet, HET, arcjet, PPT, gridded-ion,
+  MPD ± applied-field), marine (AUV displacement / planing / semi-displacement
+  hulls), and nuclear propulsion (NERVA-class solid-core NTR, bimodal
+  NTR-Brayton). An SU2-based CFD verification harness is also built but has
+  not yet run in CI. A multi-chain simulated-annealing
+  optimizer (with optional CMA-ES inner refinement, NSGA-II/III Pareto,
+  Bayesian opt with GP surrogate, hybrid SA+CMA-ES, and gradient polish) walks
+  a 34-dimension rocket design space plus per-pillar dimensions behind a ring
+  of 196 feasibility gates (65 rocket + 40 air-breathing + 54 electric +
+  22 marine + 15 nuclear). 22+ Wave-1 internal pillars under Voxelforge.Core/
+  cover energy / structural / RF / thermal-management surfaces (battery,
+  photovoltaic, wind, hydroelectric, electrolyser, fuel cell, flywheel,
+  Stirling, thermoelectric generator, heat-pipe, heat-exchanger, radiator,
+  refrigeration, pump, compressor, electric motor, tankage, antenna, chemical
+  reactor, aerostructures, hydrogen storage, solar thermal, hybrid rocket).
+  System Integration (ComponentNetwork DAG + time-domain integrator with
+  Euler / RK4 / Crank-Nicolson / Cash-Karp adaptive) and Economics (cost / mass
+  / CO₂ factories per pillar) layers compose these. Built on PicoGK 2.2.0 for
+  voxel-implicit geometry.
+authors:
+  - family-names: "Poet"
+    given-names: "Andrew"
+repository-code: "https://github.com/poetac/voxelforge"
+url: "https://github.com/poetac/voxelforge"
+license: MIT
+type: software
+keywords:
+  - rocket-engine
+  - air-breathing-propulsion
+  - electric-propulsion
+  - marine-hydrodynamics
+  - nuclear-thermal-propulsion
+  - cfd-verification
+  - additive-manufacturing
+  - voxel-modeling
+  - picogk
+  - simulated-annealing
+  - cma-es
+  - nsga
+  - bayesian-optimization
+  - regenerative-cooling
+  - lpbf
+  - computational-engineering
+  - bartz-heat-flux
+  - tpms
+  - system-integration
+  - economics

@@ -1,0 +1,12 @@
+{
+  "_comment": "316L stainless steel — austenitic SS used in manifolds, feedlines, test-stand plumbing, and structural fittings. Neutral cool-grey with mild blue tint. Common machined and LPBF material.",
+  "name": "316L Stainless Steel (polished)",
+  "base_color": [0.715, 0.715, 0.722, 1.0],
+  "metallic": 1.0,
+  "roughness": 0.25,
+  "specular_ior_level": 0.5,
+  "anisotropic": 0.0,
+  "anisotropic_rotation": 0.0,
+  "clearcoat": 0.0,
+  "clearcoat_roughness": 0.0
+}

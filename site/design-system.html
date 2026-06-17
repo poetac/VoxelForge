@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brand &amp; design system — voxelforge</title>
+<link rel="stylesheet" href="assets/brand.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  .swatch-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--s-3); }
+  .swatch { border:1px solid var(--rule); border-radius: var(--r-3); overflow:hidden; }
+  .swatch__chip { aspect-ratio: 4/3; }
+  .swatch__meta { padding: var(--s-3); display:flex; flex-direction:column; gap:2px; background:var(--bg-elev); }
+  .swatch__name { font-weight:600; font-size: var(--t-sm); letter-spacing:-0.005em; }
+  .swatch__hex { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em; }
+  .swatch__use { font-size: var(--t-mono-xs); color: var(--ink-2); margin-top:4px; }
+  .type-row { display:grid; grid-template-columns: 180px 1fr 100px; gap: var(--s-4); align-items: baseline; padding: var(--s-3) 0; border-top: 1px solid var(--rule); }
+  .type-row:first-child { border-top: 0; }
+  .type-row__label { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .type-row__sample { color: var(--ink); }
+  .type-row__spec { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); text-align:right; }
+  .token-tbl { width:100%; border-collapse: collapse; }
+  .token-tbl th, .token-tbl td { padding: var(--s-2) var(--s-3); border-bottom: 1px solid var(--rule); text-align: left; font-size: var(--t-sm); }
+  .token-tbl th { font-family: var(--font-mono); font-size: var(--t-mono-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); font-weight: 500; }
+  .token-tbl td.mono { font-family: var(--font-mono); font-size: var(--t-mono-sm); color: var(--ink); }
+  .preview-card { background: var(--bg-elev); border:1px solid var(--rule); border-radius: var(--r-3); padding: var(--s-5); }
+  .icon-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap: var(--s-3); }
+  .icon-cell { background: var(--bg-elev); border:1px solid var(--rule); border-radius: var(--r-2); padding: var(--s-3); display:flex; flex-direction:column; align-items:center; gap: var(--s-2); }
+  .icon-cell svg { width: 32px; height: 32px; stroke: var(--ink); stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-cell span { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); }
+</style></head><body>
+
+<nav class="nav"><div class="nav__brand"><img src="assets/logo.svg" alt=""><a href="index.html" class="nav__brand-name">voxelforge</a></div>
+<div class="nav__links"><a href="about.html">About</a><a href="architecture.html">Architecture</a><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a><a href="demo.html">Demos</a><a href="roadmap.html">Roadmap</a><a href="cascade.html">Cascade</a><a href="getting-started.html">Get started</a><a href="design-system.html" class="is-current">Brand</a></div></nav>
+
+<header class="section" style="border-bottom:1px solid var(--rule);padding-bottom:var(--s-12);"><div class="wrap">
+  <p class="eyebrow">Brand &amp; design system</p>
+  <h1 class="t-h1" style="margin-top:var(--s-3);max-width:820px;">An engineer's brand. No pageantry.</h1>
+  <p class="t-lead" style="margin-top:var(--s-5);max-width:720px;">Five colours, two type families, a 4-px spacing grid, a small icon set, and a handful of components. The system is small on purpose — every token has a job, and the visual identity is carried by the work itself.</p>
+</div></header>
+
+<section class="section"><div class="wrap">
+
+  <!-- LOGO -->
+  <p class="eyebrow">Logo</p>
+  <h2 class="t-h2" style="margin-top:var(--s-2);">A monolith with a furnace mark.</h2>
+  <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);max-width:680px;">A square plate stamped with the cooling-channel pattern. Forge Blue plate, Bone plate when inverted, Ignition orange spark on hover or active states. Minimum size: 16 px. Always paired with the wordmark in Inter Tight 600.</p>
+  <div class="u-row" style="gap:var(--s-6);margin-top:var(--s-5);align-items:center;flex-wrap:wrap;">
+    <div class="preview-card" style="display:flex;align-items:center;gap:var(--s-3);"><img src="assets/logo.svg" width="40" height="40" alt=""><span style="font-family:var(--font-sans);font-weight:600;font-size:24px;letter-spacing:-0.02em;">voxelforge</span></div>
+    <div class="preview-card" style="background:var(--graphite);display:flex;align-items:center;gap:var(--s-3);"><img src="assets/logo.svg" width="40" height="40" alt="" style="filter:invert(1);"><span style="font-family:var(--font-sans);font-weight:600;font-size:24px;letter-spacing:-0.02em;color:white">voxelforge</span></div>
+    <div class="preview-card" style="display:flex;align-items:center;justify-content:center;background:var(--ignition);"><img src="assets/logo.svg" width="40" height="40" alt="" style="filter:brightness(0) invert(1);"></div>
+  </div>
+
+  <!-- COLOR -->
+  <p class="eyebrow" style="margin-top:var(--s-12);">Colour</p>
+  <h2 class="t-h2" style="margin-top:var(--s-2);">Five core, three families.</h2>
+  <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);max-width:680px;">Forge Blue is the structural voice — heading accents, link colour, infographics. Ignition is the spark — used sparingly, signals action and active state. Graphite is the body. Bone is the page. Steel is the soft text.</p>
+
+  <div class="swatch-grid" style="margin-top:var(--s-5);">
+    <div class="swatch"><div class="swatch__chip" style="background:#0B4F7A"></div><div class="swatch__meta"><span class="swatch__name">Forge Blue</span><span class="swatch__hex">#0B4F7A · forge</span><span class="swatch__use">structural · links · charts</span></div></div>
+    <div class="swatch"><div class="swatch__chip" style="background:#083A5B"></div><div class="swatch__meta"><span class="swatch__name">Forge Deep</span><span class="swatch__hex">#083A5B · forge-deep</span><span class="swatch__use">hover, dark surfaces</span></div></div>
+    <div class="swatch"><div class="swatch__chip" style="background:#D94F00"></div><div class="swatch__meta"><span class="swatch__name">Ignition</span><span class="swatch__hex">#D94F00 · ignition</span><span class="swatch__use">CTA · active · highlights</span></div></div>
+    <div class="swatch"><div class="swatch__chip" style="background:#A83C00"></div><div class="swatch__meta"><span class="swatch__name">Ignition Deep</span><span class="swatch__hex">#A83C00 · ignition-deep</span><span class="swatch__use">hover, pressed</span></div></div>
+    <div class="swatch"><div class="swatch__chip" style="background:#1C2024"></div><div class="swatch__meta"><span class="swatch__name">Graphite</span><span class="swatch__hex">#1C2024 · graphite</span><span class="swatch__use">body text · headers</span></div></div>
+    <div class="swatch"><div class="swatch__chip" style="background:#F5F3EE;border:1px solid var(--rule)"></div><div class="swatch__meta"><span class="swatch__name">Bone</span><span class="swatch__hex">#F5F3EE · bone-100</span><span class="swatch__use">page background</span></div></div>
+    <div class="swatch"><div class="swatch__chip" style="background:#FBFAF7;border:1px solid var(--rule)"></div><div class="swatch__meta"><span class="swatch__name">Bone Light</span><span class="swatch__hex">#FBFAF7 · bone-50</span><span class="swatch__use">callouts · highlights</span></div></div>
+    <div class="swatch"><div class="swatch__chip" style="background:#DDD7CA"></div><div class="swatch__meta"><span class="swatch__name">Bone Rule</span><span class="swatch__hex">#DDD7CA · bone-300</span><span class="swatch__use">borders · dividers</span></div></div>
+    <div class="swatch"><div class="swatch__chip" style="background:#6B7280"></div><div class="swatch__meta"><span class="swatch__name">Steel</span><span class="swatch__hex">#6B7280 · steel-400</span><span class="swatch__use">muted text · labels</span></div></div>
+    <div class="swatch"><div class="swatch__chip" style="background:#2F6F4F"></div><div class="swatch__meta"><span class="swatch__name">Pass</span><span class="swatch__hex">#2F6F4F · ok</span><span class="swatch__use">gate pass · success</span></div></div>
+    <div class="swatch"><div class="swatch__chip" style="background:#B57A00"></div><div class="swatch__meta"><span class="swatch__name">Margin</span><span class="swatch__hex">#B57A00 · warn</span><span class="swatch__use">narrow margin · caution</span></div></div>
+    <div class="swatch"><div class="swatch__chip" style="background:#A23030"></div><div class="swatch__meta"><span class="swatch__name">Reject</span><span class="swatch__hex">#A23030 · err</span><span class="swatch__use">gate fail · destructive</span></div></div>
+  </div>
+
+  <!-- TYPE -->
+  <p class="eyebrow" style="margin-top:var(--s-12);">Typography</p>
+  <h2 class="t-h2" style="margin-top:var(--s-2);">Three families, a clear hierarchy.</h2>
+  <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);max-width:680px;"><strong>Fraunces</strong> for editorial display moments — hero numbers and pull-quotes only. <strong>Inter Tight</strong> for everything else. <strong>JetBrains Mono</strong> for code, formulas, gate IDs, and metric labels.</p>
+
+  <div class="preview-card" style="margin-top:var(--s-5);">
+    <div class="type-row"><span class="type-row__label">Display · Fraunces</span><span class="type-row__sample" style="font-family:var(--font-display);font-size:88px;line-height:1;letter-spacing:-0.02em;font-weight:500;">Forge.</span><span class="type-row__spec">88 / 1.0 / -0.02em</span></div>
+    <div class="type-row"><span class="type-row__label">H1 · Fraunces</span><span class="type-row__sample" style="font-family:var(--font-display);font-size:48px;line-height:1.05;letter-spacing:-0.02em;">Heading 1</span><span class="type-row__spec">48 / 1.05</span></div>
+    <div class="type-row"><span class="type-row__label">H2 · Inter Tight</span><span class="type-row__sample" style="font-family:var(--font-sans);font-size:36px;line-height:1.1;font-weight:600;letter-spacing:-0.015em;">Heading 2</span><span class="type-row__spec">36 / 1.1 / 600</span></div>
+    <div class="type-row"><span class="type-row__label">H3 · Inter Tight</span><span class="type-row__sample" style="font-family:var(--font-sans);font-size:22px;line-height:1.25;font-weight:600;letter-spacing:-0.01em;">Heading 3</span><span class="type-row__spec">22 / 1.25 / 600</span></div>
+    <div class="type-row"><span class="type-row__label">Lead · Inter Tight</span><span class="type-row__sample" style="font-family:var(--font-sans);font-size:18px;line-height:1.55;color:var(--ink-2);">Lead paragraph for intros and pulled-out summaries.</span><span class="type-row__spec">18 / 1.55</span></div>
+    <div class="type-row"><span class="type-row__label">Body · Inter Tight</span><span class="type-row__sample" style="font-family:var(--font-sans);font-size:16px;line-height:1.65;">Default body. The workhorse. Sutton, Huzel, and Huang would approve.</span><span class="type-row__spec">16 / 1.65</span></div>
+    <div class="type-row"><span class="type-row__label">Small · Inter Tight</span><span class="type-row__sample" style="font-family:var(--font-sans);font-size:14px;line-height:1.55;color:var(--ink-2);">Captions, table cells, secondary annotations.</span><span class="type-row__spec">14 / 1.55</span></div>
+    <div class="type-row"><span class="type-row__label">Eyebrow · Mono</span><span class="type-row__sample" style="font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-3);font-weight:500;">SECTION LABEL</span><span class="type-row__spec">11 mono · 0.1em</span></div>
+    <div class="type-row"><span class="type-row__label">Code · JetBrains Mono</span><span class="type-row__sample" style="font-family:var(--font-mono);font-size:13px;">heat-flux-cap · regen-thermal-margin</span><span class="type-row__spec">13 mono</span></div>
+  </div>
+
+  <!-- SPACING -->
+  <p class="eyebrow" style="margin-top:var(--s-12);">Spacing &amp; radii</p>
+  <h2 class="t-h2" style="margin-top:var(--s-2);">4-px grid. Two radii.</h2>
+  <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);max-width:680px;">Spacing is a multiplicative scale on a 4 px base. Use named tokens (<code>--s-3</code>, <code>--s-5</code>) — never literal values. Radii: 6 px for inline elements, 12 px for cards, full pill for tags and buttons.</p>
+
+  <table class="token-tbl" style="margin-top:var(--s-5);">
+    <thead><tr><th>Token</th><th>Value</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">--s-1</td><td class="mono">4 px</td><td>Tight icon-text gap, hairline padding</td></tr>
+      <tr><td class="mono">--s-2</td><td class="mono">8 px</td><td>Inline-element padding, small gaps</td></tr>
+      <tr><td class="mono">--s-3</td><td class="mono">12 px</td><td>Card padding (compact), input padding</td></tr>
+      <tr><td class="mono">--s-4</td><td class="mono">16 px</td><td>Default card padding, button padding</td></tr>
+      <tr><td class="mono">--s-5</td><td class="mono">20 px</td><td>Card padding (relaxed)</td></tr>
+      <tr><td class="mono">--s-6</td><td class="mono">24 px</td><td>Section gaps, grid gutters</td></tr>
+      <tr><td class="mono">--s-8</td><td class="mono">32 px</td><td>Section padding (small)</td></tr>
+      <tr><td class="mono">--s-12</td><td class="mono">64 px</td><td>Section padding (default), feature breaks</td></tr>
+      <tr><td class="mono">--r-2</td><td class="mono">6 px</td><td>Inputs, small chips, table cells</td></tr>
+      <tr><td class="mono">--r-3</td><td class="mono">12 px</td><td>Cards, panels, callouts</td></tr>
+    </tbody>
+  </table>
+
+  <!-- COMPONENTS -->
+  <p class="eyebrow" style="margin-top:var(--s-12);">Components</p>
+  <h2 class="t-h2" style="margin-top:var(--s-2);">A small kit, used everywhere.</h2>
+
+  <div class="u-cols-2" style="margin-top:var(--s-5);">
+    <div class="preview-card">
+      <p class="eyebrow">Buttons</p>
+      <div class="u-row" style="gap:var(--s-3);flex-wrap:wrap;margin-top:var(--s-3);align-items:center;">
+        <a class="btn btn--primary" href="#">Primary</a>
+        <a class="btn btn--secondary" href="#">Secondary</a>
+        <a class="btn btn--ghost" href="#">Ghost</a>
+      </div>
+      <p class="t-small" style="margin-top:var(--s-3);color:var(--ink-3);">All pill-radius. Primary: Ignition. Secondary: Graphite outline. Ghost: text only.</p>
+    </div>
+    <div class="preview-card">
+      <p class="eyebrow">Tags &amp; status</p>
+      <div class="u-row" style="gap:var(--s-2);flex-wrap:wrap;margin-top:var(--s-3);">
+        <span class="tag tag--ok">Pass</span>
+        <span class="tag tag--warn">Margin</span>
+        <span class="tag">Default</span>
+        <span class="tag mono">heat-flux-cap</span>
+      </div>
+      <p class="t-small" style="margin-top:var(--s-3);color:var(--ink-3);">Pill chips at 11–12 px. Mono for gate IDs and code references.</p>
+    </div>
+    <div class="preview-card">
+      <p class="eyebrow">Eyebrow + heading + lead</p>
+      <p class="eyebrow">Combustion</p>
+      <h3 class="t-h3" style="margin-top:var(--s-2);">Crocco N-τ instability.</h3>
+      <p class="t-body" style="margin-top:var(--s-2);color:var(--ink-2);font-size:var(--t-sm);">A 1-D acoustic-cavity treatment with sensitive time-lag combustion. Three modes, three gates.</p>
+    </div>
+    <div class="preview-card">
+      <p class="eyebrow">Code block</p>
+      <pre style="background:var(--graphite);color:var(--bone-100);font-family:var(--font-mono);font-size:13px;padding:var(--s-3) var(--s-4);border-radius:var(--r-2);margin:var(--s-3) 0 0;overflow-x:auto;">dotnet run --project Voxelforge \
+    --example small-pf-5kn</pre>
+    </div>
+  </div>
+
+  <!-- ICONS -->
+  <p class="eyebrow" style="margin-top:var(--s-12);">Iconography</p>
+  <h2 class="t-h2" style="margin-top:var(--s-2);">Stroked, 1.5 px, 24 px grid.</h2>
+  <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);max-width:680px;">Custom icons drawn on a 24 × 24 grid with 1.5 px strokes, rounded caps and joins. No filled shapes. Sized at 16 / 20 / 24 / 32 px in use.</p>
+
+  <div class="icon-grid" style="margin-top:var(--s-5);">
+    <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M12 3 L19 7 V17 L12 21 L5 17 V7 Z"/><path d="M12 3 V21 M5 7 L19 7 M5 17 L19 17"/></svg><span>chamber</span></div>
+    <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M6 4 L6 14 M18 4 L18 14"/><path d="M6 14 L4 20 L20 20 L18 14 Z"/></svg><span>nozzle</span></div>
+    <div class="icon-cell"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 4 V8 M12 16 V20 M4 12 H8 M16 12 H20"/></svg><span>turbine</span></div>
+    <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M3 12 H7 M17 12 H21"/><circle cx="12" cy="12" r="5"/><path d="M9 9 L15 15 M9 15 L15 9"/></svg><span>injector</span></div>
+    <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M5 4 L5 20 M19 4 L19 20"/><path d="M5 8 Q12 14 19 8 M5 16 Q12 22 19 16"/></svg><span>regen</span></div>
+    <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M4 18 L9 12 L13 16 L20 8"/><path d="M14 8 L20 8 L20 14"/></svg><span>convergence</span></div>
+    <div class="icon-cell"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12 L11 14 L15 10"/></svg><span>gate-pass</span></div>
+    <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M12 3 L21 19 L3 19 Z"/><path d="M12 10 V14 M12 16 V17"/></svg><span>gate-warn</span></div>
+    <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M3 7 L12 3 L21 7 V17 L12 21 L3 17 Z"/></svg><span>voxel</span></div>
+    <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M4 4 H20 V20 H4 Z"/><path d="M4 9 H20 M9 4 V20"/></svg><span>grid</span></div>
+    <div class="icon-cell"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/><path d="M12 3 V6 M12 18 V21 M3 12 H6 M18 12 H21"/></svg><span>orbit</span></div>
+    <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M5 19 L5 5 L19 5"/><path d="M9 15 L13 11 L15 13 L19 9"/></svg><span>chart</span></div>
+  </div>
+
+  <!-- ILLUSTRATION -->
+  <p class="eyebrow" style="margin-top:var(--s-12);">Illustration system</p>
+  <h2 class="t-h2" style="margin-top:var(--s-2);">Schematic, not photographic.</h2>
+  <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);max-width:680px;">Hero imagery uses the actual PicoGK renders (chamber-side, chamber-cutaway, chamber-throat). Inline diagrams are SVG: 1.5–2 px strokes, fills only for emphasis, Forge Blue for fluid paths, Ignition for hot gas, Graphite for shafts, Steel for inert lines. No gradients except as low-opacity backgrounds for technical canvases.</p>
+
+</div></section>
+
+<footer class="foot"><div class="wrap"><div class="foot__cols"><div><div class="u-row-tight" style="margin-bottom:var(--s-3);"><img src="assets/logo.svg" width="22" height="22" alt=""><span style="font-weight:600;color:var(--ink)">voxelforge</span></div><p style="margin:0;max-width:360px;">A 3D-printable rocket engine, generated from a handful of parameters.</p></div><div><div class="foot__title">Reference</div><div class="foot__links"><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a></div></div><div><div class="foot__title">Project</div><div class="foot__links"><a href="architecture.html">Architecture</a><a href="roadmap.html">Roadmap</a><a href="faq.html">FAQ</a><a href="design-system.html">Brand</a></div></div><div><div class="foot__title">Source</div><div class="foot__links"><a href="https://github.com/poetac/voxelforge">GitHub</a><a href="https://github.com/poetac/voxelforge/blob/main/LICENSE">License (MIT)</a></div></div></div></div></footer>
+</body></html>

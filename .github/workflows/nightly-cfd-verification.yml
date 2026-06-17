@@ -1,0 +1,72 @@
+# Nightly CFD verification suite (#656).
+#
+# Runs three representative LOX/CH4 CFD calibration cases (small/medium/
+# large chamber at Coarse mesh density) via CfdCalibrationRunner and
+# asserts T_aw drift vs. Bartz stays within ±20%. Uploads the xUnit TRX
+# result as a 30-day artifact so drift history can be tracked over time.
+#
+# Skip-on-missing-SU2 contract (ADR-026 §3): when SU2_CFD is not installed
+# on the runner the three tests return without asserting (pass vacuously).
+# Install SU2 on the runner and set SU2_RUN=<bin-dir> to activate.
+#
+# Cron: 04:00 UTC daily (after nightly fingerprint at 02:00 and fixture
+# report at 03:00; before microbench at 04:30).
+#
+# Acceptance criteria (#656):
+# - Scheduled workflow at this path                                        ✓
+# - Fixed CFD validation suite (3 cases) defined and pinned               ✓
+# - Drift report in xUnit TRX output per case                             ✓
+# - Skip-on-missing-SU2 contract per ADR-026 §3                           ✓
+# - Inherits ADR-045 infrastructure (self-hosted runner, retention)        ✓
+
+name: Nightly CFD Verification
+
+on:
+  schedule:
+    - cron: '0 4 * * *'   # 04:00 UTC daily
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  VF_GIT_SHA: ${{ github.sha }}
+  VF_MACHINE_ID: ${{ runner.name }}
+
+jobs:
+  cfd-verification:
+    name: CFD nightly verification
+    runs-on: self-hosted
+    timeout-minutes: 240   # 3 cases × ~60 min each on Coarse mesh
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Restore + build
+        run: >
+          dotnet restore Voxelforge.Cfd.Tests/Voxelforge.Cfd.Tests.csproj &&
+          dotnet build Voxelforge.Cfd.Tests/Voxelforge.Cfd.Tests.csproj
+          --no-restore --configuration Release
+
+      - name: Run CFD nightly validation suite
+        run: >
+          dotnet test Voxelforge.Cfd.Tests/Voxelforge.Cfd.Tests.csproj
+          --no-build --configuration Release
+          --logger "trx;LogFileName=cfd-nightly-results.trx"
+          --filter "Category=CfdNightly"
+
+      - name: Upload TRX result
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: cfd-nightly-trx-${{ github.run_id }}
+          path: "**/cfd-nightly-results.trx"
+          retention-days: 30
+
+      - name: Annotate failure
+        if: failure()
+        run: echo "::error title=CFD nightly::One or more CFD validation cases failed. Check the cfd-nightly-trx artifact."

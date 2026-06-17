@@ -1,0 +1,116 @@
+# Weekly Pareto frontier characterization (#655).
+#
+# Runs NSGA-II on each of the 5 canonical rocket presets with two
+# objective pairs (Isp/mass and cost/mass, 50-population, 100-
+# generation each) and emits a consolidated Pareto report as a
+# job-summary table + JSONL artifact.
+#
+# Schedule: Saturday 00:00 UTC (distinct from multi-seed SA on
+# Sunday; 30-60 min wall-clock budget for 5 presets × 2 pairs).
+#
+# Inherits ADR-045 infrastructure: self-hosted runner, 30-day
+# retention, VF_GIT_SHA / VF_MACHINE_ID provenance per ADR-013.
+#
+# Acceptance criteria (#655):
+# - Scheduled workflow at this path                                        ✓
+# - Per-preset Pareto frontier artifact (JSONL)                           ✓
+# - Two objective pairs per preset (Isp/mass, cost/mass)                  ✓
+# - 2D hypervolume indicator per preset per pair in summary report         ✓
+# - Provenance per ADR-013 captured per run                               ✓
+# - Inherits infrastructure from ADR-045                                  ✓
+
+name: Weekly Pareto Frontier Sweep
+
+on:
+  schedule:
+    - cron: '0 0 * * 6'   # 00:00 UTC Saturday
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  VF_GIT_SHA: ${{ github.sha }}
+  VF_MACHINE_ID: ${{ runner.name }}
+
+jobs:
+  pareto-preset:
+    name: pareto / ${{ matrix.preset }}
+    runs-on: self-hosted
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [merlin, rl10, pressure-fed-small, aerospike, pintle]
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Restore + build
+        run: >
+          dotnet restore Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj &&
+          dotnet build Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj
+          --no-restore --configuration Release
+
+      - name: Run Pareto sweep for ${{ matrix.preset }}
+        shell: bash
+        run: |
+          mkdir -p pareto-out
+          dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+            --no-build --configuration Release \
+            -- --bench-pareto \
+               --design-preset ${{ matrix.preset }} \
+               --seed 42 \
+               --population 50 \
+               --generations 100 \
+               --out pareto-out/${{ matrix.preset }}.jsonl
+
+      - name: Upload Pareto data
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: pareto-data-${{ matrix.preset }}-${{ github.run_id }}
+          path: pareto-out/
+          retention-days: 30
+
+  pareto-report:
+    name: Pareto frontier report
+    runs-on: self-hosted
+    timeout-minutes: 20
+    needs: [pareto-preset]
+    if: always()
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Download all Pareto data
+        uses: actions/download-artifact@fa0a91b85d4f404e444306b1a4df79b0d7c43c4f  # v4.2.1
+        with:
+          pattern: pareto-data-*-${{ github.run_id }}
+          path: pareto-all
+          merge-multiple: true
+
+      - name: Generate Pareto report
+        id: report
+        shell: pwsh
+        run: |
+          pwsh -NonInteractive -File tools/Generate-ParetoReport.ps1 `
+            -DataDir pareto-all `
+            -OutFile pareto-all/pareto-report.md
+          exit $LASTEXITCODE
+
+      - name: Upload Pareto report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: pareto-report-${{ github.run_id }}
+          path: pareto-all/pareto-report.md
+          retention-days: 30
+
+      - name: Annotate empty fronts
+        if: steps.report.outcome == 'failure'
+        run: echo "::warning title=Pareto sweep::One or more presets produced an empty feasible Pareto front. Check the pareto-report artifact."

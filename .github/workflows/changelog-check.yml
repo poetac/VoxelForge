@@ -1,0 +1,104 @@
+name: CHANGELOG Check
+
+# Surface PRs that change production code under Voxelforge*/ without
+# also updating CHANGELOG.md (the SSOT for "what shipped" per CLAUDE.md).
+# Non-blocking — this free-tier private repo has no branch protection
+# (audit-prep C1) — but the job leaves a sticky PR comment so the
+# author can correct before merge. Add the `skip-changelog` label for
+# legitimate exemptions (revert, hotfix, infrastructure-only).
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  changelog-check:
+    # Fork-PR guard: self-hosted runners must not execute untrusted fork code.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
+    timeout-minutes: 5
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout (full history for diff)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Make scripts executable
+        run: chmod +x .github/scripts/check-changelog.sh
+
+      - name: CHANGELOG check
+        id: check
+        run: |
+          set +e
+          .github/scripts/check-changelog.sh "origin/${{ github.base_ref }}"
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Sticky comment management
+        if: always()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9.0.0
+        env:
+          CHECK_EXIT: ${{ steps.check.outputs.exit }}
+        with:
+          script: |
+            const exit = process.env.CHECK_EXIT;
+            const labels = (context.payload.pull_request.labels || []).map(l => l.name);
+            const skip = labels.includes('skip-changelog');
+            const marker = '<!-- changelog-check -->';
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+
+            if (skip || exit !== '2') {
+              if (existing) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                });
+              }
+              return;
+            }
+
+            const body = [
+              marker,
+              '',
+              '⚠️ **CHANGELOG.md not updated.** This PR appears to change',
+              'production code under `Voxelforge*/` (per CLAUDE.md,',
+              '`CHANGELOG.md` is the SSOT for "what shipped"). Add a line',
+              'to CHANGELOG.md describing the change, or apply the',
+              '`skip-changelog` label if this is a revert / hotfix /',
+              'infrastructure-only PR.',
+              '',
+              'See [CONTRIBUTING.md § Pull requests](../blob/main/CONTRIBUTING.md#pull-requests)',
+              'and the [Keep a Changelog](https://keepachangelog.com/) format guide.',
+            ].join('\n');
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }

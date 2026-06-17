@@ -1,0 +1,41 @@
+{
+  "_comment": "Example scaffold — 5 kN LOX/CH4 pressure-fed reference case. This is a placeholder illustrating the JSON structure; the actual field names and values must match OperatingConditions + RegenChamberDesign schema v12 (see Voxelforge/Optimization/ for the canonical record definitions). Generate the real input by saving from the UI after dialing in the example, then commit alongside the render, notes, and SHA-256 receipt.",
+
+  "schemaVersion": 12,
+
+  "operatingConditions": {
+    "Thrust_N": 5000.0,
+    "ChamberPressure_Pa": 5000000.0,
+    "MixtureRatio": 3.3,
+    "CoolantInletTemp_K": 150.0,
+    "CoolantInletPressure_Pa": 10000000.0,
+    "WallMaterialIndex": 1,
+    "CStarEfficiency": 0.95,
+    "NozzleCfEfficiency": 0.94,
+    "AmbientPressure_Pa": 101325.0,
+    "PropellantPair": "LOX_CH4",
+    "TankUllagePressure_Pa": 7500000.0,
+    "EngineCycle": "PressureFed"
+  },
+
+  "regenChamberDesign": {
+    "ContractionRatio": 6.0,
+    "ExpansionRatio": 8.0,
+    "CharacteristicLength_m": 1.1,
+    "BellEntranceAngle_deg": 30.0,
+    "BellExitAngle_deg": 10.0,
+    "BellLengthFraction": 0.8,
+
+    "ChannelCount": 80,
+    "ChannelHeightChamber_mm": 2.5,
+    "ChannelHeightThroat_mm": 1.5,
+    "ChannelHeightExit_mm": 2.0,
+    "RibThickness_mm": 0.8,
+    "GasSideWallThickness_mm": 0.8,
+    "OuterJacketThickness_mm": 2.0,
+
+    "ChannelTopology": "Axial",
+    "IncludeInjectorFlange": true,
+    "IncludeMountingFlange": false
+  }
+}

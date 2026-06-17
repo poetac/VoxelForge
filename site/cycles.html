@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Engine cycles — voxelforge</title>
+<link rel="stylesheet" href="assets/brand.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  .cycle-stage { background: var(--bg-elev); border: 1px solid var(--rule); border-radius: var(--r-3); padding: var(--s-6); }
+  .cycle-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--rule); margin-bottom: var(--s-6); flex-wrap: wrap; }
+  .cycle-tab { padding: var(--s-3) var(--s-5); background: transparent; border: 0; border-bottom: 2px solid transparent; cursor: pointer; font-family: var(--font-sans); font-size: var(--t-sm); font-weight: 500; color: var(--ink-2); margin-bottom: -1px; }
+  .cycle-tab.is-active { color: var(--ink); border-bottom-color: var(--ignition); }
+  .cycle-tab:hover:not(.is-active) { color: var(--ink); background: var(--bone-50); }
+  .cycle-grid { display: grid; grid-template-columns: 1fr 320px; gap: var(--s-6); align-items: start; }
+  @media(max-width:900px){.cycle-grid{grid-template-columns:1fr}}
+  .cycle-svg { width: 100%; aspect-ratio: 4/3; background: linear-gradient(180deg, var(--bone-50), var(--bg-elev)); border: 1px solid var(--rule); border-radius: var(--r-2); }
+  .cycle-side h3 { font-size: var(--t-md); margin: 0 0 var(--s-2); letter-spacing: -0.01em; font-weight: 600; }
+  .cycle-side .stat-rows { border-top: 1px solid var(--rule); }
+  .stat-row { display: flex; justify-content: space-between; gap: var(--s-3); padding: var(--s-2) 0; border-bottom: 1px solid var(--rule); font-size: var(--t-sm); }
+  .stat-row span:first-child { color: var(--ink-3); font-family: var(--font-mono); font-size: var(--t-mono-xs); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-row span:last-child { color: var(--ink); font-family: var(--font-mono); }
+  .legend { display:flex; gap: var(--s-4); flex-wrap: wrap; padding-top: var(--s-3); }
+  .legend__item { display:flex; align-items:center; gap: 6px; font-size: var(--t-mono-xs); font-family: var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.04em; }
+  .legend__sw { width: 22px; height: 3px; border-radius: 2px; }
+  .annotate-btn { display:inline-flex; align-items:center; gap:6px; padding: 4px 10px; background: var(--bone-100); border: 1px solid var(--rule); border-radius: 99px; font-size: var(--t-mono-xs); font-family: var(--font-mono); cursor: pointer; color: var(--ink-2); }
+  .annotate-btn.is-on { background: var(--graphite); color: white; border-color: var(--graphite); }
+  /* SVG nodes */
+  .node-tank, .node-cc, .node-pump, .node-turbine, .node-injector, .node-pre, .node-noz { fill: var(--bg-elev); stroke: var(--graphite); stroke-width: 1.5; }
+  .node-cc { fill: rgba(217,79,0,0.06); stroke: var(--ignition); }
+  .node-turbine { fill: rgba(11,79,122,0.08); stroke: var(--forge); }
+  .label { font-family: var(--font-mono); font-size: 10px; fill: var(--ink-2); text-transform: uppercase; letter-spacing: 0.04em; }
+  .label-strong { font-family: var(--font-sans); font-size: 12px; fill: var(--ink); font-weight: 600; }
+  .flow-fuel { stroke: var(--forge); stroke-width: 2; fill: none; }
+  .flow-ox { stroke: var(--green); stroke-width: 2; fill: none; }
+  .flow-hot { stroke: var(--ignition); stroke-width: 2.5; fill: none; }
+  .flow-shaft { stroke: var(--graphite); stroke-width: 2; stroke-dasharray: 4 3; fill: none; }
+  .anim-dot { fill: var(--ignition); opacity: 0.85; }
+</style></head><body>
+
+<nav class="nav"><div class="nav__brand"><img src="assets/logo.svg" alt=""><a href="index.html" class="nav__brand-name">voxelforge</a></div>
+<div class="nav__links"><a href="about.html">About</a><a href="architecture.html">Architecture</a><a href="physics.html">Physics</a><a href="cycles.html" class="is-current">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a><a href="roadmap.html">Roadmap</a><a href="cascade.html">Cascade</a><a href="getting-started.html">Get started</a><a href="design-system.html">Brand</a><a href="https://github.com/poetac/voxelforge">GitHub ↗</a></div></nav>
+
+<header class="section" style="border-bottom:1px solid var(--rule);padding-bottom:var(--s-12);"><div class="wrap">
+  <p class="eyebrow">Engine cycles</p>
+  <h1 class="t-h1" style="margin-top:var(--s-3);max-width:820px;">Five feed-system topologies, one solver.</h1>
+  <p class="t-lead" style="margin-top:var(--s-5);max-width:720px;">voxelforge models pressure-fed, gas-generator, expander, staged-combustion, and full-flow staged-combustion cycles through one <code>FeedSystemSolver</code>. Click a cycle to see its schematic, mass-flow split, and the gates that apply.</p>
+</div></header>
+
+<section class="section"><div class="wrap">
+  <div class="cycle-stage">
+    <div class="cycle-tabs" id="cycleTabs">
+      <button class="cycle-tab is-active" data-cycle="pf">Pressure-fed</button>
+      <button class="cycle-tab" data-cycle="gg">Gas generator</button>
+      <button class="cycle-tab" data-cycle="ex">Expander</button>
+      <button class="cycle-tab" data-cycle="sc">Staged combustion</button>
+      <button class="cycle-tab" data-cycle="ff">Full-flow staged</button>
+    </div>
+
+    <div class="cycle-grid">
+      <div>
+        <svg class="cycle-svg" viewBox="0 0 800 600" id="cycleSvg" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="legend">
+          <div class="legend__item"><span class="legend__sw" style="background:var(--green)"></span>Oxidiser</div>
+          <div class="legend__item"><span class="legend__sw" style="background:var(--forge)"></span>Fuel · cool</div>
+          <div class="legend__item"><span class="legend__sw" style="background:var(--ignition)"></span>Hot gas</div>
+          <div class="legend__item"><span class="legend__sw" style="background:var(--graphite);height:2px;border-bottom:1px dashed var(--graphite)"></span>Shaft</div>
+          <div style="margin-left:auto"><button class="annotate-btn is-on" id="flowBtn">▶︎ Flow animation</button></div>
+        </div>
+      </div>
+
+      <aside class="cycle-side">
+        <p class="eyebrow">Cycle profile</p>
+        <h3 id="cycName">Pressure-fed</h3>
+        <p id="cycBlurb" class="t-body" style="font-size:var(--t-sm);color:var(--ink-2);margin-top:var(--s-2);"></p>
+        <div class="stat-rows" id="cycStats" style="margin-top:var(--s-4);"></div>
+        <p class="eyebrow" style="margin-top:var(--s-5);">Active gates</p>
+        <div id="cycGates" class="u-row" style="margin-top:var(--s-2);flex-wrap:wrap;gap:6px;"></div>
+        <p class="eyebrow" style="margin-top:var(--s-5);">Best for</p>
+        <p id="cycUse" class="t-body" style="font-size:var(--t-sm);color:var(--ink-2);margin-top:var(--s-2);"></p>
+      </aside>
+    </div>
+  </div>
+
+  <div class="u-cols-2" style="margin-top:var(--s-12);">
+    <div>
+      <p class="eyebrow">How voxelforge solves a cycle</p>
+      <h2 class="t-h3" style="margin-top:var(--s-2);">Energy balance closes pump pressure rise against turbine drive power.</h2>
+      <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">For each cycle, <code>Core/FeedSystem/CycleSolver.cs</code> sets up a system of equations: turbine power = pump shaft power × (1 + losses); turbine flow temperature comes from the gas-generator or preburner combustion call; pump discharge head clears injector ΔP plus regen ΔP plus chamber pressure. A Newton-Krylov iteration converges in 5–12 steps; non-convergence is itself a feasibility signal.</p>
+    </div>
+    <div>
+      <p class="eyebrow">When the cycle won't close</p>
+      <h2 class="t-h3" style="margin-top:var(--s-2);">Three failure modes, three gates.</h2>
+      <ul class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);line-height:1.7;">
+        <li><strong>Negative turbine inlet temperature</strong> → <code class="mono">cycle-energy-feasible</code>. The proposed cycle cannot extract enough enthalpy.</li>
+        <li><strong>Pump head exceeds material strength</strong> → <code class="mono">pump-head-realistic</code>. Stage count too low.</li>
+        <li><strong>Regen heat-pickup &lt; turbine demand</strong> → <code class="mono">expander-cycle-thermal-budget</code>. Expander only.</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<script>
+const CYCLES = {
+  pf: {
+    name: "Pressure-fed",
+    blurb: "Tank pressure alone drives propellants through the injector. No turbopump. Simplest, heaviest, lowest-performance.",
+    use: "Small upper stages, attitude control, hobby/research engines. The 5 kN reference design ships pressure-fed.",
+    stats: [["Cycle ISP penalty", "0 % (no tap-off)"], ["Tank mass fraction", "high"], ["Chamber pressure ceiling", "≈ 5 MPa"], ["Component count", "minimal"], ["Voxelforge default", "yes"]],
+    gates: ["tank-burst-margin", "injector-dp-ratio", "feedline-pressure-drop", "ullage-volume"]
+  },
+  gg: {
+    name: "Gas generator",
+    blurb: "A small fuel-rich preburner drives a turbine; turbine exhaust dumps overboard at low pressure. Robust, classic, the F-1 cycle.",
+    use: "Large boost engines where simplicity beats specific impulse. Merlin 1D, RS-27, F-1, RD-107.",
+    stats: [["Cycle ISP penalty", "1.5–3 %"], ["Turbine exhaust", "Overboard"], ["Pc ceiling", "≈ 12 MPa"], ["Preburner mixture", "fuel-rich"], ["Heritage", "extensive"]],
+    gates: ["cycle-energy-feasible", "preburner-temperature-cap", "turbine-blade-stress", "shaft-critical-margin"]
+  },
+  ex: {
+    name: "Expander",
+    blurb: "Regen-heated fuel (typically H₂) drives the turbine before injection. No combustion in the cycle path. Limited by chamber surface area.",
+    use: "Mid-thrust upper stages with hydrogen. RL10. Closed-expander variants exist.",
+    stats: [["Cycle ISP penalty", "0 %"], ["Pc ceiling", "≈ 8 MPa (square-cube limit)"], ["Coolant", "must be H₂ or CH₄"], ["Thrust ceiling", "≈ 100 kN"], ["Heritage", "RL10 family"]],
+    gates: ["expander-cycle-thermal-budget", "regen-thermal-margin", "coolant-velocity-cap", "turbine-bypass-ratio"]
+  },
+  sc: {
+    name: "Staged combustion",
+    blurb: "Preburner runs at near-stoichiometric to drive turbine; turbine exhaust enters the main chamber. No overboard dump. Highest performance for single-flow cycles.",
+    use: "Performance-critical first stages. SSME, RD-180, BE-4, Raptor (1).",
+    stats: [["Cycle ISP penalty", "≈ 0 %"], ["Pc ceiling", "≈ 25 MPa"], ["Preburner mixture", "ox-rich or fuel-rich"], ["Turbine inlet T", "&gt; 800 K"], ["Material complexity", "high"]],
+    gates: ["preburner-temperature-cap", "turbine-blade-stress", "ox-rich-compatibility", "main-injector-stiffness"]
+  },
+  ff: {
+    name: "Full-flow staged",
+    blurb: "Two preburners, one ox-rich and one fuel-rich. Each turbine exhausts into the main chamber. Highest single-engine specific impulse achievable today.",
+    use: "Reusable methalox boosters. SpaceX Raptor 2/3, Stoke Nova second stage.",
+    stats: [["Cycle ISP penalty", "≈ 0 %"], ["Pc ceiling", "≈ 35 MPa"], ["Preburner count", "2 (ox-rich + fuel-rich)"], ["Turbine inlet T", "moderate (split load)"], ["Material complexity", "very high"]],
+    gates: ["preburner-temperature-cap", "ox-rich-compatibility", "fuel-rich-coking-margin", "dual-shaft-sync", "main-injector-stiffness"]
+  }
+};
+
+// SVG node templates per cycle
+function buildSvg(key) {
+  const svg = document.getElementById('cycleSvg');
+  svg.innerHTML = '';
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs = {}, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text) e.textContent = text;
+    svg.appendChild(e);
+    return e;
+  };
+
+  // Common: ox tank top-left, fuel tank top-right, chamber bottom-center, nozzle below
+  // Tanks
+  el('rect', {x:60, y:60, width:120, height:90, rx:8, class:'node-tank'});
+  el('text', {x:120, y:90, 'text-anchor':'middle', class:'label-strong'}, 'LOX');
+  el('text', {x:120, y:108, 'text-anchor':'middle', class:'label'}, 'tank · 0.45 MPa');
+  el('rect', {x:620, y:60, width:120, height:90, rx:8, class:'node-tank'});
+  el('text', {x:680, y:90, 'text-anchor':'middle', class:'label-strong'}, 'FUEL');
+  el('text', {x:680, y:108, 'text-anchor':'middle', class:'label'}, 'tank · 0.45 MPa');
+
+  // Chamber + nozzle (bottom center, common)
+  el('rect', {x:320, y:380, width:160, height:90, rx:8, class:'node-cc'});
+  el('text', {x:400, y:415, 'text-anchor':'middle', class:'label-strong'}, 'Chamber');
+  el('text', {x:400, y:432, 'text-anchor':'middle', class:'label'}, 'P_c · L*');
+  // Nozzle bell
+  el('path', {d:'M 320 470 L 270 560 L 530 560 L 480 470 Z', class:'node-noz'});
+  el('text', {x:400, y:540, 'text-anchor':'middle', class:'label'}, 'rao bell · ε');
+
+  if (key === 'pf') {
+    // Direct lines tank → injector
+    el('path', {d:'M 120 150 L 120 350 L 350 350 L 350 380', class:'flow-ox'});
+    el('path', {d:'M 680 150 L 680 350 L 450 350 L 450 380', class:'flow-fuel'});
+    el('rect', {x:300, y:355, width:200, height:25, rx:4, class:'node-injector'});
+    el('text', {x:400, y:372, 'text-anchor':'middle', class:'label'}, 'injector');
+    return;
+  }
+
+  // For all other cycles: pumps + turbine
+  // Ox pump
+  el('circle', {cx:120, cy:220, r:30, class:'node-pump'});
+  el('text', {x:120, y:225, 'text-anchor':'middle', class:'label-strong'}, 'OP');
+  // Fuel pump
+  el('circle', {cx:680, cy:220, r:30, class:'node-pump'});
+  el('text', {x:680, y:225, 'text-anchor':'middle', class:'label-strong'}, 'FP');
+  // Turbine (center for single-shaft, two for full-flow)
+  if (key !== 'ff') {
+    el('rect', {x:360, y:200, width:80, height:50, rx:4, class:'node-turbine'});
+    el('text', {x:400, y:222, 'text-anchor':'middle', class:'label-strong'}, 'TURBINE');
+    el('text', {x:400, y:238, 'text-anchor':'middle', class:'label'}, 'single-shaft');
+    // Shaft lines
+    el('path', {d:'M 150 220 L 360 225', class:'flow-shaft'});
+    el('path', {d:'M 440 225 L 650 220', class:'flow-shaft'});
+  }
+
+  // Tank → pumps
+  el('path', {d:'M 120 150 L 120 190', class:'flow-ox'});
+  el('path', {d:'M 680 150 L 680 190', class:'flow-fuel'});
+
+  if (key === 'gg') {
+    // Pump → injector main (most flow). Small bypass to GG → turbine → overboard
+    el('path', {d:'M 120 250 L 120 350 L 350 350 L 350 380', class:'flow-ox'});
+    el('path', {d:'M 680 250 L 680 350 L 450 350 L 450 380', class:'flow-fuel'});
+    // GG box
+    el('rect', {x:340, y:130, width:120, height:50, rx:4, class:'node-pre'});
+    el('text', {x:400, y:152, 'text-anchor':'middle', class:'label-strong'}, 'GAS GEN');
+    el('text', {x:400, y:168, 'text-anchor':'middle', class:'label'}, 'fuel-rich · 1100 K');
+    // Branch lines from pumps to GG
+    el('path', {d:'M 150 215 L 340 155', class:'flow-ox'});
+    el('path', {d:'M 650 215 L 460 155', class:'flow-fuel'});
+    // GG → turbine → overboard
+    el('path', {d:'M 400 180 L 400 200', class:'flow-hot'});
+    el('path', {d:'M 400 250 L 400 290 L 540 290 L 540 320', class:'flow-hot'});
+    el('text', {x:560, y:330, class:'label'}, 'overboard');
+    el('rect', {x:300, y:355, width:200, height:25, rx:4, class:'node-injector'});
+    el('text', {x:400, y:372, 'text-anchor':'middle', class:'label'}, 'injector');
+  }
+
+  if (key === 'ex') {
+    // Fuel through regen jacket (drawn as path around chamber) → turbine → injector
+    el('path', {d:'M 120 250 L 120 350 L 350 350 L 350 380', class:'flow-ox'});
+    // Regen path (fuel side)
+    el('path', {d:'M 680 250 L 680 295 L 540 295 L 530 380 L 470 470 L 530 470 L 540 380 L 680 380 L 680 195', class:'flow-fuel'});
+    el('text', {x:560, y:415, class:'label'}, 'regen jacket');
+    // From fuel pump to turbine (after regen)
+    el('path', {d:'M 650 215 L 440 220', class:'flow-fuel'});
+    // Turbine exhaust → injector
+    el('path', {d:'M 400 250 L 400 350 L 450 350 L 450 380', class:'flow-fuel'});
+    el('rect', {x:300, y:355, width:200, height:25, rx:4, class:'node-injector'});
+    el('text', {x:400, y:372, 'text-anchor':'middle', class:'label'}, 'injector');
+  }
+
+  if (key === 'sc') {
+    el('path', {d:'M 120 250 L 120 350 L 350 350 L 350 380', class:'flow-ox'});
+    // Preburner
+    el('rect', {x:340, y:130, width:120, height:50, rx:4, class:'node-pre'});
+    el('text', {x:400, y:152, 'text-anchor':'middle', class:'label-strong'}, 'PREBURNER');
+    el('text', {x:400, y:168, 'text-anchor':'middle', class:'label'}, 'ox-rich · 800 K');
+    // Most fuel to preburner
+    el('path', {d:'M 650 215 L 460 155', class:'flow-fuel'});
+    // Tap of ox to preburner
+    el('path', {d:'M 150 215 L 340 155', class:'flow-ox'});
+    // Preburner → turbine → injector (NOT overboard)
+    el('path', {d:'M 400 180 L 400 200', class:'flow-hot'});
+    el('path', {d:'M 400 250 L 400 350 L 450 350 L 450 380', class:'flow-hot'});
+    el('rect', {x:300, y:355, width:200, height:25, rx:4, class:'node-injector'});
+    el('text', {x:400, y:372, 'text-anchor':'middle', class:'label'}, 'injector');
+  }
+
+  if (key === 'ff') {
+    // Two preburners; two turbines
+    el('rect', {x:60, y:280, width:130, height:50, rx:4, class:'node-pre'});
+    el('text', {x:125, y:302, 'text-anchor':'middle', class:'label-strong'}, 'OX PREBURN');
+    el('text', {x:125, y:318, 'text-anchor':'middle', class:'label'}, 'ox-rich · 750 K');
+    el('rect', {x:610, y:280, width:130, height:50, rx:4, class:'node-pre'});
+    el('text', {x:675, y:302, 'text-anchor':'middle', class:'label-strong'}, 'FUEL PREBURN');
+    el('text', {x:675, y:318, 'text-anchor':'middle', class:'label'}, 'fuel-rich · 850 K');
+    // Two turbines
+    el('rect', {x:60, y:200, width:130, height:40, rx:4, class:'node-turbine'});
+    el('text', {x:125, y:225, 'text-anchor':'middle', class:'label-strong'}, 'OX TURBINE');
+    el('rect', {x:610, y:200, width:130, height:40, rx:4, class:'node-turbine'});
+    el('text', {x:675, y:225, 'text-anchor':'middle', class:'label-strong'}, 'FUEL TURBINE');
+    // Pumps below turbines (re-place)
+    // (already placed at 120,220 and 680,220) — overlap fine; redraw smaller
+    // Flows
+    el('path', {d:'M 120 250 L 60 290', class:'flow-ox'});
+    el('path', {d:'M 130 250 L 610 290', class:'flow-fuel'});
+    el('path', {d:'M 680 250 L 740 290', class:'flow-fuel'});
+    el('path', {d:'M 670 250 L 190 290', class:'flow-ox'});
+    // Preburner → its turbine
+    el('path', {d:'M 125 280 L 125 240', class:'flow-hot'});
+    el('path', {d:'M 675 280 L 675 240', class:'flow-hot'});
+    // Both turbines → main chamber
+    el('path', {d:'M 125 200 L 125 100 L 350 100 L 360 380', class:'flow-hot'});
+    el('path', {d:'M 675 200 L 675 100 L 450 100 L 440 380', class:'flow-hot'});
+    el('rect', {x:300, y:355, width:200, height:25, rx:4, class:'node-injector'});
+    el('text', {x:400, y:372, 'text-anchor':'middle', class:'label'}, 'main injector');
+  }
+
+  // Pump→tank label
+  if (key !== 'pf') {
+    el('text', {x:120, y:265, 'text-anchor':'middle', class:'label'}, 'high-P ox');
+    el('text', {x:680, y:265, 'text-anchor':'middle', class:'label'}, 'high-P fuel');
+  }
+}
+
+let flowOn = true;
+let flowDots = [];
+function clearDots() { flowDots.forEach(d => d.remove()); flowDots = []; }
+function startFlow() {
+  clearDots();
+  if (!flowOn) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('cycleSvg');
+  // Animate along all flow-* paths
+  svg.querySelectorAll('.flow-ox, .flow-fuel, .flow-hot').forEach((p, i) => {
+    const dot = document.createElementNS(NS, 'circle');
+    const cls = p.classList.contains('flow-ox') ? '#1F8A50' : p.classList.contains('flow-hot') ? '#D94F00' : '#0B4F7A';
+    dot.setAttribute('r', '4'); dot.setAttribute('fill', cls);
+    svg.appendChild(dot); flowDots.push(dot);
+    const animate = document.createElementNS(NS, 'animateMotion');
+    animate.setAttribute('dur', (3 + (i % 4) * 0.3) + 's');
+    animate.setAttribute('repeatCount', 'indefinite');
+    animate.setAttribute('begin', (i * 0.15) + 's');
+    const mp = document.createElementNS(NS, 'mpath');
+    if (!p.id) p.id = 'fp' + i;
+    mp.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#' + p.id);
+    animate.appendChild(mp);
+    dot.appendChild(animate);
+  });
+}
+
+function setCycle(key) {
+  document.querySelectorAll('.cycle-tab').forEach(b => b.classList.toggle('is-active', b.dataset.cycle === key));
+  const c = CYCLES[key];
+  document.getElementById('cycName').textContent = c.name;
+  document.getElementById('cycBlurb').textContent = c.blurb;
+  document.getElementById('cycUse').textContent = c.use;
+  document.getElementById('cycStats').innerHTML = c.stats.map(([k,v]) => `<div class="stat-row"><span>${k}</span><span>${v}</span></div>`).join('');
+  document.getElementById('cycGates').innerHTML = c.gates.map(g => `<span class="tag mono">${g}</span>`).join('');
+  buildSvg(key);
+  startFlow();
+}
+
+document.getElementById('cycleTabs').addEventListener('click', (e) => {
+  if (e.target.dataset.cycle) setCycle(e.target.dataset.cycle);
+});
+document.getElementById('flowBtn').addEventListener('click', () => {
+  flowOn = !flowOn;
+  document.getElementById('flowBtn').classList.toggle('is-on', flowOn);
+  document.getElementById('flowBtn').textContent = (flowOn ? '▶︎' : '⏸') + ' Flow animation';
+  if (flowOn) startFlow(); else clearDots();
+});
+setCycle('pf');
+</script>
+
+<footer class="foot"><div class="wrap"><div class="foot__cols"><div><div class="u-row-tight" style="margin-bottom:var(--s-3);"><img src="assets/logo.svg" width="22" height="22" alt=""><span style="font-weight:600;color:var(--ink)">voxelforge</span></div><p style="margin:0;max-width:360px;">A 3D-printable rocket engine, generated from a handful of parameters.</p></div><div><div class="foot__title">Reference</div><div class="foot__links"><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a></div></div><div><div class="foot__title">Project</div><div class="foot__links"><a href="architecture.html">Architecture</a><a href="roadmap.html">Roadmap</a><a href="faq.html">FAQ</a><a href="design-system.html">Brand</a></div></div><div><div class="foot__title">Source</div><div class="foot__links"><a href="https://github.com/poetac/voxelforge">GitHub</a><a href="https://github.com/poetac/voxelforge/blob/main/LICENSE">License (MIT)</a></div></div></div></div></footer>
+</body></html>

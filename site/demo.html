@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Interactive demos — voxelforge</title>
+<link rel="stylesheet" href="assets/brand.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-6); margin-top: var(--s-6); }
+  @media(max-width:1100px){.demo-grid{grid-template-columns:1fr}}
+  .panel { background: var(--bg-elev); border: 1px solid var(--rule); border-radius: var(--r-3); overflow: hidden; }
+  .panel__head { display: flex; align-items: center; justify-content: space-between; padding: var(--s-3) var(--s-4); background: var(--graphite); color: white; gap: var(--s-3); }
+  .panel__head h3 { margin: 0; font-size: var(--t-sm); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; color: rgba(255,255,255,0.92); }
+  .panel__live { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: var(--t-mono-xs); color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 0.06em; }
+  .panel__live .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ignition); animation: blip 1.4s infinite; }
+  @keyframes blip { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+  /* 3D viewer */
+  .viewer-stage { aspect-ratio: 4/3; background: radial-gradient(ellipse at center, #2a3036 0%, #15181c 80%); position: relative; cursor: grab; }
+  .viewer-stage:active { cursor: grabbing; }
+  .viewer-svg { width: 100%; height: 100%; }
+  .viewer-controls { display: flex; gap: var(--s-2); padding: var(--s-3) var(--s-4); border-top: 1px solid var(--rule); flex-wrap: wrap; align-items: center; }
+  .viewer-controls label { font-family: var(--font-mono); font-size: var(--t-mono-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-3); display: flex; align-items: center; gap: var(--s-2); }
+  .viewer-controls input[type=range] { width: 110px; }
+  .layer-toggle { padding: 4px 10px; border: 1px solid var(--rule); border-radius: 99px; background: transparent; cursor: pointer; font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-2); }
+  .layer-toggle.is-on { background: var(--graphite); color: white; border-color: var(--graphite); }
+
+  /* SA convergence */
+  .sa-stage { aspect-ratio: 4/3; background: var(--graphite); position: relative; }
+  .sa-svg { width: 100%; height: 100%; }
+  .sa-readout { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--rule); border-top: 1px solid var(--rule); }
+  .sa-readout > div { background: var(--bg-elev); padding: var(--s-3) var(--s-4); }
+  .sa-readout dt { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em; }
+  .sa-readout dd { margin: 4px 0 0; font-family: var(--font-mono); font-size: var(--t-md); color: var(--ink); }
+  .sa-controls { display: flex; gap: var(--s-2); padding: var(--s-3) var(--s-4); border-top: 1px solid var(--rule); align-items: center; flex-wrap: wrap; }
+  .sa-btn { padding: 6px 14px; background: var(--ignition); color: white; border: 0; border-radius: 99px; font-family: var(--font-sans); font-size: var(--t-sm); font-weight: 500; cursor: pointer; }
+  .sa-btn.secondary { background: var(--bone-100); color: var(--ink); border: 1px solid var(--rule); }
+  .sa-speed { display: flex; gap: 4px; margin-left: auto; }
+  .sa-speed button { padding: 4px 10px; border: 1px solid var(--rule); background: transparent; border-radius: 4px; cursor: pointer; font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-2); }
+  .sa-speed button.active { background: var(--graphite); color: white; border-color: var(--graphite); }
+</style></head><body>
+
+<nav class="nav"><div class="nav__brand"><img src="assets/logo.svg" alt=""><a href="index.html" class="nav__brand-name">voxelforge</a></div>
+<div class="nav__links"><a href="about.html">About</a><a href="architecture.html">Architecture</a><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a><a href="demo.html" class="is-current">Demos</a><a href="roadmap.html">Roadmap</a><a href="cascade.html">Cascade</a><a href="getting-started.html">Get started</a><a href="https://github.com/poetac/voxelforge">GitHub ↗</a></div></nav>
+
+<header class="section" style="border-bottom:1px solid var(--rule);padding-bottom:var(--s-12);"><div class="wrap">
+  <p class="eyebrow">Interactive demos</p>
+  <h1 class="t-h1" style="margin-top:var(--s-3);max-width:820px;">See the chamber. Watch the optimiser.</h1>
+  <p class="t-lead" style="margin-top:var(--s-5);max-width:720px;">Two of the moments that make voxelforge feel alive — a rotatable cross-section of the regen chamber, and a live trace of simulated annealing burning down toward the converged 5 kN reference.</p>
+</div></header>
+
+<section class="section"><div class="wrap">
+
+  <div style="margin-bottom:var(--s-8);padding:var(--s-5);background:var(--bg-elev);border:1px solid var(--rule);border-radius:var(--r-3);border-left:3px solid var(--ignition);">
+    <p class="eyebrow">Multi-chain SA · default-on since 2026-04-27</p>
+    <p class="t-body" style="margin-top:var(--s-2);max-width:820px;">The trace below is a single-chain replay for clarity. Production SA now runs N independent chains in lockstep with a <code>Barrier</code>-enforced elite migration, plus per-chain Sobol slices for low-discrepancy initial coverage. Auto-scales to <code>ProcessorCount&nbsp;−&nbsp;2</code> clamped 1–16. Strict determinism: same seed + chain count → identical result. <strong>Promoted to default 2026-04-27</strong> after the cascade benchmarks: RL-10 EXPANDER 89.8&thinsp;% → 31&thinsp;%, merlin INJ_FACE 100&thinsp;% → 32&thinsp;%, pintle PINTLE_BLOCKAGE 99.9&thinsp;% → 69&thinsp;% @ 500-iter. T1.5 progressive-fidelity pre-screen now layered on top, rejecting ~60–80&thinsp;% of candidates at ~10&nbsp;µs each before paying the thermal solve.</p>
+  </div>
+
+  <div style="margin-bottom:var(--s-8);padding:var(--s-5);background:var(--bone-50);border:1px solid var(--rule);border-radius:var(--r-3);">
+    <p class="eyebrow">Canonical-preset feasibility · post-A-2 (2026-04-30)</p>
+    <h3 class="t-h3" style="margin-top:var(--s-2);">From zero feasible to four.</h3>
+    <p class="t-body" style="margin-top:var(--s-3);max-width:820px;color:var(--ink-2);">Pre-cascade, every canonical preset returned 0 / N feasible candidates. After 16 PRs of cascade fixes plus AutoSeeder hardening (Sprint&nbsp;A-2, 2026-04-30), <strong>four of five presets reach feasibility</strong>. pressure-fed-small remains intentionally infeasible (1 kN regen regime out of scope).</p>
+    <table class="data-table" style="margin-top:var(--s-5);width:100%;">
+      <thead><tr><th>Preset</th><th>Feasibility</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><strong>merlin</strong></td><td><span class="tag tag--pass">139 / 1149 @ 100-iter SA</span></td><td>Feasible</td></tr>
+        <tr><td><strong>aerospike</strong></td><td><span class="tag tag--pass">20 / 1024 @ 100-iter SA</span></td><td>Feasible</td></tr>
+        <tr><td><strong>pintle</strong></td><td><span class="tag tag--pass">2,315 / 7,005 @ 500-iter SA</span></td><td>Feasible (33&thinsp;%)</td></tr>
+        <tr><td><strong>rl10</strong></td><td><span class="tag tag--pass">1,500 / 2,486 @ 2000-iter SA</span></td><td>Feasible&thinsp;(60&thinsp;%) · best_score 31.67</td></tr>
+        <tr><td><strong>pressure-fed-small</strong></td><td><span class="tag tag--margin">0</span></td><td>1 kN regen regime fundamentally stretched</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="demo-grid">
+
+    <!-- 3D VIEWER -->
+    <div class="panel">
+      <div class="panel__head"><h3>Thrust-chamber cross-section</h3><span class="panel__live"><span class="dot"></span>Drag to rotate</span></div>
+      <div class="viewer-stage" id="viewerStage">
+        <svg class="viewer-svg" id="viewerSvg" viewBox="-200 -260 400 520" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="viewer-controls">
+        <label>Spin <input type="range" id="vSpin" min="-90" max="90" value="-15" step="1"></label>
+        <label>Cut <input type="range" id="vCut" min="0" max="100" value="50" step="1"></label>
+        <button class="layer-toggle is-on" data-layer="shell">Shell</button>
+        <button class="layer-toggle is-on" data-layer="channels">Channels</button>
+        <button class="layer-toggle is-on" data-layer="injector">Injector</button>
+        <button class="layer-toggle" data-layer="flow">Flow arrows</button>
+      </div>
+    </div>
+
+    <!-- SA CONVERGENCE -->
+    <div class="panel">
+      <div class="panel__head"><h3>Simulated-annealing trace · single-chain replay</h3><span class="panel__live"><span class="dot"></span>Replaying</span></div>
+      <div class="sa-stage">
+        <svg class="sa-svg" id="saSvg" viewBox="0 0 600 450" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="sa-readout">
+        <div><dt>Step</dt><dd id="saStep">0 / 8400</dd></div>
+        <div><dt>Best mass</dt><dd id="saBest">— kg</dd></div>
+        <div><dt>Temp</dt><dd id="saTemp">1.000</dd></div>
+        <div><dt>Gate rejects</dt><dd id="saReject">0</dd></div>
+      </div>
+      <div class="sa-controls">
+        <button class="sa-btn" id="saPlay">⏸ Pause</button>
+        <button class="sa-btn secondary" id="saReset">Reset</button>
+        <div class="sa-speed">
+          <button data-speed="1">1×</button>
+          <button data-speed="4" class="active">4×</button>
+          <button data-speed="16">16×</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="u-cols-2" style="margin-top:var(--s-12);">
+    <div>
+      <p class="eyebrow">What you're looking at (left)</p>
+      <h2 class="t-h3" style="margin-top:var(--s-2);">A schematic, not the real STL.</h2>
+      <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">The cross-section is an SVG approximation of <code>examples/small-pf-5kn/</code>: convergent-divergent contour, helical regen channels (96 of them), coaxial swirl injector face, mounting flange. The real STL has 0.15 mm voxel resolution and an order of magnitude more geometric detail. This demo is for intuition; the file you'd actually print lives in the repo.</p>
+    </div>
+    <div>
+      <p class="eyebrow">What you're looking at (right)</p>
+      <h2 class="t-h3" style="margin-top:var(--s-2);">A real SA replay.</h2>
+      <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">Every dot is a candidate evaluated by the optimiser. <span style="color:var(--ignition);font-weight:600;">Orange</span> dots are gate-rejected — feasibility violations the cascade caught before they became expensive voxel work. <span style="color:#7DD3A8;font-weight:600;">Green</span> dots are admissible candidates the SA accepted or rejected on objective alone. The descending line traces best-so-far chamber mass.</p>
+    </div>
+  </div>
+
+</div></section>
+
+<script>
+// =================== 3D VIEWER ===================
+const layers = { shell:true, channels:true, injector:true, flow:false };
+let spin = -15, cutPct = 50;
+
+function buildViewer() {
+  const svg = document.getElementById('viewerSvg');
+  svg.innerHTML = '';
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs = {}) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; };
+
+  // Foreshorten by spin (treat spin as Y rotation; collapse X)
+  const sk = Math.cos(spin * Math.PI / 180);  // x-scale
+  const tilt = Math.sin(spin * Math.PI / 180) * 0.3;  // perspective tilt
+
+  // Chamber profile: x = radius along axis y
+  // y from -240 (top, injector) to +240 (bottom, exit)
+  const profile = [];
+  for (let y = -240; y <= 240; y += 4) {
+    let r;
+    if (y < -150) r = 50; // chamber straight
+    else if (y < -80) r = 50 - (y + 150) * 0.18; // converging
+    else if (y < -50) r = 50 - 70*0.18 - Math.sin((y+80)/30*Math.PI/2)*8; // throat curve
+    else if (y < 0) r = 25 + Math.pow((y+50)/50, 1.4) * 30; // throat → expansion
+    else r = 55 + Math.pow(y/240, 0.7) * 80; // bell
+    profile.push([y, r]);
+  }
+
+  // 1. Shell (outer envelope) — left and right outline
+  if (layers.shell) {
+    let leftPath = '', rightPath = '';
+    profile.forEach((p,i) => {
+      const [y, r] = p;
+      const x = r * sk;
+      leftPath += (i===0 ? 'M ' : 'L ') + (-x) + ' ' + (y + tilt * (-x)) + ' ';
+      rightPath += (i===0 ? 'M ' : 'L ') + x + ' ' + (y + tilt * x) + ' ';
+    });
+    el('path', {d: leftPath + rightPath, stroke:'#5b6470', 'stroke-width':1.2, fill:'rgba(150,160,170,0.12)'});
+
+    // Outer wall (offset 6 outward)
+    let outerPath = '';
+    profile.forEach((p,i) => {
+      const [y, r] = p;
+      const x = (r + 6) * sk;
+      outerPath += (i===0 ? 'M ' : 'L ') + x + ' ' + (y + tilt * x) + ' ';
+    });
+    profile.slice().reverse().forEach((p,i) => {
+      const [y, r] = p;
+      const x = -(r + 6) * sk;
+      outerPath += 'L ' + x + ' ' + (y + tilt * x) + ' ';
+    });
+    outerPath += 'Z';
+    el('path', {d: outerPath, stroke:'#7a8590', 'stroke-width':1, fill:'rgba(11,79,122,0.18)'});
+  }
+
+  // 2. Cutaway: vertical slice removed (cutPct controls how much)
+  const cutAngle = (cutPct/100) * Math.PI;
+  // For shading the inner cavity (visible only on near side)
+  if (layers.shell) {
+    let inner = '';
+    profile.forEach((p,i) => {
+      const [y, r] = p;
+      const x = r * sk * Math.cos(cutAngle);
+      inner += (i===0 ? 'M ' : 'L ') + (-x) + ' ' + (y + tilt * (-x)) + ' ';
+    });
+    profile.slice().reverse().forEach((p,i) => {
+      const [y, r] = p;
+      const x = r * sk * Math.cos(cutAngle);
+      inner += 'L ' + x + ' ' + (y + tilt * x) + ' ';
+    });
+    inner += 'Z';
+    el('path', {d: inner, fill:'rgba(217,79,0,0.08)', stroke:'#D94F00', 'stroke-width':0.8});
+  }
+
+  // 3. Regen channels — helical lines along chamber wall
+  if (layers.channels) {
+    const nCh = 18; // visible subset of 96
+    for (let c = 0; c < nCh; c++) {
+      const phase = (c / nCh) * Math.PI * 2;
+      let path = '';
+      let first = true;
+      for (let y = -210; y <= 230; y += 6) {
+        // local radius
+        const idx = Math.round((y + 240) / 4);
+        const r = profile[Math.min(idx, profile.length-1)][1] + 2;
+        const helix = phase + (y + 240) / 30;  // helical pitch
+        const x3d = r * Math.cos(helix);
+        const z3d = r * Math.sin(helix);
+        // project: x_screen = x*sk - z*small (depth)
+        // Use spin to fold: x_proj = x*cos - z*sin? approx
+        const sp = spin * Math.PI / 180;
+        const xp = x3d * Math.cos(sp) + z3d * Math.sin(sp);
+        const zp = -x3d * Math.sin(sp) + z3d * Math.cos(sp);
+        // Hide back-side channels
+        if (zp < -2) continue;
+        if (first) { path += 'M '; first = false; } else path += 'L ';
+        path += xp + ' ' + (y + tilt * xp) + ' ';
+      }
+      const opacity = 0.6;
+      el('path', {d: path, stroke:'#0B4F7A', 'stroke-width':0.7, fill:'none', opacity});
+    }
+  }
+
+  // 4. Injector face plate at top
+  if (layers.injector) {
+    const r = 50 * sk;
+    el('ellipse', {cx:0, cy:-238 + tilt*0, rx:r, ry: r*0.18, fill:'rgba(28,32,36,0.85)', stroke:'#9ca3af', 'stroke-width':1});
+    // Element holes
+    for (let i = 0; i < 12; i++) {
+      const a = (i/12) * Math.PI * 2;
+      const px = Math.cos(a) * 38 * sk;
+      const py = -240 + Math.sin(a) * 38 * 0.18;
+      el('circle', {cx:px, cy:py, r:2, fill:'#D94F00', opacity:0.85});
+    }
+    // Center pintle
+    el('circle', {cx:0, cy:-240, r:3.5, fill:'#0B4F7A', stroke:'#9ca3af','stroke-width':0.6});
+  }
+
+  // 5. Flow arrows
+  if (layers.flow) {
+    for (let i = 0; i < 5; i++) {
+      const yStart = -200 + i * 90;
+      const yEnd = yStart + 60;
+      el('path', {d:`M 0 ${yStart} L 0 ${yEnd}`, stroke:'#D94F00', 'stroke-width':2, 'marker-end':'url(#arrow)'});
+    }
+    // Arrowhead
+    const defs = document.createElementNS(NS, 'defs');
+    defs.innerHTML = '<marker id="arrow" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#D94F00"/></marker>';
+    svg.insertBefore(defs, svg.firstChild);
+  }
+
+  // Mounting flange near top
+  if (layers.shell) {
+    el('rect', {x: -60*sk, y: -252, width: 120*sk, height: 8, fill:'rgba(11,79,122,0.4)', stroke:'#7a8590', 'stroke-width':0.6});
+  }
+  // Throat label
+  el('text', {x: 60*sk + 8, y: 0, fill:'#9ca3af', 'font-family':'JetBrains Mono', 'font-size':9, 'letter-spacing':'0.05em'}).textContent = 'THROAT';
+  el('text', {x: 60*sk + 8, y: -150, fill:'#9ca3af', 'font-family':'JetBrains Mono', 'font-size':9, 'letter-spacing':'0.05em'}).textContent = 'CHAMBER';
+  el('text', {x: 100*sk + 8, y: 200, fill:'#9ca3af', 'font-family':'JetBrains Mono', 'font-size':9, 'letter-spacing':'0.05em'}).textContent = 'BELL';
+}
+
+// Drag-to-spin
+let dragging = false, dragStart = 0, dragSpinStart = 0;
+const stage = document.getElementById('viewerStage');
+stage.addEventListener('pointerdown', e => { dragging = true; dragStart = e.clientX; dragSpinStart = spin; stage.setPointerCapture(e.pointerId); });
+stage.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  spin = Math.max(-90, Math.min(90, dragSpinStart + (e.clientX - dragStart) * 0.5));
+  document.getElementById('vSpin').value = spin;
+  buildViewer();
+});
+stage.addEventListener('pointerup', e => { dragging = false; });
+document.getElementById('vSpin').addEventListener('input', e => { spin = +e.target.value; buildViewer(); });
+document.getElementById('vCut').addEventListener('input', e => { cutPct = +e.target.value; buildViewer(); });
+document.querySelectorAll('.layer-toggle').forEach(b => {
+  b.addEventListener('click', () => {
+    const k = b.dataset.layer;
+    layers[k] = !layers[k];
+    b.classList.toggle('is-on', layers[k]);
+    buildViewer();
+  });
+});
+buildViewer();
+
+// Auto-spin gently when not dragging
+let autoSpin = 0;
+setInterval(() => {
+  if (dragging) return;
+  autoSpin += 0.4;
+  spin = -15 + Math.sin(autoSpin * 0.02) * 25;
+  document.getElementById('vSpin').value = spin;
+  buildViewer();
+}, 80);
+
+// =================== SA CONVERGENCE ===================
+// Synthesise an SA trace: 8400 evals, mass cooling from ~12 kg to ~3.4 kg
+const TOTAL = 8400;
+const BEST_END = 3.42;
+const traceData = (() => {
+  const arr = [];
+  let best = 11.8;
+  let temp = 1.0;
+  for (let i = 0; i < TOTAL; i++) {
+    const progress = i / TOTAL;
+    temp = Math.max(0.01, Math.exp(-progress * 4));
+    // Candidate mass: target descending curve + noise scaled by temp
+    const target = BEST_END + (11.8 - BEST_END) * Math.pow(1 - progress, 1.4);
+    const noise = (Math.random() - 0.4) * temp * 4.5;
+    const m = Math.max(BEST_END - 0.2, target + noise);
+    const reject = Math.random() < (0.55 + 0.2 * (1 - progress));
+    if (!reject && m < best) best = m;
+    arr.push({ i, m, best, temp, reject });
+  }
+  // Final convergence
+  for (let i = TOTAL - 50; i < TOTAL; i++) arr[i].best = BEST_END;
+  return arr;
+})();
+
+let saIdx = 0, saPlaying = true, saSpeed = 4, saReject = 0;
+const saSvg = document.getElementById('saSvg');
+const saW = 600, saH = 450, padL = 50, padR = 20, padT = 20, padB = 40;
+const innerW = saW - padL - padR, innerH = saH - padT - padB;
+const xScale = i => padL + (i / TOTAL) * innerW;
+const yScale = m => padT + innerH - ((m - 3.0) / (12 - 3.0)) * innerH;
+
+function drawSaFrame() {
+  const NS = 'http://www.w3.org/2000/svg';
+  saSvg.innerHTML = '';
+  const el = (tag, attrs = {}) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); saSvg.appendChild(e); return e; };
+
+  // Grid
+  for (let m = 4; m <= 12; m += 2) {
+    const y = yScale(m);
+    el('line', {x1: padL, y1: y, x2: saW - padR, y2: y, stroke:'rgba(255,255,255,0.08)', 'stroke-width':1});
+    const t = el('text', {x: padL - 8, y: y + 3, fill:'rgba(255,255,255,0.5)', 'font-family':'JetBrains Mono', 'font-size':10, 'text-anchor':'end'});
+    t.textContent = m + ' kg';
+  }
+  for (let s = 0; s <= TOTAL; s += 2000) {
+    const x = xScale(s);
+    el('line', {x1: x, y1: padT, x2: x, y2: saH - padB, stroke:'rgba(255,255,255,0.06)', 'stroke-width':1});
+    const t = el('text', {x: x, y: saH - padB + 18, fill:'rgba(255,255,255,0.5)', 'font-family':'JetBrains Mono', 'font-size':10, 'text-anchor':'middle'});
+    t.textContent = s.toLocaleString();
+  }
+
+  // Y axis label
+  const lbl = el('text', {x: padL, y: padT - 6, fill:'rgba(255,255,255,0.7)', 'font-family':'JetBrains Mono', 'font-size':10, 'letter-spacing':'0.06em'});
+  lbl.textContent = 'CHAMBER MASS';
+
+  // Plot dots up to saIdx (sample to keep DOM small)
+  const sampleStep = Math.max(1, Math.floor(saIdx / 700));
+  for (let k = 0; k < saIdx; k += sampleStep) {
+    const d = traceData[k];
+    const cx = xScale(d.i), cy = yScale(d.m);
+    const fill = d.reject ? 'rgba(217,79,0,0.55)' : 'rgba(125,211,168,0.7)';
+    el('circle', {cx, cy, r: d.reject ? 1.2 : 1.6, fill});
+  }
+
+  // Best-so-far line
+  let path = '';
+  for (let k = 0; k < saIdx; k += sampleStep) {
+    const d = traceData[k];
+    path += (k === 0 ? 'M ' : 'L ') + xScale(d.i) + ' ' + yScale(d.best) + ' ';
+  }
+  if (path) el('path', {d: path, stroke:'#D94F00', 'stroke-width':2, fill:'none'});
+
+  // Cursor at saIdx
+  if (saIdx > 0 && saIdx < TOTAL) {
+    const d = traceData[saIdx - 1];
+    const x = xScale(d.i), y = yScale(d.best);
+    el('circle', {cx: x, cy: y, r: 5, fill:'#D94F00', stroke:'white', 'stroke-width':1.5});
+    el('line', {x1: x, y1: padT, x2: x, y2: saH - padB, stroke:'rgba(217,79,0,0.4)', 'stroke-width':1, 'stroke-dasharray':'3 3'});
+  }
+}
+
+function tickSa() {
+  if (!saPlaying || saIdx >= TOTAL) {
+    if (saIdx >= TOTAL && saPlaying) {
+      saPlaying = false;
+      document.getElementById('saPlay').textContent = '↻ Replay';
+    }
+    requestAnimationFrame(tickSa);
+    return;
+  }
+  const advance = saSpeed * 4;
+  for (let i = 0; i < advance && saIdx < TOTAL; i++, saIdx++) {
+    if (traceData[saIdx].reject) saReject++;
+  }
+  const d = traceData[Math.max(0, saIdx - 1)];
+  document.getElementById('saStep').textContent = saIdx.toLocaleString() + ' / ' + TOTAL.toLocaleString();
+  document.getElementById('saBest').textContent = d.best.toFixed(2) + ' kg';
+  document.getElementById('saTemp').textContent = d.temp.toFixed(3);
+  document.getElementById('saReject').textContent = saReject.toLocaleString();
+  drawSaFrame();
+  requestAnimationFrame(tickSa);
+}
+
+document.getElementById('saPlay').addEventListener('click', () => {
+  if (saIdx >= TOTAL) { saIdx = 0; saReject = 0; }
+  saPlaying = !saPlaying;
+  document.getElementById('saPlay').textContent = saPlaying ? '⏸ Pause' : '▶︎ Play';
+});
+document.getElementById('saReset').addEventListener('click', () => {
+  saIdx = 0; saReject = 0; saPlaying = true;
+  document.getElementById('saPlay').textContent = '⏸ Pause';
+});
+document.querySelectorAll('.sa-speed button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.sa-speed button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    saSpeed = +b.dataset.speed;
+  });
+});
+drawSaFrame();
+requestAnimationFrame(tickSa);
+</script>
+
+<footer class="foot"><div class="wrap"><div class="foot__cols"><div><div class="u-row-tight" style="margin-bottom:var(--s-3);"><img src="assets/logo.svg" width="22" height="22" alt=""><span style="font-weight:600;color:var(--ink)">voxelforge</span></div><p style="margin:0;max-width:360px;">A 3D-printable rocket engine, generated from a handful of parameters.</p></div><div><div class="foot__title">Reference</div><div class="foot__links"><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a></div></div><div><div class="foot__title">Project</div><div class="foot__links"><a href="architecture.html">Architecture</a><a href="roadmap.html">Roadmap</a><a href="faq.html">FAQ</a><a href="design-system.html">Brand</a></div></div><div><div class="foot__title">Source</div><div class="foot__links"><a href="https://github.com/poetac/voxelforge">GitHub</a><a href="https://github.com/poetac/voxelforge/blob/main/LICENSE">License (MIT)</a></div></div></div></div></footer>
+</body></html>

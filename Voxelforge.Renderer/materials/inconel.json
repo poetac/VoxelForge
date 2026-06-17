@@ -1,0 +1,12 @@
+{
+  "_comment": "Inconel 625 / 718 — nickel superalloy used in turbopump impellers, structural shells, hot-section components. Silver-grey with slight warm tint. Common LPBF material.",
+  "name": "Inconel 625 (LPBF, polished)",
+  "base_color": [0.752, 0.755, 0.745, 1.0],
+  "metallic": 1.0,
+  "roughness": 0.30,
+  "specular_ior_level": 0.5,
+  "anisotropic": 0.0,
+  "anisotropic_rotation": 0.0,
+  "clearcoat": 0.0,
+  "clearcoat_roughness": 0.0
+}

@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Nullable + ImplicitUsings live in Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge</RootNamespace>
+    <AssemblyName>Voxelforge.Voxels</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PicoGK" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Voxelforge.Core\Voxelforge.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge" />
+    <InternalsVisibleTo Include="Voxelforge.Tests" />
+    <InternalsVisibleTo Include="Voxelforge.Benchmarks" />
+    <InternalsVisibleTo Include="Voxelforge.StlExporter" />
+    <InternalsVisibleTo Include="Voxelforge.Kiosk" />
+  </ItemGroup>
+
+  <!-- A5 (2026-04-25): same public-API drift tracking as Core. Voxels has
+       a smaller public surface (mostly leaf voxel builders) but identical
+       contract semantics. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="4.14.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+</Project>

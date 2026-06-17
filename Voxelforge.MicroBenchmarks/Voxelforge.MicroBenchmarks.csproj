@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- BB-3 (2026-04-29): BenchmarkDotNet microbenchmark host. Sits
+       alongside Voxelforge.Benchmarks (which captures
+       JSONL physics fingerprints + SA wall-clock) and gives BDN
+       statistical rigor to the µs-to-ms paths SA hammers per
+       candidate.
+
+       References Voxelforge (the App) so the helpers
+       can lean on RegenChamberOptimization.ComputeDerived /
+       RegenChamberOptimization.GenerateWith without re-implementing
+       the orchestration math. Per BB-3 acceptance: NO `using PicoGK;`
+       directives anywhere under this project. ADR-005 covers the
+       xUnit-vs-PicoGK incompatibility; BDN runs in a regular console
+       process so the same crash mechanism doesn't apply, but the
+       Core-only discipline keeps cold-start time + memory footprint
+       small for `dotnet run -c Release`.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>Voxelforge.MicroBenchmarks</RootNamespace>
+    <AssemblyName>Voxelforge.MicroBenchmarks</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <!--
+      BDN requires [Benchmark] methods to be instance methods (the
+      runner instantiates the class and calls into it). CA1822 ("can
+      be marked as static") fires on most of them because they don't
+      touch instance state — that's the design, not a defect. Suppress
+      the rule for this project; the rest of the repo keeps it on.
+    -->
+    <NoWarn>$(NoWarn);CA1822</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Voxelforge\Voxelforge.csproj" />
+    <ProjectReference Include="..\Voxelforge.Airbreathing.Core\Voxelforge.Airbreathing.Core.csproj" />
+  </ItemGroup>
+
+</Project>

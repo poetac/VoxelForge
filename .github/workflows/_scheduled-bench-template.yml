@@ -1,0 +1,149 @@
+# Reusable workflow template for scheduled benchmark jobs (ADR-045, #650).
+#
+# Callers supply: bench-name, bench-command, output-path (+ optional overrides).
+# Template provides: checkout, provenance env-vars (VF_GIT_SHA / VF_MACHINE_ID),
+# restore, Release build, bench execution, GitHub Job Summary, failure annotation,
+# artifact upload.
+#
+# Typical caller:
+#
+#   jobs:
+#     bench:
+#       uses: ./.github/workflows/_scheduled-bench-template.yml
+#       with:
+#         bench-name: fingerprint-rocket-merlin
+#         bench-command: |
+#           mkdir -p current
+#           dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+#             --no-build --configuration Release \
+#             -- --bench-sa --design-preset merlin \
+#             --git-sha "$VF_GIT_SHA" --machine-id "$VF_MACHINE_ID" \
+#             --out current/bench-sa-merlin.jsonl
+#         output-path: current/*.jsonl
+#
+# Set a concurrency group in the *caller* workflow (not here) so different bench
+# workflows can run in parallel on the two-runner pair while each individual
+# workflow serializes its own repeated triggers.
+
+name: _Scheduled Bench Template
+
+on:
+  workflow_call:
+    inputs:
+      bench-name:
+        description: Short slug for artifact names and job summary (e.g. fingerprint-rocket)
+        type: string
+        required: true
+      build-project:
+        description: Project or solution to restore + build before the bench run
+        type: string
+        default: voxelforge.sln
+      bench-command:
+        description: >
+          Shell command(s) to execute the bench (relative to repo root).
+          VF_GIT_SHA and VF_MACHINE_ID are set in the environment before this runs.
+        type: string
+        required: true
+      output-path:
+        description: Glob or path of output files to upload as artifact
+        type: string
+        required: true
+      retention-days:
+        description: Days to retain the uploaded artifact
+        type: number
+        default: 30
+      timeout-minutes:
+        description: Job timeout in minutes (hung-job insurance)
+        type: number
+        default: 60
+
+# Least-privilege token scope — bench jobs only need read for checkout + build.
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    name: ${{ inputs.bench-name }}
+    runs-on: self-hosted
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      # setup-dotnet and NuGet cache are no-ops on self-hosted runners where
+      # .NET 9 is pre-installed; guarded so the template stays usable on
+      # github-hosted runners if ever needed.
+      - name: Setup .NET 9
+        if: runner.environment == 'github-hosted'
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7  # v5.2.0
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Cache NuGet packages
+        if: runner.environment == 'github-hosted'
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      # Capture provenance env-vars (ADR-013: git_sha + machine_id required on every run).
+      # Callers embed VF_GIT_SHA / VF_MACHINE_ID in their JSONL output.
+      - name: Capture provenance
+        id: provenance
+        shell: bash
+        run: |
+          echo "VF_GIT_SHA=$GITHUB_SHA" >> "$GITHUB_ENV"
+          echo "VF_MACHINE_ID=$(hostname)" >> "$GITHUB_ENV"
+          RUN_DATE=$(date -u +%Y-%m-%d)
+          echo "VF_RUN_DATE=$RUN_DATE" >> "$GITHUB_ENV"
+          echo "sha7=${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          echo "run-date=$RUN_DATE" >> "$GITHUB_OUTPUT"
+
+      - name: Restore
+        run: dotnet restore ${{ inputs.build-project }}
+
+      - name: Build (Release)
+        run: dotnet build ${{ inputs.build-project }} --no-restore --configuration Release
+
+      - name: Run bench — ${{ inputs.bench-name }}
+        id: bench-run
+        shell: bash
+        run: ${{ inputs.bench-command }}
+
+      # Write a Markdown table to the GitHub Job Summary visible in the Actions UI.
+      - name: Write job summary
+        if: always()
+        shell: bash
+        run: |
+          STATUS="${{ steps.bench-run.outcome }}"
+          {
+            echo "## ${{ inputs.bench-name }} — ${STATUS^^}"
+            echo ""
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| Bench | \`${{ inputs.bench-name }}\` |"
+            echo "| Git SHA | \`${VF_GIT_SHA:0:7}\` |"
+            echo "| Machine | \`$VF_MACHINE_ID\` |"
+            echo "| Date | \`$VF_RUN_DATE\` |"
+            echo "| Outcome | **$STATUS** |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Emit an ::error:: annotation so the Actions UI top-level check surfaces the failure.
+      # Future: #640 (runner health monitoring) can add a Windows Toast / email step here.
+      - name: Annotate failure
+        if: failure()
+        shell: bash
+        run: |
+          echo "::error title=${{ inputs.bench-name }} failed::Bench '${{ inputs.bench-name }}' failed on $VF_MACHINE_ID at git ${VF_GIT_SHA:0:7}. Check the job log and uploaded artifact for details."
+
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: ${{ inputs.bench-name }}-${{ steps.provenance.outputs.run-date }}-${{ steps.provenance.outputs.sha7 }}
+          path: ${{ inputs.output-path }}
+          retention-days: ${{ inputs.retention-days }}
+          if-no-files-found: warn

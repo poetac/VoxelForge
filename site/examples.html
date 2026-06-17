@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Examples — voxelforge</title>
+<link rel="stylesheet" href="assets/brand.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  .ex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: var(--s-5); }
+  .ex-card { background: var(--bg-elev); border: 1px solid var(--rule); border-radius: var(--r-3); overflow: hidden; display: flex; flex-direction: column; }
+  .ex-card__media { aspect-ratio: 4/3; background: linear-gradient(180deg, var(--graphite-70), var(--graphite)); position: relative; overflow: hidden; }
+  .ex-card__media img { width: 100%; height: 100%; object-fit: cover; opacity: 0.95; }
+  .ex-card__badge { position: absolute; top: 12px; left: 12px; background: rgba(28,32,36,0.85); color: white; font-family: var(--font-mono); font-size: var(--t-mono-xs); text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 10px; border-radius: 99px; backdrop-filter: blur(6px); }
+  .ex-card__body { padding: var(--s-5); flex: 1; display: flex; flex-direction: column; gap: var(--s-3); }
+  .ex-card h3 { margin: 0; font-size: var(--t-md); letter-spacing: -0.01em; font-weight: 600; }
+  .ex-card p { margin: 0; font-size: var(--t-sm); color: var(--ink-2); line-height: 1.55; }
+  .ex-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: var(--r-2); margin-top: auto; }
+  .ex-stats > div { background: var(--bg-elev); padding: var(--s-2) var(--s-3); }
+  .ex-stats dt { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em; }
+  .ex-stats dd { margin: 2px 0 0; font-family: var(--font-mono); font-size: var(--t-sm); color: var(--ink); }
+  .ex-card__foot { display: flex; justify-content: space-between; align-items: center; padding: var(--s-3) var(--s-5); border-top: 1px solid var(--rule); background: var(--bone-50); }
+  .ex-card__foot .mono { font-size: var(--t-mono-xs); color: var(--ink-3); }
+</style></head><body>
+
+<nav class="nav"><div class="nav__brand"><img src="assets/logo.svg" alt=""><a href="index.html" class="nav__brand-name">voxelforge</a></div>
+<div class="nav__links"><a href="about.html">About</a><a href="architecture.html">Architecture</a><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html" class="is-current">Examples</a><a href="roadmap.html">Roadmap</a><a href="cascade.html">Cascade</a><a href="getting-started.html">Get started</a><a href="design-system.html">Brand</a><a href="https://github.com/poetac/voxelforge">GitHub ↗</a></div></nav>
+
+<header class="section" style="border-bottom:1px solid var(--rule);padding-bottom:var(--s-12);"><div class="wrap">
+  <p class="eyebrow">Examples gallery</p>
+  <h1 class="t-h1" style="margin-top:var(--s-3);max-width:820px;">Reproducible reference designs.</h1>
+  <p class="t-lead" style="margin-top:var(--s-5);max-width:720px;">Each example ships with a SHA-256 receipt. Re-running on the same voxelforge revision produces a bit-identical STL. Drift in any output is a bug; the cascade catches it before it lands.</p>
+  <p class="t-small" style="margin-top:var(--s-4);max-width:720px;color:var(--ink-3);">Status: one example currently lives in <code>examples/</code> on <code>main</code> &mdash; the 5&nbsp;kN reference. The five entries below it are roadmap placeholders pending Sprints&nbsp;23&ndash;25 and the BB&ndash;3 corpus expansion. Tags reflect intended status, not shipped state.</p>
+</div></header>
+
+<section class="section"><div class="wrap">
+  <div class="ex-grid">
+
+    <article class="ex-card">
+      <div class="ex-card__media"><div class="ex-card__badge">Featured · 5 kN</div><img src="assets/renders/chamber-side.png" alt=""></div>
+      <div class="ex-card__body">
+        <h3>Small pressure-fed · LOX/CH4 · 5 kN</h3>
+        <p>The reference engine. 5 kN sea-level thrust, 4 MPa chamber, methalox, pressure-fed, regen-cooled. Designed to fit a 250 × 250 × 280 mm LPBF build envelope. The project's 5,700+-test suite stays green with this configuration.</p>
+        <dl class="ex-stats">
+          <div><dt>Thrust</dt><dd>5.0 kN</dd></div>
+          <div><dt>P_c</dt><dd>4.0 MPa</dd></div>
+          <div><dt>O/F</dt><dd>3.4</dd></div>
+          <div><dt>Build time</dt><dd>~14 min</dd></div>
+        </dl>
+      </div>
+      <div class="ex-card__foot"><span class="mono">examples/small-pressure-fed-5kn/</span><span class="tag tag--ok">All gates pass</span></div>
+    </article>
+
+    <article class="ex-card">
+      <div class="ex-card__media"><div class="ex-card__badge">25 kN</div><img src="assets/renders/chamber-cutaway.png" alt=""></div>
+      <div class="ex-card__body">
+        <h3>Mid-thrust GG · LOX/CH4 · 25 kN</h3>
+        <p>Gas-generator cycle, single-shaft turbopump, 8 MPa chamber. Demonstrates the cycle solver; turbopump rotor passes <code>shaft-critical-margin</code> with 18 % headroom.</p>
+        <dl class="ex-stats">
+          <div><dt>Thrust</dt><dd>25 kN</dd></div>
+          <div><dt>P_c</dt><dd>8.0 MPa</dd></div>
+          <div><dt>Cycle</dt><dd>Gas generator</dd></div>
+          <div><dt>Build time</dt><dd>~38 min</dd></div>
+        </dl>
+      </div>
+      <div class="ex-card__foot"><span class="mono">examples/mid-gg-25kn/</span><span class="tag">Planned · BB&ndash;3</span></div>
+    </article>
+
+    <article class="ex-card">
+      <div class="ex-card__media"><div class="ex-card__badge">Upper stage · H2</div><img src="assets/renders/chamber-throat.png" alt=""></div>
+      <div class="ex-card__body">
+        <h3>Expander · LOX/H2 · 15 kN</h3>
+        <p>Closed-expander, ε=80 vacuum bell, 6 MPa. The square-cube limit on regen heat pickup binds at 18 kN; this design sits 17 % below the cliff. Channel count: 96.</p>
+        <dl class="ex-stats">
+          <div><dt>Thrust</dt><dd>15 kN (vac)</dd></div>
+          <div><dt>P_c</dt><dd>6.0 MPa</dd></div>
+          <div><dt>Cycle</dt><dd>Expander</dd></div>
+          <div><dt>ISP (vac)</dt><dd>440 s</dd></div>
+        </dl>
+      </div>
+      <div class="ex-card__foot"><span class="mono">examples/expander-h2-15kn/</span><span class="tag">Planned · BB&ndash;3</span></div>
+    </article>
+
+    <article class="ex-card">
+      <div class="ex-card__media" style="background:linear-gradient(135deg,var(--forge-deep),var(--graphite));display:grid;place-items:center;">
+        <svg width="160" height="160" viewBox="0 0 160 160"><circle cx="80" cy="80" r="50" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/><circle cx="80" cy="80" r="32" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"/><path d="M 30 80 L 60 80 M 100 80 L 130 80 M 80 30 L 80 60 M 80 100 L 80 130" stroke="rgba(255,255,255,0.3)" stroke-width="1"/><circle cx="80" cy="80" r="6" fill="var(--ignition)"/></svg>
+        <div class="ex-card__badge">Aerospike · WIP</div>
+      </div>
+      <div class="ex-card__body">
+        <h3>Aerospike plug · LOX/CH4 · 35 kN</h3>
+        <p>Truncated-plug aerospike with internally-routed regen. Sprint 24 deliverable. <code>AerospikeBuilder.cs</code> ships; the matching feasibility gates (plug-truncation-loss, base-bleed-fraction) land in Sprint 25.</p>
+        <dl class="ex-stats">
+          <div><dt>Thrust</dt><dd>35 kN</dd></div>
+          <div><dt>P_c</dt><dd>10 MPa</dd></div>
+          <div><dt>Status</dt><dd>Builder ✓ · Gates ✗</dd></div>
+          <div><dt>Sprint</dt><dd>24 → 25</dd></div>
+        </dl>
+      </div>
+      <div class="ex-card__foot"><span class="mono">examples/aerospike-35kn/</span><span class="tag tag--warn">2 gates pending</span></div>
+    </article>
+
+    <article class="ex-card">
+      <div class="ex-card__media" style="background:repeating-linear-gradient(45deg,var(--bone-200) 0 12px,var(--bone-100) 12px 24px);display:grid;place-items:center;">
+        <div style="font-family:var(--font-display);font-size:48px;color:var(--graphite);">TPMS</div>
+      </div>
+      <div class="ex-card__body">
+        <h3>TPMS regen sleeve · benchmark</h3>
+        <p>Schwarz-P coolant sleeve replacing the conventional helical-channel jacket. Heat-transfer parity at 0.62× pressure drop. Demonstrates the voxel-implicit advantage; mesh CAD cannot represent this part.</p>
+        <dl class="ex-stats">
+          <div><dt>Form</dt><dd>Schwarz P · 4 mm</dd></div>
+          <div><dt>ΔP ratio</dt><dd>0.62 vs helical</dd></div>
+          <div><dt>HT parity</dt><dd>±3 %</dd></div>
+          <div><dt>Voxel res</dt><dd>0.15 mm</dd></div>
+        </dl>
+      </div>
+      <div class="ex-card__foot"><span class="mono">examples/tpms-sleeve/</span><span class="tag">Planned · BB&ndash;3</span></div>
+    </article>
+
+    <article class="ex-card">
+      <div class="ex-card__media" style="background:linear-gradient(180deg,var(--ignition),var(--rust));display:grid;place-items:center;color:white;font-family:var(--font-display);font-size:36px;letter-spacing:-0.02em;">
+        <div style="text-align:center;line-height:1.05;">SA<br><span style="font-size:14px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.1em;opacity:.85;">8,400 evals</span></div>
+        <div class="ex-card__badge">SA trace</div>
+      </div>
+      <div class="ex-card__body">
+        <h3>Convergence study · 24-D anneal</h3>
+        <p>Full simulated-annealing trace from random seed to converged optimum. Logs every evaluation, every gate rejection, every accepted move. The reproducibility receipt for the 5 kN reference.</p>
+        <dl class="ex-stats">
+          <div><dt>Dims</dt><dd>24</dd></div>
+          <div><dt>Evals</dt><dd>8,400</dd></div>
+          <div><dt>Gate rejections</dt><dd>71 %</dd></div>
+          <div><dt>Wall clock</dt><dd>1h 50m</dd></div>
+        </dl>
+      </div>
+      <div class="ex-card__foot"><span class="mono">examples/sa-convergence/</span><span class="tag">Planned · BB&ndash;3</span></div>
+    </article>
+
+  </div>
+
+  <div style="margin-top:var(--s-12);padding:var(--s-6);background:var(--bg-elev);border:1px solid var(--rule);border-radius:var(--r-3);">
+    <p class="eyebrow">Reproducibility receipts</p>
+    <h2 class="t-h3" style="margin-top:var(--s-2);">Every example, byte-identical on rerun.</h2>
+    <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);max-width:820px;">Each example folder contains <code>receipt.json</code> with: input parameters · voxelforge git SHA · PicoGK version · STL SHA-256 · gate fingerprint hash. The <code>verify-examples</code> CI job reruns every example on every PR and fails if any receipt drifts. This is the project's contract with itself.</p>
+  </div>
+</div></section>
+
+<footer class="foot"><div class="wrap"><div class="foot__cols"><div><div class="u-row-tight" style="margin-bottom:var(--s-3);"><img src="assets/logo.svg" width="22" height="22" alt=""><span style="font-weight:600;color:var(--ink)">voxelforge</span></div><p style="margin:0;max-width:360px;">A 3D-printable rocket engine, generated from a handful of parameters.</p></div><div><div class="foot__title">Reference</div><div class="foot__links"><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a></div></div><div><div class="foot__title">Project</div><div class="foot__links"><a href="architecture.html">Architecture</a><a href="roadmap.html">Roadmap</a><a href="faq.html">FAQ</a><a href="design-system.html">Brand</a></div></div><div><div class="foot__title">Source</div><div class="foot__links"><a href="https://github.com/poetac/voxelforge">GitHub</a><a href="https://github.com/poetac/voxelforge/blob/main/LICENSE">License (MIT)</a></div></div></div></div></footer>
+</body></html>

@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Voxelforge.Analyzers — Roslyn analyzer project (ADR-020).
+    Issue #209 ([Deterministic] compile-time guard).
+
+    Targets netstandard2.0 because Roslyn analyzers must run inside the
+    host compiler (csc / msbuild), which loads netstandard2.0-compatible
+    libraries. This is the same constraint that applies to
+    Voxelforge.Generators — not a downgrade. Consumers (Voxelforge.Core,
+    Voxelforge) remain .NET 9.
+
+    Output is consumed by Core + App via:
+      <ProjectReference Include="..." OutputItemType="Analyzer"
+                       ReferenceOutputAssembly="false" />
+    `OutputItemType="Analyzer"` tells Roslyn to load the analyzer;
+    `ReferenceOutputAssembly="false"` keeps the analyzer out of the
+    consumer's runtime dependency closure.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <!-- Analyzers load against the host compiler's .NET — no warnings-as-
+         errors on RS2008 (analyzer-version churn) since the host varies. -->
+    <NoWarn>$(NoWarn);RS2008</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+
+</Project>

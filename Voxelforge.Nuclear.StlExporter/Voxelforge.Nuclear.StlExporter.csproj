@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Voxelforge.Nuclear.StlExporter — headless CLI that builds the NTR nozzle
+       + reactor stub geometry at an arbitrary voxel size and writes an STL.
+
+       Mirrors Voxelforge.Marine.StlExporter. Sub-process testability is the
+       reason this exists as a separate exe: CI can invoke it cross-process to
+       verify the full voxel pipeline without pulling PicoGK into the test host.
+
+       Output directory into Voxelforge.Nuclear.Voxels/bin/$(Configuration)/
+       net9.0-windows/ so SubprocessRunner.LocateUnderRepo can find it. -->
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Voxelforge.Nuclear.StlExporter</RootNamespace>
+    <AssemblyName>Voxelforge.Nuclear.StlExporter</AssemblyName>
+    <OutputPath>..\Voxelforge.Nuclear.Voxels\bin\$(Configuration)\net9.0-windows\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ExcludeAssets="analyzers": same rationale as Marine.StlExporter. -->
+    <ProjectReference Include="..\Voxelforge.Nuclear.Voxels\Voxelforge.Nuclear.Voxels.csproj"
+                      ExcludeAssets="analyzers" />
+  </ItemGroup>
+
+</Project>

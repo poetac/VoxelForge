@@ -1,0 +1,26 @@
+# Auto-detect text files and normalize line endings to LF in the repo.
+# Working copies on Windows will still get CRLF thanks to core.autocrlf.
+* text=auto
+
+# Explicit rules for common source types
+*.cs       text diff=csharp
+*.csproj   text
+*.sln      text eol=crlf
+*.md       text
+*.json     text
+*.yml      text
+*.yaml     text
+*.xml      text
+
+# Binary formats — never diff, never munge line endings
+*.stl      binary
+*.obj      binary
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.pdf      binary
+*.dll      binary
+*.exe      binary
+*.so       binary
+*.dylib    binary

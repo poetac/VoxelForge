@@ -1,0 +1,73 @@
+<!--
+  Directory.Build.props — repo-wide MSBuild defaults (tech-debt T1, Phase 1).
+
+  MSBuild loads this file at the repo root before any project-specific
+  .csproj is read, so common properties (nullable annotations, implicit
+  usings, warning-as-error policy) need to be set in exactly one place.
+  Without it, the six .csproj files duplicated the same five lines and
+  drift was inevitable.
+
+  Project-specific overrides (TargetFramework, UseWindowsForms,
+  IsPackable, LangVersion) stay in the per-project file because they
+  vary by project.
+-->
+<Project>
+
+  <PropertyGroup>
+    <!-- C# null-safety annotations enabled across the repo. -->
+    <Nullable>enable</Nullable>
+
+    <!-- Implicit `global using` for common namespaces. Reduces every
+         file's `using` block by ~5 lines. -->
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!--
+      tech-debt T10 (2026-04-28): elevate compiler warnings to errors.
+      Prevents drift via `// looks fine, will fix later` warnings
+      accumulating in the build output. The current build is zero-
+      warnings; this lock keeps it that way without periodic cleanup
+      sprints.
+
+      RS0017 is a PublicApiAnalyzers churn warning that fires during
+      natural API evolution (adding a record parameter creates a
+      "removed" old constructor signature warning). It's advisory,
+      not an error — caller updates Unshipped.txt to silence it.
+
+      Note (#584, 2026-05-16): the PublicApiAnalyzers 4.14.0 bump dropped
+      ~1490 spurious RS0017 hits on record-auto-synthesized members
+      (<Clone>$, Deconstruct, Equals(T)) that the 3.x line was unable to
+      recognise as compiler-generated. RS0017 stays in the tolerance
+      list as a safety net for legitimate-drift cases (removed method
+      still present in PublicAPI.Shipped.txt).
+
+      Note (#559, 2026-05-17): RS0026 dropped from the tolerance list.
+      The single firing site was GateExplainer.BuildMarkdown's two-
+      overload + default-parameter shape; collapsed to a single public
+      overload with `SobolGateRanker? ranker = null` so the analyzer
+      stays silent without needing a project-wide opt-out.
+
+      Note (#625, 2026-05-17): VFA004 (test-naming convention) ships
+      at Warning severity per the issue's "fast local signal without
+      blocking work" rationale. Added to WarningsNotAsErrors so a
+      single drifting test name surfaces in the build output without
+      failing CI — PR reviewer still sees the diagnostic.
+    -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsNotAsErrors>RS0017;VFA004</WarningsNotAsErrors>
+
+    <!--
+      tech-debt T11 (2026-04-28): NetAnalyzers ship with the .NET SDK
+      since .NET 5 — no PackageReference needed. `latest-recommended`
+      activates the curated CA-rule subset that's worth the noise on a
+      mature codebase. Baseline warnings (~all CA-rule families) are
+      triaged in the repo-root `.editorconfig`: high-volume rules that
+      don't catch real defects (CA1062 null-check noise on internal
+      callers, CA1822 static suggestions on UI handlers, etc.) are
+      explicitly silenced; rule-by-rule rationale lives there. Promote
+      to `<AnalysisMode>AllEnabledByDefault</AnalysisMode>` only after a
+      future audit decides the marginal warnings are worth surfacing.
+    -->
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+  </PropertyGroup>
+
+</Project>

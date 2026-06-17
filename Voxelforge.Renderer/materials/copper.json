@@ -1,0 +1,12 @@
+{
+  "_comment": "CuCrZr — copper-chromium-zirconium alloy used in regen chamber liners. Polished surface with a light oxide tint. Matches the Phong shader baseline at Voxelforge/Program.cs:124 but with full PBR.",
+  "name": "Copper (CuCrZr, polished)",
+  "base_color": [0.955, 0.638, 0.538, 1.0],
+  "metallic": 1.0,
+  "roughness": 0.20,
+  "specular_ior_level": 0.5,
+  "anisotropic": 0.0,
+  "anisotropic_rotation": 0.0,
+  "clearcoat": 0.0,
+  "clearcoat_roughness": 0.0
+}

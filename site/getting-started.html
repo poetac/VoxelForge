@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Get started — voxelforge</title>
+<link rel="stylesheet" href="assets/brand.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  .step { display: grid; grid-template-columns: 56px 1fr; gap: var(--s-5); padding: var(--s-6) 0; border-top: 1px solid var(--rule); }
+  .step:first-child { border-top: 0; }
+  .step__num { font-family: var(--font-display); font-size: 36px; color: var(--ignition); line-height: 1; }
+  .step h3 { margin: 0; font-size: var(--t-md); font-weight: 600; letter-spacing: -0.01em; }
+  .step p { margin: var(--s-2) 0 0; font-size: var(--t-sm); color: var(--ink-2); line-height: 1.6; max-width: 680px; }
+  pre.code { background: var(--graphite); color: var(--bone-100); border-radius: var(--r-3); padding: var(--s-4) var(--s-5); font-family: var(--font-mono); font-size: var(--t-mono-sm); overflow-x: auto; line-height: 1.55; margin-top: var(--s-3); }
+  pre.code .c { color: #6e7681; }
+  pre.code .k { color: #ff8c61; }
+  pre.code .s { color: #a5d6ff; }
+  .req-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: var(--s-3); margin-top: var(--s-3); }
+  .req-card { background: var(--bg-elev); border: 1px solid var(--rule); border-radius: var(--r-2); padding: var(--s-3) var(--s-4); }
+  .req-card dt { font-family: var(--font-mono); font-size: var(--t-mono-xs); text-transform: uppercase; color: var(--ink-3); letter-spacing: 0.06em; }
+  .req-card dd { margin: 4px 0 0; font-size: var(--t-sm); color: var(--ink); font-weight: 500; }
+  .callout { background: rgba(217,79,0,0.06); border-left: 3px solid var(--ignition); padding: var(--s-3) var(--s-4); margin-top: var(--s-4); border-radius: 0 var(--r-2) var(--r-2) 0; font-size: var(--t-sm); color: var(--ink); }
+</style></head><body>
+
+<nav class="nav"><div class="nav__brand"><img src="assets/logo.svg" alt=""><a href="index.html" class="nav__brand-name">voxelforge</a></div>
+<div class="nav__links"><a href="about.html">About</a><a href="architecture.html">Architecture</a><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a><a href="roadmap.html">Roadmap</a><a href="cascade.html">Cascade</a><a href="getting-started.html" class="is-current">Get started</a><a href="design-system.html">Brand</a><a href="https://github.com/poetac/voxelforge">GitHub ↗</a></div></nav>
+
+<header class="section" style="border-bottom:1px solid var(--rule);padding-bottom:var(--s-12);"><div class="wrap">
+  <p class="eyebrow">Get started</p>
+  <h1 class="t-h1" style="margin-top:var(--s-3);max-width:820px;">From zero to first STL in fifteen minutes.</h1>
+  <p class="t-lead" style="margin-top:var(--s-5);max-width:720px;">voxelforge is a .NET 9 / Windows project. PicoGK requires Windows for the OpenVDB build path. Linux and macOS work for headless physics — STL export needs Windows or a Win10 VM.</p>
+</div></header>
+
+<section class="section"><div class="wrap" style="max-width:880px;">
+  <p class="eyebrow">Prerequisites</p>
+  <div class="req-grid">
+    <div class="req-card"><dt>OS</dt><dd>Windows 10/11 · x64</dd></div>
+    <div class="req-card"><dt>RAM</dt><dd>64 GB (ADR-006)</dd></div>
+    <div class="req-card"><dt>.NET</dt><dd>9.0 SDK</dd></div>
+    <div class="req-card"><dt>PicoGK</dt><dd>2.0.0 (pinned)</dd></div>
+    <div class="req-card"><dt>Disk</dt><dd>~6 GB build + voxel scratch</dd></div>
+    <div class="req-card"><dt>GPU</dt><dd>not required</dd></div>
+  </div>
+
+  <div class="step">
+    <div class="step__num">01</div>
+    <div>
+      <h3>Clone and restore</h3>
+      <p>The full repo is ~280 MB; voxel scratch space is created on first run, not committed.</p>
+<pre class="code"><span class="c"># clone</span>
+git clone https://github.com/poetac/voxelforge.git
+cd voxelforge
+
+<span class="c"># restore</span>
+dotnet restore voxelforge.sln</pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step__num">02</div>
+    <div>
+      <h3>Run the test suite</h3>
+      <p>5,700+ tests should pass (~17 skipped). Tests do not touch <code>.Voxels</code> directly — they invoke the StlExporter as a subprocess. A clean run is the project's heartbeat.</p>
+<pre class="code">dotnet test Voxelforge.Tests/Voxelforge.Tests.csproj <span class="k">--logger</span> <span class="s">"console;verbosity=normal"</span>
+
+<span class="c"># expected: 5,700+ passed, ~17 skipped, 0 failed</span></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step__num">03</div>
+    <div>
+      <h3>Generate the 5 kN reference design</h3>
+      <p>The canonical example. Inputs are baked into the example folder; output STL goes to <code>out/</code>.</p>
+<pre class="code">dotnet run <span class="k">--project</span> Voxelforge/Voxelforge.csproj <span class="k">--</span> \
+    <span class="k">--example</span> small-pf-5kn \
+    <span class="k">--out</span> ./out/
+
+<span class="c"># first run: ~14 min</span>
+<span class="c"># subsequent runs hit the SA cache: ~45 s</span></pre>
+      <div class="callout">If <code>receipt.json</code> in <code>out/</code> matches <code>examples/small-pf-5kn/receipt.json</code>, you have a verified reproducible build. If it doesn't, that's a bug — open an issue.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step__num">04</div>
+    <div>
+      <h3>Inspect the gates report</h3>
+      <p>Every run writes a <code>gates.jsonl</code> with one line per gate, marked pass/fail/margin. Use it to see <em>why</em> the SA accepted or rejected a candidate.</p>
+<pre class="code"><span class="c"># pretty-print failed-gate summary</span>
+jq <span class="s">'select(.passed == false) | {gate: .id, margin: .margin, value: .value}'</span> \
+    out/gates.jsonl</pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step__num">05</div>
+    <div>
+      <h3>Author your own design</h3>
+      <p>Three numbers — thrust, chamber pressure, propellant pair — get you a starting point. Everything else has a sensible default the SA can perturb.</p>
+<pre class="code"><span class="c"># Program.cs · minimal driver</span>
+<span class="k">var</span> spec = <span class="k">new</span> EngineSpec {
+    Thrust       = 12_000,        <span class="c">// N (sea-level)</span>
+    ChamberP     = 6_000_000,     <span class="c">// Pa</span>
+    Propellants  = PropellantPair.LOX_CH4,
+    Cycle        = CycleType.GasGenerator,
+};
+
+<span class="k">var</span> result = <span class="k">await</span> Forge.Run(spec, opts: <span class="k">new</span> ForgeOptions {
+    SAEvalBudget   = 6000,
+    OutputDir      = <span class="s">"./out"</span>,
+    EmitReceipt    = <span class="k">true</span>,
+});
+
+Console.WriteLine($<span class="s">"Mass: {result.MassKg:F2} kg"</span>);
+Console.WriteLine($<span class="s">"ISP_vac: {result.IspVac:F1} s"</span>);
+Console.WriteLine($<span class="s">"STL: {result.StlPath}"</span>);</pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step__num">06</div>
+    <div>
+      <h3>Evaluate designs in bulk (optional)</h3>
+      <p><code>voxelforge-eval</code> is a subprocess oracle — it wraps the headless <code>.Core</code> physics behind a JSON-line stdin/stdout protocol. Pipe a design in, get a score + feasibility report back. Useful for driving optimisation from Python, Julia, or R without touching the .NET runtime.</p>
+<pre class="code"><span class="c"># one-shot: pipe a design JSON, receive score + gate report on stdout</span>
+<span class="s">echo</span> <span class="s">'{"Conditions":{"Thrust_N":15000,"ChamberPressure_Pa":4000000,
+  "MixtureRatio":3.3,"PropellantPair":"LOX_CH4","EngineCycle":"GasGenerator",
+  "CoolantInletTemp_K":150,"CoolantInletPressure_Pa":12000000},
+  "Design":{"ContractionRatio":6,"ExpansionRatio":16,"ChannelCount":80,
+  "ChannelTopology":"Axial"}}'</span> \
+  | dotnet run <span class="k">--project</span> Voxelforge.Eval/Voxelforge.Eval.csproj
+
+<span class="c"># streaming JSONL mode — one design object per line, EOF to exit</span>
+dotnet run <span class="k">--project</span> Voxelforge.Eval/Voxelforge.Eval.csproj <span class="k">--</span> <span class="k">--jsonl</span> &lt; designs.jsonl</pre>
+      <p>Output is <code>{"id":null,"score":{...}}</code>; infeasible designs return <code>"TotalScore":+Infinity</code>. The full <code>OperatingConditions</code> and <code>RegenChamberDesign</code> schemas match the C# record definitions in <code>Voxelforge.Core</code>.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step__num">07</div>
+    <div>
+      <h3>Iterate with the GUI (optional)</h3>
+      <p>The <code>Voxelforge</code> WinForms app exposes the same engine spec as a parameter panel and renders the STL inline via the embedded PicoGK viewer. Useful for parameter exploration; the headless path is canonical.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step__num">08</div>
+    <div>
+      <h3>Print it</h3>
+      <p>The output STL is sized for a 250 × 250 × 280 mm LPBF envelope by default. voxelforge does not generate supports or slicer instructions — that lives in your printer's tooling. The <code>printability.json</code> sidecar lists overhang regions and recommended build orientation.</p>
+      <div class="callout"><strong>Real talk.</strong> Passing every gate means voxelforge believes the design is geometrically and thermodynamically self-consistent. It does not mean it will fire safely. CFD, FEA, hot-fire on a test stand. In that order.</div>
+    </div>
+  </div>
+
+  <p class="eyebrow" style="margin-top:var(--s-12);">Next steps</p>
+  <ul class="t-body" style="color:var(--ink-2);line-height:1.7;margin-top:var(--s-3);">
+    <li><a href="cycles.html">Browse the cycle solver</a> to see which feed-system topology fits your thrust class.</li>
+    <li><a href="physics.html">Read the physics reference</a> to understand the uncertainty bands behind every number you'll see.</li>
+    <li><a href="examples.html">Explore the examples gallery</a> for receipt-verified starting points.</li>
+    <li>Open an issue if a correlation, gate, or builder is missing — the project is actively accepting contributions.</li>
+  </ul>
+</div></section>
+
+<footer class="foot"><div class="wrap"><div class="foot__cols"><div><div class="u-row-tight" style="margin-bottom:var(--s-3);"><img src="assets/logo.svg" width="22" height="22" alt=""><span style="font-weight:600;color:var(--ink)">voxelforge</span></div><p style="margin:0;max-width:360px;">A 3D-printable rocket engine, generated from a handful of parameters.</p></div><div><div class="foot__title">Reference</div><div class="foot__links"><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a></div></div><div><div class="foot__title">Project</div><div class="foot__links"><a href="architecture.html">Architecture</a><a href="roadmap.html">Roadmap</a><a href="faq.html">FAQ</a><a href="design-system.html">Brand</a></div></div><div><div class="foot__title">Source</div><div class="foot__links"><a href="https://github.com/poetac/voxelforge">GitHub</a><a href="https://github.com/poetac/voxelforge/blob/main/LICENSE">License (MIT)</a></div></div></div></div></footer>
+</body></html>

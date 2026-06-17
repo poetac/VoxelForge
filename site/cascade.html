@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apr 24–26 cascade · voxelforge</title>
+<link rel="stylesheet" href="assets/brand.css">
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<style>
+  .day { display: grid; grid-template-columns: 140px 1fr; gap: var(--s-6); padding: var(--s-7) 0; border-top: 1px solid var(--rule); }
+  .day:first-of-type { border-top: 0; }
+  .day__date { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .day__date strong { display: block; font-family: var(--font-display); font-size: 28px; color: var(--ink); letter-spacing: -0.01em; margin-top: 4px; }
+  .day__items { display: flex; flex-direction: column; gap: var(--s-5); }
+  .item { padding: var(--s-5); background: var(--bg-elev); border: 1px solid var(--rule); border-radius: var(--r-3); border-left: 3px solid var(--ignition); }
+  .item h3 { font-size: var(--t-h4); margin: 0; }
+  .item__meta { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
+  .item p { color: var(--ink-2); margin-top: var(--s-3); }
+  .item ul { margin: var(--s-3) 0 0 0; padding-left: var(--s-5); color: var(--ink-2); font-size: var(--t-sm); line-height: 1.65; }
+  .pr-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--s-3); }
+  .pr-tag { display: inline-block; padding: 3px 8px; background: var(--bg); border: 1px solid var(--rule); border-radius: var(--r-1); font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-2); }
+  .pr-tag.adr { color: var(--ignition); border-color: var(--ignition); }
+  @media (max-width: 720px) { .day { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav class="nav"><div class="nav__brand"><img src="assets/logo.svg" alt=""><a href="index.html" class="nav__brand-name">voxelforge</a></div>
+<div class="nav__links"><a href="about.html">About</a><a href="architecture.html">Architecture</a><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a><a href="roadmap.html">Roadmap</a><a href="getting-started.html">Get started</a><a href="design-system.html">Brand</a><a href="https://github.com/poetac/voxelforge">GitHub ↗</a></div></nav>
+
+<header class="section" style="border-bottom:1px solid var(--rule);padding-bottom:var(--s-12);"><div class="wrap">
+  <p class="eyebrow">Cascade · 2026-04-22 → 2026-04-26</p>
+  <h1 class="t-h1" style="margin-top:var(--s-3);max-width:820px;">Five days. Seven sprints. Twenty-three findings closed. Two new ADRs.</h1>
+  <p class="t-lead" style="margin-top:var(--s-5);max-width:720px;">A blow-by-blow of the longest physics-correctness cascade in voxelforge's history. Each day below freezes a JSONL fingerprint baseline; cascade #N+1 measures itself against #N — the diff <em>is</em> the day's measured impact. Source-of-truth: <a href="https://github.com/poetac/voxelforge/blob/main/CHANGELOG.md">CHANGELOG.md</a> + <a href="https://github.com/poetac/voxelforge/blob/main/ROADMAP.md">ROADMAP.md</a>.</p>
+
+  <div class="u-row" style="gap:var(--s-6);margin-top:var(--s-8);flex-wrap:wrap;">
+    <div><div class="t-mono" style="font-size:var(--t-mono-xs);color:var(--ink-3);">FINDINGS CLOSED</div><div class="t-h3 mono" style="margin-top:4px;">+10 → 25 / 50</div></div>
+    <div><div class="t-mono" style="font-size:var(--t-mono-xs);color:var(--ink-3);">SPRINTS SHIPPED</div><div class="t-h3 mono" style="margin-top:4px;">A1·A2 · 30 · 31 · 32 · 33 · 36 · 34a · 37a · 37b · 34b· · 38a</div></div>
+    <div><div class="t-mono" style="font-size:var(--t-mono-xs);color:var(--ink-3);">NEW ADRS</div><div class="t-h3 mono" style="margin-top:4px;">017 · 018</div></div>
+    <div><div class="t-mono" style="font-size:var(--t-mono-xs);color:var(--ink-3);">TESTS Δ</div><div class="t-h3 mono" style="margin-top:4px;">+55 → 1,613 ✓</div></div>
+  </div>
+</div></header>
+
+<section class="section"><div class="wrap" style="max-width:1080px;">
+
+  <!-- DAY 1 -->
+  <div class="day">
+    <div class="day__date">Day 1<strong>Apr 22</strong>Foundation</div>
+    <div class="day__items">
+
+      <div class="item">
+        <h3>BB-0 · BB-1 · BB-2 — pre-cascade fingerprint freeze</h3>
+        <div class="item__meta">Benchmark baselines · ADR-013</div>
+        <p>JSONL schema v1 ratified (ADR-013). Five canonical SA designs frozen as bench baselines. Bench-regression CI gates every PR going forward — every cascade sprint must compare its own diff back to the BB-N baseline before merging.</p>
+        <div class="pr-list">
+          <span class="pr-tag adr">ADR-013</span>
+          <span class="pr-tag">BB-0</span>
+          <span class="pr-tag">BB-1</span>
+          <span class="pr-tag">BB-2</span>
+        </div>
+      </div>
+
+      <div class="item">
+        <h3>50-finding physics audit</h3>
+        <div class="item__meta">Audit deliverable · prioritised cascade plan</div>
+        <p>Independent walk through every closed-form correlation in <code>.Core</code>. 50 findings logged: 2 Critical (PH-1 Angelino plug cone; PH-2 NPSHR constant), 28 Major, 20 Minor. Each finding came with a recommended fix-and-test plan plus an estimated severity-corrected sprint slot. The cascade plan that drives the next four days.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DAY 2 -->
+  <div class="day">
+    <div class="day__date">Day 2<strong>Apr 24</strong>Criticals + 4 Majors</div>
+    <div class="day__items">
+
+      <div class="item">
+        <h3>S 30 · 31 · 32 — Criticals + 4 Majors</h3>
+        <div class="item__meta">Cascade #1 · 6 findings closed</div>
+        <p>Both Criticals plus four Majors landed in a single bundle to amortise the cascade-rebake cost.</p>
+        <ul>
+          <li><strong>PH-1</strong> — Angelino plug cone: replaced linear taper with the proper Method-of-Characteristics-derived contour.</li>
+          <li><strong>PH-2</strong> — NPSHR is no longer a constant; now scales with shaft speed via the Thoma cavitation parameter.</li>
+          <li><strong>PH-3</strong> — Bartz σ correction: switched to Bartz's full property-variation factor (was using a constant 1.0).</li>
+          <li><strong>PH-5</strong> — Helical regen channel: pressure-drop now includes Dean-number bend correction (PH-6's prerequisite).</li>
+          <li><strong>PH-15</strong> — Stability screening: added longitudinal mode in addition to chug + 1T.</li>
+          <li><strong>PH-25</strong> — Coolant-side h_c was being computed at film temperature; now uses bulk per Dittus-Boelter spec.</li>
+        </ul>
+        <div class="pr-list">
+          <span class="pr-tag">PH-1·2·3·5·15·25</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DAY 3 -->
+  <div class="day">
+    <div class="day__date">Day 3<strong>Apr 25</strong>Architecture split + cascade body</div>
+    <div class="day__items">
+
+      <div class="item">
+        <h3>S A1 · A2 — Core / Voxels / App split</h3>
+        <div class="item__meta">Architecture · ADR-015 + ADR-016</div>
+        <p>117 .cs files moved into <code>Voxelforge.Core</code>. 19 voxel builders into <code>Voxelforge.Voxels</code>. <code>IVoxelHandle</code> retired the 9 <code>object?</code> cast sites. PublicApiAnalyzers track the ~5,200-entry public surface across both Core and Voxels. The split that unlocked <code>voxelforge-eval</code> later in the day.</p>
+        <div class="pr-list">
+          <span class="pr-tag adr">ADR-015</span>
+          <span class="pr-tag adr">ADR-016</span>
+          <span class="pr-tag">.Core</span>
+          <span class="pr-tag">.Voxels</span>
+          <span class="pr-tag">IVoxelHandle</span>
+        </div>
+      </div>
+
+      <div class="item">
+        <h3>S 33 · 36 — Coolant correlations + 5 advisory gates</h3>
+        <div class="item__meta">Cascade #2 · 2 findings + 5 gates</div>
+        <p>Two coolant-side correlation upgrades plus five advisory feasibility gates rolled into one PR.</p>
+        <ul>
+          <li><strong>PH-6</strong> — Dravid Dean-number Nu enhancement on helical channels (Re·D_h/R_c)^0.5 multiplier.</li>
+          <li><strong>PH-7</strong> — Haaland LPBF friction factor: explicit closed form replaces Colebrook-White Newton iteration; native handling of the LPBF surface-roughness regime.</li>
+          <li>Five new advisory gates: <code>CONTRACTION_RATIO_OUT_OF_BAND</code>, <code>CHANNEL_ASPECT_RATIO_EXCEEDED</code>, <code>G_INJ_TOO_LOW/HIGH</code>, <code>L_STAR_BELOW_PROPELLANT_MIN</code>, <code>INSTRUMENTATION_THERMAL_BRIDGE_RISK</code>.</li>
+        </ul>
+        <div class="pr-list">
+          <span class="pr-tag">PH-6</span>
+          <span class="pr-tag">PH-7</span>
+        </div>
+      </div>
+
+      <div class="item">
+        <h3>S 34a — Turbine choke + shaft-layout split</h3>
+        <div class="item__meta">Cycle balance · 2 findings</div>
+        <p><strong>PH-26</strong> — new <code>TURBINE_UNCHOKED</code> gate computes π_crit = (2/(γ+1))^(γ/(γ-1)) per Sutton §10.4 and rejects designs where the turbine pressure ratio falls below it. <strong>PH-10</strong> — new <code>ShaftLayout</code> enum (Straddled / Overhung). Cantilever ω_n drops ~6× vs straddled; the shaft-whirl gate now sees the right boundary condition.</p>
+        <div class="pr-list">
+          <span class="pr-tag">PH-10</span>
+          <span class="pr-tag">PH-26</span>
+          <span class="pr-tag">TURBINE_UNCHOKED</span>
+        </div>
+      </div>
+
+      <div class="item">
+        <h3>S 37a · 37b · 34b partial — Cascade tail (face fin-eff, dual-bell, aerospike Bartz, plug base drag, pump N_s)</h3>
+        <div class="item__meta">Cascade #3 · 5 findings</div>
+        <ul>
+          <li><strong>PH-13</strong> — Injector-face cylindrical-fin efficiency replaces the constant 1.0 fin-eff assumption.</li>
+          <li><strong>PH-20</strong> — Dual-bell sea-level/altitude ε mode switch with continuity at the inflection.</li>
+          <li><strong>PH-14</strong> — Aerospike face: recovery factor + Bartz h_g now applied at the truncated-plug face (was using a flat-plate approximation).</li>
+          <li><strong>PH-18</strong> — Truncated-plug base-drag correction (Sutton §3.6 empirical curve).</li>
+          <li><strong>PH-8 minimum-viable</strong> — User-overridable <code>PumpRpm_rpm</code> + <code>PUMP_SPECIFIC_SPEED_OFF_BAND</code> gate. Stepanoff η-vs-N_s correlation deferred to S 34b proper.</li>
+        </ul>
+        <div class="pr-list">
+          <span class="pr-tag">PH-8</span>
+          <span class="pr-tag">PH-13</span>
+          <span class="pr-tag">PH-14</span>
+          <span class="pr-tag">PH-18</span>
+          <span class="pr-tag">PH-20</span>
+        </div>
+      </div>
+
+      <div class="item">
+        <h3>S 38a — γ split + Rao bell table + voxelforge-eval + Sobol indices + CI contracts</h3>
+        <div class="item__meta">Cascade #4 · 3 physics findings + 3 platform items</div>
+        <p>Six items in one bundle, made possible by the morning's Core/Voxels/App split. The biggest single shipment of the cascade.</p>
+        <ul>
+          <li><strong>PH-24</strong> — γ_chamber and γ_throat split with back-compat alias. Today both populate to the same scalar; under S 35's 2-D tables they diverge naturally.</li>
+          <li><strong>PH-30</strong> — Per-table <code>IsFrozen</code> flag with idempotent equilibrium correction. Stops the table-edge ringing reported by the audit.</li>
+          <li><strong>PH-16</strong> — Rao bell-nozzle angle lookup table (bilinear over an 11×5 grid digitised from Sutton RPE 9e fig. 3-7).</li>
+          <li><strong>T2.2 — voxelforge-eval</strong>: subprocess oracle wrapping <code>.Core</code> with a JSON-line stdin/stdout protocol. External Python / Julia / R callers can now drive optimisation without touching the .NET runtime.</li>
+          <li><strong>OOB-5 — Sobol sensitivity indices</strong>: Saltelli sampling exposes first-order and total-order indices for every design variable against every objective.</li>
+          <li><strong>B3 — CI contract checks</strong>: schema-bump + gate-census enforcement on every PR. The gate count cannot drift silently.</li>
+        </ul>
+        <div class="pr-list">
+          <span class="pr-tag">PH-16</span>
+          <span class="pr-tag">PH-24</span>
+          <span class="pr-tag">PH-30</span>
+          <span class="pr-tag">voxelforge-eval</span>
+          <span class="pr-tag">SobolSensitivity</span>
+          <span class="pr-tag">CI-contracts</span>
+        </div>
+      </div>
+
+      <div class="item">
+        <h3>OPT T1 — Multi-chain parallel SA + Sobol seeding</h3>
+        <div class="item__meta">Optimisation infrastructure · ADR-017</div>
+        <p>N independent <code>SimulatedAnnealingOptimizer</code> chains run in parallel via <code>MultiChainOptimizer</code> + <code>Barrier</code>-enforced lockstep elite migration. Per-chain Sobol slice for low-discrepancy initial coverage. UI checkbox "Multi-chain SA" added to the Optimization panel; auto-scales to <code>ProcessorCount − 2</code> clamped 1–16.</p>
+        <p><strong>Strict determinism contract:</strong> same seed + chain count → identical result. The library landed first; production wiring + UI exposure followed.</p>
+        <div class="pr-list">
+          <span class="pr-tag adr">ADR-017</span>
+          <span class="pr-tag">MultiChainOptimizer</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DAY 4 -->
+  <div class="day">
+    <div class="day__date">Day 4<strong>Apr 26</strong>Feasibility audit + 4 fixes</div>
+    <div class="day__items">
+
+      <div class="item">
+        <h3>FA-018 — Feasibility-investigation audit</h3>
+        <div class="item__meta">Audit + fix bundle · ADR-018</div>
+        <p>Five-phase investigation into the symptom "every canonical bench-sa preset returns 0 feasible candidates." Three production bugs found and shipped; two architectural gaps documented for follow-up sprints.</p>
+        <ul>
+          <li><code>G_INJ</code> ceiling units error: was 30–100× too low. Bench-sa now sees the full feasible band.</li>
+          <li>Face-thermal area metric wrong by 6×. Was using element pitch² instead of effective heat-transfer area.</li>
+          <li>AutoSeeder missing film-cooling defaults. Cold-start cases were rejected on <code>WALL_TEMP</code> before SA could explore.</li>
+          <li>AutoSeeder LRE-realistic params (was scaled for sub-kN class).</li>
+        </ul>
+        <p>Result: RL-10 fixture now feasible on <code>WALL_TEMP</code>. Remaining 4 presets blocked on material-library gaps + missing film-T term in face-thermal model + NPSH model issues. ADR-018 documents the five prioritised follow-up sprints; each individually shippable.</p>
+        <div class="pr-list">
+          <span class="pr-tag adr">ADR-018</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- WHAT'S LEFT -->
+  <div style="margin-top:var(--s-12);padding:var(--s-7);background:var(--bone-50);border:1px solid var(--rule);border-radius:var(--r-3);">
+    <p class="eyebrow">Cascade tail · still on deck</p>
+    <h2 class="t-h3" style="margin-top:var(--s-2);">What didn't ship in the five-day window.</h2>
+    <ul style="margin-top:var(--s-4);padding-left:var(--s-5);color:var(--ink-2);font-size:var(--t-sm);line-height:1.65;">
+      <li><strong>S 34b proper</strong> — Replace constant <code>DefaultPumpEfficiency = 0.65</code> with the Stepanoff η-vs-N_s correlation (cascades through every cycle-balance fixture). PH-9 expander Picard iteration: audit's iteration target ambiguous for closed-expander where ṁ_c is fixed by mass conservation — needs subject-matter review before shipping.</li>
+      <li><strong>S 35</strong> — 2-D propellant tables (MR × Pc grid) replace the 1-D MR-only lookup. PH-4. Removes table-edge ringing on extreme O/F sweeps.</li>
+      <li><strong>FA-018 follow-ups</strong> — material library extension, film-T term in face-thermal model, NPSHR Thoma defaults for LRE-class designs, coolant-side h_c floor for hot-design exits, per-preset wall-T budget calibration. Five prioritised sprints. Order TBD.</li>
+    </ul>
+    <p class="t-small" style="margin-top:var(--s-4);">Live status: <a href="roadmap.html">roadmap</a> · <a href="https://github.com/poetac/voxelforge/blob/main/ROADMAP.md">ROADMAP.md</a> · <a href="https://github.com/poetac/voxelforge/blob/main/CHANGELOG.md">CHANGELOG.md</a></p>
+  </div>
+
+</div></section>
+
+<footer class="foot"><div class="wrap"><div class="foot__cols"><div><div class="u-row-tight" style="margin-bottom:var(--s-3);"><img src="assets/logo.svg" width="22" height="22" alt=""><span style="font-weight:600;color:var(--ink)">voxelforge</span></div><p style="margin:0;max-width:360px;">A 3D-printable rocket engine, generated from a handful of parameters.</p></div><div><div class="foot__title">Reference</div><div class="foot__links"><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a></div></div><div><div class="foot__title">Project</div><div class="foot__links"><a href="architecture.html">Architecture</a><a href="roadmap.html">Roadmap</a><a href="cascade.html">Cascade</a><a href="faq.html">FAQ</a></div></div><div><div class="foot__title">Source</div><div class="foot__links"><a href="https://github.com/poetac/voxelforge">GitHub</a><a href="https://github.com/poetac/voxelforge/blob/main/LICENSE">License (MIT)</a></div></div></div></div></footer>
+</body></html>

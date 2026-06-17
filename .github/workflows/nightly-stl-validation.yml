@@ -1,0 +1,99 @@
+# Nightly STL export topology validation (#657).
+#
+# Exports a binary STL for each of the 5 canonical rocket presets at
+# 0.5 mm voxel using the existing Voxelforge.Benchmarks --bench-stl-
+# validation command, then validates mesh topology with a pure-managed
+# binary-STL reader (manifold, watertight, non-degenerate).
+#
+# No new native dependencies — satisfies ADR-024 zero-new-native-dep
+# rule. Topology checks: degenerate-triangle count, non-manifold edge
+# count, watertight flag. Failing geometry STLs are uploaded as artifacts
+# for post-hoc inspection.
+#
+# Cron: 05:00 UTC daily (after nightly CFD at 04:00 and microbench
+# at 04:30; staggered to avoid runner contention).
+#
+# Inherits ADR-045 infrastructure: self-hosted runner, 30-day retention,
+# VF_GIT_SHA / VF_MACHINE_ID provenance per ADR-013.
+#
+# Acceptance criteria (#657):
+# - Scheduled workflow at this path                                        ✓
+# - Topology check tool: pure-managed binary-STL reader (no admesh/CLI)  ✓
+# - Per-preset validation status artifact (JSONL + Markdown)              ✓
+# - Failing geometry STL uploaded as artifact for inspection              ✓
+# - Inherits ADR-045 infrastructure                                       ✓
+
+name: Nightly STL Topology Validation
+
+on:
+  schedule:
+    - cron: '0 5 * * *'   # 05:00 UTC daily (after microbench at 04:30)
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  VF_GIT_SHA: ${{ github.sha }}
+  VF_MACHINE_ID: ${{ runner.name }}
+
+jobs:
+  stl-validation:
+    name: STL topology validation
+    runs-on: self-hosted
+    timeout-minutes: 120   # 5 presets × ~20 min each at 0.5 mm voxel
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Restore + build
+        run: >
+          dotnet restore Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj &&
+          dotnet build Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj
+          --no-restore --configuration Release
+
+      - name: Run STL topology validation
+        id: validate
+        run: >
+          dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj
+          --no-build --configuration Release
+          -- --bench-stl-validation
+             --voxel 0.5
+             --out stl-validation-results.jsonl
+             --stl-dir stl-out
+
+      - name: Generate validation report
+        if: always()
+        shell: pwsh
+        run: |
+          pwsh -NonInteractive -File tools/Generate-StlValidationReport.ps1 `
+            -JsonlFile stl-validation-results.jsonl `
+            -OutFile stl-validation-report.md
+          exit $LASTEXITCODE
+
+      - name: Upload validation artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: stl-validation-${{ github.run_id }}
+          path: |
+            stl-validation-results.jsonl
+            stl-validation-report.md
+          retention-days: 30
+
+      - name: Upload failing STLs
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: stl-failing-${{ github.run_id }}
+          path: stl-out/*.stl
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Annotate failure
+        if: failure()
+        run: echo "::error title=STL topology::One or more canonical presets failed STL topology validation. Check the stl-validation artifact and failing STLs."

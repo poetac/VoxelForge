@@ -1,0 +1,81 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <!-- Nullable + ImplicitUsings live in Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge</RootNamespace>
+    <AssemblyName>Voxelforge.Core</AssemblyName>
+    <!-- Issue #159: emit generated source files to a tracked location
+         so reviewers + CI can inspect what the source generator
+         produced. Files land under obj/<config>/<tfm>/generated/<gen>/. -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge" />
+    <InternalsVisibleTo Include="Voxelforge.Voxels" />
+    <InternalsVisibleTo Include="Voxelforge.Tests" />
+    <InternalsVisibleTo Include="Voxelforge.Benchmarks" />
+    <!-- Issue #491. BDN microbench for ComponentNetwork.Solve allocation
+         footprint. ComponentNetwork is internal; the bench needs friend
+         access to instantiate + drive it directly. -->
+    <InternalsVisibleTo Include="Voxelforge.MicroBenchmarks" />
+    <InternalsVisibleTo Include="Voxelforge.StlExporter" />
+    <!-- Sprint EC.W8+ — sibling pillars need access to the
+         Voxelforge.Economics internal types (CostEstimate,
+         SystemCostBreakdown, EconomicAnalyzer) so each pillar can
+         expose its own cost-estimator factories inside its own Core
+         assembly without round-tripping through this Core's public
+         surface. -->
+    <InternalsVisibleTo Include="Voxelforge.Airbreathing.Core" />
+    <InternalsVisibleTo Include="Voxelforge.Airbreathing.Tests" />
+    <InternalsVisibleTo Include="Voxelforge.ElectricPropulsion.Core" />
+    <InternalsVisibleTo Include="Voxelforge.ElectricPropulsion.Tests" />
+    <InternalsVisibleTo Include="Voxelforge.Marine.Core" />
+    <InternalsVisibleTo Include="Voxelforge.Marine.Tests" />
+    <InternalsVisibleTo Include="Voxelforge.Nuclear.Core" />
+    <InternalsVisibleTo Include="Voxelforge.Nuclear.Tests" />
+  </ItemGroup>
+
+  <!-- A5 (2026-04-25): track public-API drift on the Core library boundary.
+       PublicAPI.Shipped.txt is the baseline; new public additions go to
+       PublicAPI.Unshipped.txt and are promoted to Shipped on release. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="4.14.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Issue #258 / OOB-4 follow-up (2026-04-29): MathNet.Numerics for
+       L-BFGS BfgsMinimizer used by GP marginal-likelihood hyperparameter
+       auto-fit (GpMarginalLikelihoodFit). First runtime NuGet dependency
+       on Core in a while; future contributors should know. -->
+  <ItemGroup Label="NuGet">
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+  <!-- Issue #159 (T1.4): consume the source generator that emits the
+       compile-time accessor table for [SaDesignVariable] properties.
+       OutputItemType="Analyzer" loads the generator into csc;
+       ReferenceOutputAssembly="false" keeps it out of Core's compile
+       output (generators are not runtime dependencies). -->
+  <ItemGroup>
+    <ProjectReference Include="..\Voxelforge.Generators\Voxelforge.Generators.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- Issue #209 / ADR-020: consume the [Deterministic] analyzer. Same
+       loading contract as the source generator above. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Voxelforge.Analyzers\Voxelforge.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

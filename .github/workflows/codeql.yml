@@ -1,0 +1,86 @@
+name: CodeQL
+
+# Static security analysis of the C# codebase (issue #666). Complements
+# the audit-batch + Dependabot supply-chain layers with a third leg
+# that runs continuously on `main` and weekly off-cadence so the kind
+# of finding that lived in issue #561 (path-traversal, hash-check
+# gaps) gets caught without waiting for the next manual audit.
+#
+# Scheduled cadence: 04:17 UTC every Monday (matches the Dependabot
+# Monday cadence so security tooling all lands on the same day in
+# the Actions log). Push-to-main also fires the analysis so a
+# regression introduced by a merge gets surfaced inside the next
+# scan window.
+
+on:
+  push:
+    branches: [main]
+  # pull_request trigger removed: GitHub-hosted ubuntu-latest runners
+  # are billing-blocked on this account (#673 was closed by disabling
+  # the ubuntu-fallback workflow, not by fixing billing). Running
+  # CodeQL on PRs produces instant billing-error failures that noise
+  # up every PR. Re-add the pull_request trigger once billing is
+  # resolved. The push:main + schedule triggers remain so the analysis
+  # resumes automatically when the account is unblocked.
+  schedule:
+    - cron: '17 4 * * 1'
+
+# Least-privilege token scope. `security-events: write` is required
+# for the analysis upload; `contents: read` is the default but
+# declared explicitly so any future tightening of repo-default
+# scopes doesn't break this workflow.
+permissions:
+  security-events: write
+  contents: read
+  actions: read
+
+# Cancel superseded PR runs so a rapid push doesn't queue duplicate
+# CodeQL invocations. Push-to-main + scheduled runs share a
+# distinct ref so they don't cancel each other.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze:
+    name: Analyze (csharp)
+    # GitHub-hosted ubuntu-latest: billing issue (#673) is resolved;
+    # reverting from the temporary self-hosted workaround. CodeQL's
+    # csharp extractor is best supported on GitHub-hosted Linux runners.
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+
+      # Setup .NET before Initialize CodeQL so the SDK is on PATH
+      # when CodeQL's build tracer starts — required on Windows
+      # self-hosted runners where autobuild cannot reliably detect
+      # the dotnet executable.
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4.3.1
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@03e4368ac7daa2bd82b3e85262f3bf87ee112f57  # v3.36.0
+        with:
+          languages: csharp
+          # `security-and-quality` adds the quality queries on top of
+          # the default security ones — catches a wider class of
+          # findings (e.g., locale-sensitive string compares the
+          # repo's CA1310 rule already polices) at marginal extra
+          # analysis cost.
+          queries: security-and-quality
+
+      - name: Restore
+        run: dotnet restore voxelforge.sln
+
+      - name: Build
+        run: dotnet build voxelforge.sln --no-restore --configuration Release
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@03e4368ac7daa2bd82b3e85262f3bf87ee112f57  # v3.36.0
+        with:
+          category: "/language:csharp"

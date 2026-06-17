@@ -1,0 +1,148 @@
+# Weekly multi-seed SA convergence study (#654).
+#
+# Runs the canonical-design SA optimizer with 10 seeds per preset across
+# all 7 presets (5 rocket + 2 airbreathing), aggregates score envelopes
+# and gate-firing histograms, and emits a "design-space topology" report
+# as a job-summary table + JSON artifact.
+#
+# Schedule: Sunday 00:00 UTC (offset from nightly runs; 6-12 hr wall-clock
+# budget for 10 seeds × 7 presets).
+#
+# Inherits ADR-045 infrastructure: self-hosted runner, 30-day retention,
+# VF_GIT_SHA / VF_MACHINE_ID provenance per ADR-013.
+#
+# Acceptance criteria (#654):
+# - Scheduled workflow at this path                                        ✓
+# - Per-preset convergence envelope artifact (markdown + JSON)             ✓
+# - Gate-firing histogram per preset (rocket only; dump-violations flag)   ✓
+# - Provenance per ADR-013 captured per run                                ✓
+# - Inherits infrastructure from #650                                       ✓
+
+name: Weekly Multi-Seed SA Convergence
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'   # 00:00 UTC Sunday
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  VF_GIT_SHA: ${{ github.sha }}
+  VF_MACHINE_ID: ${{ runner.name }}
+
+# ── Rocket preset jobs (5 presets, 10 seeds each) ─────────────────────────
+jobs:
+  sa-rocket:
+    name: convergence / rocket / ${{ matrix.preset }}
+    runs-on: self-hosted
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [merlin, rl10, pressure-fed-small, aerospike, pintle]
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Restore + build
+        run: dotnet restore Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj && dotnet build Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj --no-restore --configuration Release
+
+      - name: Run 10-seed SA for ${{ matrix.preset }}
+        shell: bash
+        run: |
+          mkdir -p convergence-out
+          dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+            --no-build --configuration Release \
+            -- --bench-sa \
+               --design-preset ${{ matrix.preset }} \
+               --seed 42 --repeat 10 \
+               --dump-violations \
+               --out convergence-out/${{ matrix.preset }}.jsonl \
+            2>&1 | tee convergence-out/violations-${{ matrix.preset }}.txt
+
+      - name: Upload convergence data
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: convergence-data-${{ matrix.preset }}-${{ github.run_id }}
+          path: convergence-out/
+          retention-days: 30
+
+  # ── Airbreathing preset jobs (2 presets, 10 seeds each) ─────────────────
+  sa-airbreathing:
+    name: convergence / airbreathing / ${{ matrix.preset }}
+    runs-on: self-hosted
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [mattingly-ramjet, j85-turbojet]
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Restore + build
+        run: dotnet restore Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj && dotnet build Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj --no-restore --configuration Release
+
+      - name: Run 10-seed SA for ${{ matrix.preset }}
+        shell: bash
+        run: |
+          mkdir -p convergence-out
+          dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj \
+            --no-build --configuration Release \
+            -- --bench-sa-airbreathing \
+               --preset ${{ matrix.preset }} \
+               --seed 42 --repeat 10 \
+               --out convergence-out/${{ matrix.preset }}.jsonl \
+            2>&1 | tee convergence-out/violations-${{ matrix.preset }}.txt
+
+      - name: Upload convergence data
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: convergence-data-${{ matrix.preset }}-${{ github.run_id }}
+          path: convergence-out/
+          retention-days: 30
+
+  # ── Consolidation job ────────────────────────────────────────────────────
+  convergence-report:
+    name: Convergence envelope report
+    runs-on: self-hosted
+    timeout-minutes: 20
+    needs: [sa-rocket, sa-airbreathing]
+    if: always()
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Download all convergence data
+        uses: actions/download-artifact@fa0a91b85d4f404e444306b1a4df79b0d7c43c4f  # v4.2.1
+        with:
+          pattern: convergence-data-*-${{ github.run_id }}
+          path: convergence-all
+          merge-multiple: true
+
+      - name: Generate convergence report
+        id: report
+        shell: pwsh
+        run: |
+          pwsh -NonInteractive -File tools/Generate-ConvergenceReport.ps1 `
+            -DataDir convergence-all `
+            -OutFile convergence-all/convergence-report.md
+          exit $LASTEXITCODE
+
+      - name: Upload convergence report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: convergence-report-${{ github.run_id }}
+          path: convergence-all/convergence-report.md
+          retention-days: 30
+
+      - name: Annotate any degraded presets
+        if: steps.report.outcome == 'failure'
+        run: echo "::warning title=Convergence study::One or more presets show high score variance or low convergence rate. Check the convergence-report artifact."

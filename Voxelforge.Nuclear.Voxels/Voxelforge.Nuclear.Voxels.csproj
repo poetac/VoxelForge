@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Voxelforge.Nuclear.Voxels — PicoGK voxel/SDF/STL builder for the
+       nuclear thermal rocket pillar (NERVA-class NTR, Wave 1).
+
+       Sibling to Voxelforge.Voxels (rocket-side) and
+       Voxelforge.Marine.Voxels. Parallel-pillar architecture per ADR-026:
+       each engine pillar has its own Voxels project so the rocket pipeline
+       never depends on nuclear PicoGK code and vice versa.
+
+       Wave-1 builds a regen-cooled nozzle via ChamberVoxelBuilder from
+       Voxelforge.Voxels plus a stub cylindrical reactor core. The explicit
+       Voxelforge.Voxels reference (task spec) lets NtrChamberVoxelBuilder
+       delegate the nozzle contour work without reimplementing it (VFA001
+       cross-pillar import is permitted for the rocket Voxels project — the
+       rule bars airbreathing/marine/nuclear cross-imports only). -->
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Nullable + ImplicitUsings + TreatWarningsAsErrors live in
+         Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge.Nuclear</RootNamespace>
+    <AssemblyName>Voxelforge.Nuclear.Voxels</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PicoGK" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ExcludeAssets="analyzers": same rationale as Marine.Voxels. -->
+    <ProjectReference Include="..\Voxelforge.Nuclear.Core\Voxelforge.Nuclear.Core.csproj"
+                      ExcludeAssets="analyzers" />
+    <!-- Voxelforge.Voxels: exposes ChamberVoxelBuilder + ChamberBuildOptions
+         so NtrChamberVoxelBuilder can delegate the regen nozzle geometry
+         without reimplementing it. -->
+    <ProjectReference Include="..\Voxelforge.Voxels\Voxelforge.Voxels.csproj"
+                      ExcludeAssets="analyzers" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge.Nuclear.StlExporter" />
+    <InternalsVisibleTo Include="Voxelforge.Nuclear.Tests" />
+  </ItemGroup>
+
+</Project>

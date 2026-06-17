@@ -1,0 +1,295 @@
+name: Bench Regression (BB-6)
+
+# Runs the canonical-design SA fingerprints and diffs each against its
+# frozen baseline under Voxelforge.Benchmarks/baselines/<pillar>/.
+# Posts a per-preset PASS / FAIL summary; uploads the current JSONL as an
+# artifact on failure for human inspection.
+#
+# Triggers:
+#   - workflow_dispatch (manual trigger from Actions tab after a sprint that changes physics)
+#   - pull_request (paths filter: only when physics or bench files change; #633)
+#
+# On pull_request: if drift > 5%, posts a sticky comment on the PR with the
+# diff summary and an acknowledgment template. The comment is updated (not
+# duplicated) on each push. See CONTRIBUTING.md § Performance.
+#
+# IMPORTANT: this is a soft-gate — no branch protection on this free-private
+# repo (audit-prep decision C1). A FAIL here is INFORMATIONAL but surfaced
+# prominently as a PR comment requiring explicit reviewer acknowledgment.
+#
+# Sprint B.1 (BB Wave 1): baselines restructured to per-pillar subdirs.
+# Sprint #633: added pull_request trigger + PR-comment regression bot.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # Run only when physics code or benchmark infrastructure changes.
+    # Docs-only, CI config, and test-only PRs skip this expensive job set.
+    paths:
+      - 'Voxelforge.Core/**'
+      - 'Voxelforge.Airbreathing.Core/**'
+      - 'Voxelforge.ElectricPropulsion.Core/**'
+      - 'Voxelforge.Marine.Core/**'
+      - 'Voxelforge.Nuclear.Core/**'
+      - 'Voxelforge.Benchmarks/**'
+
+# Cancel superseded runs on rapid pushes. Without this, pushing twice to a
+# PR runs the full matrix end-to-end twice. Schedule + workflow_dispatch get
+# unique refs so they don't cancel each other.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least-privilege token scope. read for build + checkout; write for posting
+# PR regression comments (#633).
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # ── Rocket pillar ────────────────────────────────────────────────────────
+  bench-rocket:
+    name: bench-rocket / ${{ matrix.preset }}
+    # Fork-PR guard: self-hosted runners must not execute untrusted fork code.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: ["merlin","rl10","pressure-fed-small","aerospike","pintle"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Setup .NET 9
+        if: runner.environment == 'github-hosted'
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7  # v5.2.0
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Cache NuGet packages
+        if: runner.environment == 'github-hosted'
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore voxelforge.sln
+
+      - name: Build Benchmarks (Release)
+        run: dotnet build Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj --no-restore --configuration Release
+
+      - name: Run bench-sa for ${{ matrix.preset }}
+        shell: bash
+        run: |
+          mkdir -p current
+          dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj --no-build --configuration Release \
+            -- --bench-sa --design-preset ${{ matrix.preset }} \
+            --out current/bench-sa-${{ matrix.preset }}.jsonl
+
+      - name: Diff against frozen rocket baseline
+        id: diff
+        shell: bash
+        continue-on-error: true
+        run: |
+          BASELINE=$(ls -1 Voxelforge.Benchmarks/baselines/rocket/bench-sa-${{ matrix.preset }}-*.jsonl 2>/dev/null \
+            | sed 's/\([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\)\.jsonl$/\1-@.jsonl/' \
+            | LC_ALL=C sort -r \
+            | sed 's/-@\.jsonl$/.jsonl/' \
+            | head -1)
+          if [ -z "$BASELINE" ]; then
+            echo "ERROR: no baseline file for preset '${{ matrix.preset }}'."
+            echo "Looked under Voxelforge.Benchmarks/baselines/rocket/bench-sa-${{ matrix.preset }}-*.jsonl"
+            exit 5
+          fi
+          echo "Comparing: $BASELINE"
+          set -o pipefail
+          dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj --no-build --configuration Release \
+            -- --bench-diff "$BASELINE" current/bench-sa-${{ matrix.preset }}.jsonl \
+            --threshold-percent 5.0 | tee current/bench-diff-${{ matrix.preset }}.txt
+
+      # Post a sticky PR comment when drift is detected (#633).
+      # Updated on each push (no spam); uses <!-- bench-regression-bot-<preset> -->
+      # as the idempotency marker.
+      - name: Post regression comment on PR
+        if: steps.diff.outcome == 'failure' && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          PRESET="${{ matrix.preset }}"
+          PR_NUM="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+          SHA7="${GITHUB_SHA:0:7}"
+          DIFF_OUT=""
+          if [ -f "current/bench-diff-${PRESET}.txt" ]; then
+            DIFF_OUT=$(cat "current/bench-diff-${PRESET}.txt")
+          fi
+          MARKER="<!-- bench-regression-bot-${PRESET} -->"
+          BODY="${MARKER}
+## ⚠ Bench regression: \`${PRESET}\` (commit \`${SHA7}\`)
+
+The SA physics fingerprint for \`${PRESET}\` drifted > 5% from its committed baseline.
+
+<details><summary>Diff output</summary>
+
+\`\`\`
+${DIFF_OUT}
+\`\`\`
+
+</details>
+
+**To acknowledge a deliberate physics change:** reply \`/acknowledge-regression ${PRESET}\` in this thread, then merge.
+**To investigate:** run \`gh workflow run bench-regression.yml\` locally after your fix.
+
+_Updated: $(date -u +%Y-%m-%dT%H:%M:%SZ)_"
+          EXISTING=$(gh api "repos/${REPO}/issues/${PR_NUM}/comments" \
+            --jq "[.[] | select(.body | startswith(\"${MARKER}\"))] | last | .id // empty")
+          if [ -n "$EXISTING" ]; then
+            gh api "repos/${REPO}/issues/comments/${EXISTING}" -X PATCH -f body="${BODY}"
+          else
+            gh api "repos/${REPO}/issues/${PR_NUM}/comments" -X POST -f body="${BODY}"
+          fi
+
+      - name: Upload current JSONL on failure
+        if: steps.diff.outcome == 'failure'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: bench-current-rocket-${{ matrix.preset }}
+          path: current/bench-sa-${{ matrix.preset }}.jsonl
+          retention-days: 30
+
+      - name: Fail if regression detected
+        if: steps.diff.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "::error title=Bench regression (${{ matrix.preset }})::SA physics fingerprint drifted > 5%. Check diff output above and CONTRIBUTING.md § Performance."
+          exit 1
+
+  # ── Air-breathing pillar ─────────────────────────────────────────────────
+  bench-airbreathing:
+    name: bench-airbreathing / ${{ matrix.preset }}
+    # Fork-PR guard: self-hosted runners must not execute untrusted fork code.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: ["mattingly-ramjet","j85-turbojet"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Setup .NET 9
+        if: runner.environment == 'github-hosted'
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7  # v5.2.0
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Cache NuGet packages
+        if: runner.environment == 'github-hosted'
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore voxelforge.sln
+
+      - name: Build Benchmarks (Release)
+        run: dotnet build Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj --no-restore --configuration Release
+
+      - name: Run bench-sa-airbreathing for ${{ matrix.preset }}
+        shell: bash
+        run: |
+          mkdir -p current
+          dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj --no-build --configuration Release \
+            -- --bench-sa-airbreathing --preset ${{ matrix.preset }} \
+            --out current/bench-sa-airbreathing-${{ matrix.preset }}.jsonl
+
+      - name: Diff against frozen airbreathing baseline
+        id: diff
+        shell: bash
+        continue-on-error: true
+        run: |
+          BASELINE=$(ls -1 Voxelforge.Benchmarks/baselines/airbreathing/bench-sa-airbreathing-${{ matrix.preset }}-*.jsonl 2>/dev/null \
+            | sed 's/\([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\)\.jsonl$/\1-@.jsonl/' \
+            | LC_ALL=C sort -r \
+            | sed 's/-@\.jsonl$/.jsonl/' \
+            | head -1)
+          if [ -z "$BASELINE" ]; then
+            echo "ERROR: no baseline file for preset '${{ matrix.preset }}'."
+            echo "Looked under Voxelforge.Benchmarks/baselines/airbreathing/bench-sa-airbreathing-${{ matrix.preset }}-*.jsonl"
+            exit 5
+          fi
+          echo "Comparing: $BASELINE"
+          set -o pipefail
+          dotnet run --project Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj --no-build --configuration Release \
+            -- --bench-diff "$BASELINE" current/bench-sa-airbreathing-${{ matrix.preset }}.jsonl \
+            --threshold-percent 5.0 | tee current/bench-diff-airbreathing-${{ matrix.preset }}.txt
+
+      - name: Post regression comment on PR
+        if: steps.diff.outcome == 'failure' && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          PRESET="${{ matrix.preset }}"
+          PR_NUM="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+          SHA7="${GITHUB_SHA:0:7}"
+          DIFF_OUT=""
+          if [ -f "current/bench-diff-airbreathing-${PRESET}.txt" ]; then
+            DIFF_OUT=$(cat "current/bench-diff-airbreathing-${PRESET}.txt")
+          fi
+          MARKER="<!-- bench-regression-bot-airbreathing-${PRESET} -->"
+          BODY="${MARKER}
+## ⚠ Bench regression: \`airbreathing / ${PRESET}\` (commit \`${SHA7}\`)
+
+The SA physics fingerprint for \`${PRESET}\` (air-breathing pillar) drifted > 5% from its committed baseline.
+
+<details><summary>Diff output</summary>
+
+\`\`\`
+${DIFF_OUT}
+\`\`\`
+
+</details>
+
+**To acknowledge a deliberate physics change:** reply \`/acknowledge-regression airbreathing-${PRESET}\` in this thread, then merge.
+**To investigate:** run \`gh workflow run bench-regression.yml\` locally after your fix.
+
+_Updated: $(date -u +%Y-%m-%dT%H:%M:%SZ)_"
+          EXISTING=$(gh api "repos/${REPO}/issues/${PR_NUM}/comments" \
+            --jq "[.[] | select(.body | startswith(\"${MARKER}\"))] | last | .id // empty")
+          if [ -n "$EXISTING" ]; then
+            gh api "repos/${REPO}/issues/comments/${EXISTING}" -X PATCH -f body="${BODY}"
+          else
+            gh api "repos/${REPO}/issues/${PR_NUM}/comments" -X POST -f body="${BODY}"
+          fi
+
+      - name: Upload current JSONL on failure
+        if: steps.diff.outcome == 'failure'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: bench-current-airbreathing-${{ matrix.preset }}
+          path: current/bench-sa-airbreathing-${{ matrix.preset }}.jsonl
+          retention-days: 30
+
+      - name: Fail if regression detected
+        if: steps.diff.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "::error title=Bench regression (airbreathing / ${{ matrix.preset }})::SA physics fingerprint drifted > 5%. Check diff output above and CONTRIBUTING.md § Performance."
+          exit 1

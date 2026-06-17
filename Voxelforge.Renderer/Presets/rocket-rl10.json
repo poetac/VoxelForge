@@ -1,0 +1,12 @@
+{
+  "name": "rocket-rl10",
+  "description": "RL-10 class LOX/LH2 closed expander, copper CuCrZr chamber",
+  "pillar": "rocket",
+  "camera_azimuth_deg": 30,
+  "camera_elevation_deg": 20,
+  "hdri_name": "studio_small",
+  "material": "copper",
+  "resolution": "high",
+  "frames": 60,
+  "frame_delay_ms": 33
+}

@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Spike project: validates Avalonia + PicoGK thread coexistence on Windows.
+         NOT added to voxelforge.sln — throwaway / ADR-027 artefact only.
+         Target net9.0-windows so PicoGK native DLLs resolve. -->
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- PicoGK needs [STAThread] only to match the current app; the spike
+         deliberately tests a non-STA main thread to verify GLFW is the
+         constraint, not the apartment state. -->
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!-- Spike: warnings as informational only. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- PicoGK 2.2.0 — matches the production version (bumped in lockstep with #861). -->
+    <PackageReference Include="PicoGK" Version="2.2.0" />
+
+    <!-- Avalonia 11.3.15 — bumped from 11.2.7 per audit M-6; lockstep with
+         Voxelforge.Avalonia. Avalonia.Desktop provides
+         StartWithClassicDesktopLifetime. Avalonia.Skia provides the
+         Skia renderer (GPU-accelerated on Windows). -->
+    <PackageReference Include="Avalonia" Version="11.3.15" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.15" />
+    <PackageReference Include="Avalonia.Skia" Version="11.3.15" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.15" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Voxelforge.Marine.StlExporter — headless console exe that
+       re-generates the marine hull voxel geometry at an arbitrary
+       voxel size and writes an STL.
+
+       Sibling to Voxelforge.StlExporter (rocket-side) and
+       Voxelforge.Airbreathing.StlExporter. Lives in its own project
+       so subprocess tests in Voxelforge.Marine.Tests can invoke it
+       via SubprocessRunner — the xUnit + PicoGK incompatibility
+       (CLAUDE.md pitfall #8) means we cannot run PicoGK code directly
+       from xUnit; the safe path is Process.Start to an exe.
+
+       OutDir copies the built exe alongside the Voxels library so
+       SubprocessRunner.LocateUnderRepo discovery resolves a stable path. -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Nullable + ImplicitUsings + TreatWarningsAsErrors live in
+         Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge.Marine.StlExporter</RootNamespace>
+    <AssemblyName>Voxelforge.Marine.StlExporter</AssemblyName>
+    <!-- Copy the exe into the Voxels bin so sub-process tests find it
+         at a stable path: Voxelforge.Marine.Voxels/bin/<cfg>/net9.0-windows/. -->
+    <OutDir>..\Voxelforge.Marine.Voxels\bin\$(Configuration)\net9.0-windows\</OutDir>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Voxelforge.Marine.Voxels\Voxelforge.Marine.Voxels.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge.Marine.Tests" />
+  </ItemGroup>
+
+</Project>

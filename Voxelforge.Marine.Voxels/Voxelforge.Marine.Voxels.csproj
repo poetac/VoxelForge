@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Voxelforge.Marine.Voxels — PicoGK voxel/SDF/STL builder for the
+       marine pillar (AUV mid-body hull geometry in Wave 1).
+
+       Sibling to Voxelforge.Voxels (rocket-side) and
+       Voxelforge.Airbreathing.Voxels. Parallel-pillar architecture:
+       each engine pillar has its own Voxels project so the rocket
+       pipeline never depends on marine PicoGK code and vice versa.
+
+       Implements Myring (1976) nose/tail fairing SDFs + cylindrical
+       mid-body SDF + Boolean union/subtract for pressure hull shell.
+       Geometry parameterised from MarineDesign (in Core); no cross-
+       pillar SDF reuse — implements its own revolved-surface implicit
+       rather than importing RevolvedContourImplicit from Airbreathing.Voxels
+       (VFA001 cross-pillar import rule). -->
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Nullable + ImplicitUsings + TreatWarningsAsErrors live in
+         Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge.Marine</RootNamespace>
+    <AssemblyName>Voxelforge.Marine.Voxels</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PicoGK" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ExcludeAssets="analyzers": same rationale as Airbreathing.Voxels. -->
+    <ProjectReference Include="..\Voxelforge.Marine.Core\Voxelforge.Marine.Core.csproj"
+                      ExcludeAssets="analyzers" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge.Marine.StlExporter" />
+    <InternalsVisibleTo Include="Voxelforge.Marine.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- net9.0 (not net9.0-windows): no PicoGK, no WinForms — CI-portable per ADR-026 §2 -->
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Voxelforge.Cfd.Core</AssemblyName>
+    <RootNamespace>Voxelforge.Cfd</RootNamespace>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Read-only consumer of headless physics — see shared-abstractions-ledger.md §4b -->
+    <ProjectReference Include="..\Voxelforge.Core\Voxelforge.Core.csproj" />
+  </ItemGroup>
+
+</Project>

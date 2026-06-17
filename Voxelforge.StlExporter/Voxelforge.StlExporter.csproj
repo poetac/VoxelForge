@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Nullable + ImplicitUsings live in Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge.StlExporter</RootNamespace>
+    <AssemblyName>Voxelforge.StlExporter</AssemblyName>
+    <!-- Copy this exe into the main project's bin directory on build so
+         the main app can find it alongside itself without bespoke path
+         logic. -->
+    <OutDir>..\Voxelforge\bin\$(Configuration)\net9.0-windows\</OutDir>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Voxelforge\Voxelforge.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge.Tests" />
+  </ItemGroup>
+
+</Project>

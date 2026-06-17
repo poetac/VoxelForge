@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Architecture — voxelforge</title>
+<link rel="stylesheet" href="assets/brand.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  .arch-diagram { background: var(--bg-elev); border: 1px solid var(--rule); border-radius: var(--r-3); padding: var(--s-8); }
+  .layer { display: grid; grid-template-columns: 180px 1fr; gap: var(--s-5); padding: var(--s-5) 0; border-top: 1px dashed var(--rule); }
+  .layer:first-child { border-top: 0; padding-top: 0; }
+  .layer__name { font-family: var(--font-mono); font-size: var(--t-mono-sm); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); padding-top: 4px; }
+  .layer__name strong { display: block; color: var(--ink); font-family: var(--font-sans); font-size: var(--t-md); text-transform: none; letter-spacing: -0.01em; margin-bottom: 2px; }
+  .module { background: var(--bone-100); border: 1px solid var(--rule); border-radius: var(--r-2); padding: var(--s-3) var(--s-4); }
+  .module__title { font-weight: 600; font-size: var(--t-sm); margin-bottom: 4px; letter-spacing: -0.005em; }
+  .module__sub { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--ink-3); }
+  .module--core { border-color: rgba(11,79,122,0.3); background: rgba(11,79,122,0.04); }
+  .module--vox { border-color: rgba(217,79,0,0.3); background: rgba(217,79,0,0.04); }
+  .module--app { border-color: var(--graphite); background: rgba(28,32,36,0.04); }
+  .modules { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--s-2); }
+</style></head><body>
+
+<nav class="nav"><div class="nav__brand"><img src="assets/logo.svg" alt=""><a href="index.html" class="nav__brand-name">voxelforge</a></div>
+<div class="nav__links"><a href="about.html">About</a><a href="architecture.html" class="is-current">Architecture</a><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a><a href="roadmap.html">Roadmap</a><a href="cascade.html">Cascade</a><a href="getting-started.html">Get started</a><a href="design-system.html">Brand</a><a href="https://github.com/poetac/voxelforge">GitHub ↗</a></div></nav>
+
+<header class="section" style="border-bottom:1px solid var(--rule);padding-bottom:var(--s-12);"><div class="wrap">
+  <p class="eyebrow">Architecture</p>
+  <h1 class="t-h1" style="margin-top:var(--s-3);max-width:800px;">Seven projects, one solution. The Core / Voxels / App split.</h1>
+  <p class="t-lead" style="margin-top:var(--s-5);max-width:720px;">Headless physics in <code>.Core</code>; PicoGK voxel kernel in <code>.Voxels</code>; WinForms entry point and orchestrators in the main app. Tests don't touch Voxels directly — that's structural, not a guideline.</p>
+</div></header>
+
+<section class="section"><div class="wrap">
+  <div class="arch-diagram">
+    <div class="layer">
+      <div class="layer__name">.csproj<strong>App</strong>UI · entry point</div>
+      <div>
+        <div class="modules">
+          <div class="module module--core"><div class="module__title">Voxelforge.Core</div><div class="module__sub">~117 .cs · headless physics · zero PicoGK dep · Sprint A1/A2 (ADR-015)</div></div>
+          <div class="module module--app"><div class="module__title">Voxelforge</div><div class="module__sub">~33 .cs · WinForms entry · UI · orchestrators · Win32 JobObject</div></div>
+          <div class="module module--app"><div class="module__title">.Tests</div><div class="module__sub">3,900+ xUnit tests · references App + StlExporter (not Voxels)</div></div>
+          <div class="module module--app"><div class="module__title">.Benchmarks</div><div class="module__sub">Console benches · BenchmarkDotNet · BB-1 fingerprints</div></div>
+          <div class="module module--app"><div class="module__title">.StlExporter</div><div class="module__sub">STL export utility · subprocess-callable</div></div>
+          <div class="module module--app"><div class="module__title">.Eval (voxelforge-eval)</div><div class="module__sub">Headless subprocess oracle · JSON-line stdin/stdout · shipped S 38a (T2.2)</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer__name">.csproj<strong>Voxels</strong>SDF · PicoGK builders</div>
+      <div>
+        <div class="modules">
+          <div class="module module--vox"><div class="module__title">Voxelforge.Voxels</div><div class="module__sub">~19 leaf builders · ChamberVoxelBuilder · AerospikeBuilder · TPMS</div></div>
+          <div class="module module--vox"><div class="module__title">PicoGK 2.2.0 (pinned)</div><div class="module__sub">Voxel-implicit kernel · ADR-011</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer__name">.csproj<strong>Core</strong>Headless physics · no PicoGK</div>
+      <div>
+        <div class="modules">
+          <div class="module module--core"><div class="module__title">Combustion</div><div class="module__sub">Propellant tables · stability · ignition</div></div>
+          <div class="module module--core"><div class="module__title">HeatTransfer</div><div class="module__sub">Bartz · Dittus-Boelter · Gnielinski · Sieder-Tate</div></div>
+          <div class="module module--core"><div class="module__title">Coolant</div><div class="module__sub">H2 / CH4 / RP-1 fluids · CoolantRegistry</div></div>
+          <div class="module module--core"><div class="module__title">FeedSystem</div><div class="module__sub">Cycle solvers · turbopump · shaft critical speed</div></div>
+          <div class="module module--core"><div class="module__title">Optimization</div><div class="module__sub">SA · 34-D registry · 196 gates project-wide · ParetoFront</div></div>
+          <div class="module module--core"><div class="module__title">Manufacturing</div><div class="module__sub">LPBF advisor · overhang · printability gates</div></div>
+          <div class="module module--core"><div class="module__title">Structure / IO / Analysis</div><div class="module__sub">Stress · DesignPersistence · CFD field export</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="u-cols-2" style="margin-top:var(--s-12);">
+    <div>
+      <p class="eyebrow">Why split</p>
+      <h2 class="t-h3" style="margin-top:var(--s-2);">Core has zero kernel dependencies.</h2>
+      <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">The Sprint-A1/A2 split landed in 2026-04-25 (ADR-015 + ADR-016). 117 .cs files moved into <code>.Core</code>; 19 voxel builders into <code>.Voxels</code>. Result: an SU2 subprocess oracle, a Python BoTorch driver, a CFD validation closed loop — all become straightforward consumers of <code>Voxelforge.Core.dll</code>.</p>
+    </div>
+    <div>
+      <p class="eyebrow">Two pitfalls (hard-won)</p>
+      <h2 class="t-h3" style="margin-top:var(--s-2);">xUnit + PicoGK do not co-exist.</h2>
+      <p class="t-body" style="color:var(--ink-2);margin-top:var(--s-3);">Instantiating <code>new PicoGK.Library(vox)</code> inside an xUnit test crashes the host on dispose (GLFW / OpenVDB teardown). Voxel-building tests live in <code>.Benchmarks</code> or <code>.StlExporter</code>; tests invoke them via <code>Process.Start</code> and parse stdout. This is structural — <code>.Tests</code> does not directly reference <code>.Voxels</code>.</p>
+    </div>
+  </div>
+
+  <div style="margin-top:var(--s-12);">
+    <p class="eyebrow">Active ADRs</p>
+    <h2 class="t-h3" style="margin-top:var(--s-2);">13 active records under <code>Voxelforge/docs/ADR/</code>.</h2>
+    <table class="table" style="margin-top:var(--s-5);">
+      <thead><tr><th>ADR</th><th>Subject</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">001</td><td>PicoGK voxel kernel</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">003</td><td>Simulated-annealing optimiser</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">005</td><td>Physics experiments live in Benchmarks, not Tests</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">006</td><td>64 GB RAM constraint</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">002</td><td>WinForms UI (with exit path flagged)</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">007</td><td>Smoothen 25% cap</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">009</td><td>Feasibility-gate discipline (38 + 5 + 2)</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">010</td><td>Hard-coded bounds debt</td><td><span class="tag">Resolved</span></td></tr>
+        <tr><td class="mono">011</td><td>PicoGK version pinning</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">012</td><td>Adding an SA design variable</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">013</td><td>Benchmark JSONL schema v1</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">015</td><td>Core / Voxels / App split</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">016</td><td>A5 PublicApiAnalyzers · IVoxelHandle · B1</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">017</td><td>Multi-chain parallel SA + Sobol seeding</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">018</td><td>Feasibility-investigation audit (canonical-preset 0-feasible)</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">019</td><td>Gate registry + causal explainer (OOB-13 slice 1)</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">020</td><td>Determinism Roslyn analyzer ([Deterministic] attribute)</td><td><span class="tag tag--ok">Active</span></td></tr>
+        <tr><td class="mono">021</td><td>Orchestrator decoupling — App → Core / Voxels seam</td><td><span class="tag tag--ok">Active</span></td></tr>
+      </tbody>
+    </table>
+    <p class="t-small" style="margin-top:var(--s-3);">ADR numbers are stable; gaps (004, 008, 014) signal deliberate removal — see "Removed ADRs" in the index. Active count: 13 + ADR-017 → ADR-021 = 18 as of 2026-04-30.</p>
+  </div>
+</div></section>
+
+<footer class="foot"><div class="wrap"><div class="foot__cols"><div><div class="u-row-tight" style="margin-bottom:var(--s-3);"><img src="assets/logo.svg" width="22" height="22" alt=""><span style="font-weight:600;color:var(--ink)">voxelforge</span></div><p style="margin:0;max-width:360px;">A 3D-printable rocket engine, generated from a handful of parameters.</p></div><div><div class="foot__title">Reference</div><div class="foot__links"><a href="physics.html">Physics</a><a href="cycles.html">Cycles</a><a href="propellants.html">Propellants</a><a href="examples.html">Examples</a></div></div><div><div class="foot__title">Project</div><div class="foot__links"><a href="architecture.html">Architecture</a><a href="roadmap.html">Roadmap</a><a href="faq.html">FAQ</a><a href="design-system.html">Brand</a></div></div><div><div class="foot__title">Source</div><div class="foot__links"><a href="https://github.com/poetac/voxelforge">GitHub</a><a href="https://github.com/poetac/voxelforge/blob/main/LICENSE">License (MIT)</a></div></div></div></div></footer>
+</body></html>

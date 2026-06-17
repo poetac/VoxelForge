@@ -1,0 +1,128 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Voxelforge.Avalonia.ElectricPropulsionWindow"
+        Title="Voxelforge — Electric-Propulsion Viewer  [resistojet]  (Avalonia)"
+        Width="500"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="Manual"
+        Position="10,10">
+
+  <ScrollViewer>
+    <StackPanel Margin="10" Spacing="8">
+
+      <!-- ── Engine kind ─────────────────────────────────────────────── -->
+      <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+              BorderThickness="1" Padding="8,16,8,8" CornerRadius="4">
+        <StackPanel Spacing="6">
+          <TextBlock Text="Engine kind" FontWeight="SemiBold" Margin="0,-22,0,4"
+                     Background="{DynamicResource SystemControlPageBackgroundAltHighBrush}"
+                     Padding="4,0"/>
+          <Grid ColumnDefinitions="Auto,*">
+            <TextBlock Grid.Column="0" Text="Kind:"
+                       VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <ComboBox Grid.Column="1" x:Name="_cmbKind"
+                      Width="160" HorizontalAlignment="Left"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <!-- ── Operating conditions ────────────────────────────────────── -->
+      <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+              BorderThickness="1" Padding="8,16,8,8" CornerRadius="4">
+        <StackPanel Spacing="6">
+          <TextBlock Text="Operating conditions" FontWeight="SemiBold" Margin="0,-22,0,4"
+                     Background="{DynamicResource SystemControlPageBackgroundAltHighBrush}"
+                     Padding="4,0"/>
+          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Bus voltage (V):"
+                       VerticalAlignment="Center" Margin="0,0,8,3"/>
+            <NumericUpDown Grid.Row="0" Grid.Column="1" x:Name="_nudBusVoltage"
+                           Minimum="12" Maximum="200" Value="28" FormatString="F0"
+                           Increment="1" Width="120" HorizontalAlignment="Left"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Bus power available (W):"
+                       VerticalAlignment="Center" Margin="0,3,8,3"/>
+            <NumericUpDown Grid.Row="1" Grid.Column="1" x:Name="_nudBusPower"
+                           Minimum="50" Maximum="10000" Value="500" FormatString="F0"
+                           Increment="50" Width="120" HorizontalAlignment="Left"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Propellant:"
+                       VerticalAlignment="Center" Margin="0,3,8,3"/>
+            <ComboBox Grid.Row="2" Grid.Column="1" x:Name="_cmbPropellant"
+                      Width="220" HorizontalAlignment="Left"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Inlet T (K):"
+                       VerticalAlignment="Center" Margin="0,3,8,0"/>
+            <NumericUpDown Grid.Row="3" Grid.Column="1" x:Name="_nudInletTempK"
+                           Minimum="280" Maximum="1500" Value="900" FormatString="F0"
+                           Increment="10" Width="120" HorizontalAlignment="Left"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <!-- ── Resistojet design ────────────────────────────────────────── -->
+      <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+              BorderThickness="1" Padding="8,16,8,8" CornerRadius="4">
+        <StackPanel Spacing="6">
+          <TextBlock Text="Resistojet design" FontWeight="SemiBold" Margin="0,-22,0,4"
+                     Background="{DynamicResource SystemControlPageBackgroundAltHighBrush}"
+                     Padding="4,0"/>
+          <Grid ColumnDefinitions="Auto,*"
+                RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Heater power (W):"
+                       VerticalAlignment="Center" Margin="0,0,8,3"/>
+            <NumericUpDown Grid.Row="0" Grid.Column="1" x:Name="_nudHeaterPowerW"
+                           Minimum="50" Maximum="3000" Value="500" FormatString="F0"
+                           Increment="10" Width="120" HorizontalAlignment="Left"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Mass flow (kg/s):"
+                       VerticalAlignment="Center" Margin="0,3,8,3"/>
+            <NumericUpDown Grid.Row="1" Grid.Column="1" x:Name="_nudPropellantMassFlow"
+                           Minimum="0.0001" Maximum="0.05" Value="0.001" FormatString="F4"
+                           Increment="0.0001" Width="120" HorizontalAlignment="Left"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Throat radius (mm):"
+                       VerticalAlignment="Center" Margin="0,3,8,3"/>
+            <NumericUpDown Grid.Row="2" Grid.Column="1" x:Name="_nudThroatRadiusMm"
+                           Minimum="0.05" Maximum="3.0" Value="0.40" FormatString="F2"
+                           Increment="0.05" Width="120" HorizontalAlignment="Left"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Area ratio e:"
+                       VerticalAlignment="Center" Margin="0,3,8,3"/>
+            <NumericUpDown Grid.Row="3" Grid.Column="1" x:Name="_nudAreaRatio"
+                           Minimum="2" Maximum="200" Value="50" FormatString="F1"
+                           Increment="1" Width="120" HorizontalAlignment="Left"/>
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Chamber length (mm):"
+                       VerticalAlignment="Center" Margin="0,3,8,3"/>
+            <NumericUpDown Grid.Row="4" Grid.Column="1" x:Name="_nudHeaterChamberLenMm"
+                           Minimum="5" Maximum="100" Value="20" FormatString="F1"
+                           Increment="0.5" Width="120" HorizontalAlignment="Left"/>
+
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Chamber radius (mm):"
+                       VerticalAlignment="Center" Margin="0,3,8,0"/>
+            <NumericUpDown Grid.Row="5" Grid.Column="1" x:Name="_nudHeaterChamberRadMm"
+                           Minimum="2" Maximum="50" Value="8" FormatString="F1"
+                           Increment="0.5" Width="120" HorizontalAlignment="Left"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <!-- ── Action + output ─────────────────────────────────────────── -->
+      <Button x:Name="_btnGenerate" Content="Generate"
+              HorizontalAlignment="Stretch" Height="36"/>
+
+      <TextBox x:Name="_txtResults"
+               IsReadOnly="True"
+               AcceptsReturn="True"
+               Height="220"
+               FontFamily="Consolas"
+               FontSize="9"
+               ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+
+      <TextBlock x:Name="_lblStatus" Text="Ready."/>
+
+    </StackPanel>
+  </ScrollViewer>
+</Window>

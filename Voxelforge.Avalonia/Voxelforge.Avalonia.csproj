@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Voxelforge.Avalonia — Phase 1 ADR-027: Avalonia UI class library.
+       Referenced by Voxelforge.exe; NOT a standalone executable.
+       net9.0-windows: must match the host project so PicoGK native DLLs
+       and the Avalonia Win32 backend share the same runtime.
+       UseWindowsForms is intentionally absent — Avalonia runs its own
+       Win32 message pump, independent of WinForms. -->
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <RootNamespace>Voxelforge.Avalonia</RootNamespace>
+    <AssemblyName>Voxelforge.Avalonia</AssemblyName>
+    <!-- Nullable + ImplicitUsings + TreatWarningsAsErrors from Directory.Build.props -->
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- AVLN3001: ElectricPropulsionWindow has no parameterless constructor by design —
+         it is always code-constructed with an onGenerate callback, never loaded via
+         the Avalonia XAML runtime loader. -->
+    <NoWarn>$(NoWarn);AVLN3001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Avalonia 11.3.15 — bumped from 11.2.7 per audit M-6; lockstep with
+         Voxelforge.Spike.Avalonia. 11.3.x ships significant Win32 backend
+         fixes (text-input, IME, hi-DPI). Re-validation against ADR-027
+         spike pattern: same Win32+Skia backend; no API breaks. -->
+    <PackageReference Include="Avalonia"               Version="11.3.17" />
+    <PackageReference Include="Avalonia.Desktop"       Version="11.3.17" />
+    <PackageReference Include="Avalonia.Skia"          Version="11.3.17" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.17" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- EP domain types only — no PicoGK, no voxel ops in this library. -->
+    <ProjectReference Include="..\Voxelforge.ElectricPropulsion.Core\Voxelforge.ElectricPropulsion.Core.csproj"
+                      ExcludeAssets="analyzers" />
+  </ItemGroup>
+
+</Project>

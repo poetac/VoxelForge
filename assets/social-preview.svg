@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-label="voxelforge — Computational engineering for voxel-based additive manufacturing">
+  <title>voxelforge — Computational engineering for voxel-based additive manufacturing</title>
+  <defs>
+    <pattern id="grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1C2024" stroke-opacity="0.055" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="640" fill="#F5F3EE"/>
+  <rect width="1280" height="640" fill="url(#grid)"/>
+  <g>
+    <polygon points="260.00,220.00 537.13,60.00 260.00,-100.00 -17.13,60.00" fill="#0B4F7A" stroke="#1C2024" stroke-width="1.25" stroke-linejoin="round"/>
+  <polygon points="-17.13,380.00 260.00,220.00 260.00,-100.00 -17.13,60.00" fill="#083A5B" stroke="#1C2024" stroke-width="1.25" stroke-linejoin="round"/>
+  <polygon points="537.13,380.00 260.00,220.00 260.00,-100.00 537.13,60.00" fill="#05293F" stroke="#1C2024" stroke-width="1.25" stroke-linejoin="round"/>
+  <polygon points="10.58,216.80 32.75,204.00 32.75,178.40 10.58,191.20" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="54.93,216.80 32.75,204.00 32.75,178.40 54.93,191.20" fill="#7A2C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="54.93,216.80 77.10,204.00 54.93,191.20 32.75,204.00" fill="#D94F00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="32.75,229.60 54.93,216.80 54.93,191.20 32.75,204.00" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="77.10,229.60 54.93,216.80 54.93,191.20 77.10,204.00" fill="#7A2C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="-11.59,178.40 10.58,165.60 10.58,140.00 -11.59,152.80" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="32.75,178.40 10.58,165.60 10.58,140.00 32.75,152.80" fill="#7A2C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="32.75,178.40 54.93,165.60 32.75,152.80 10.58,165.60" fill="#D94F00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="10.58,191.20 32.75,178.40 32.75,152.80 10.58,165.60" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="54.93,191.20 32.75,178.40 32.75,152.80 54.93,165.60" fill="#7A2C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="10.58,140.00 32.75,127.20 10.58,114.40 -11.59,127.20" fill="#D94F00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="-11.59,152.80 10.58,140.00 10.58,114.40 -11.59,127.20" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="32.75,152.80 10.58,140.00 10.58,114.40 32.75,127.20" fill="#7A2C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="54.93,191.20 77.10,178.40 77.10,152.80 54.93,165.60" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="99.27,191.20 77.10,178.40 77.10,152.80 99.27,165.60" fill="#7A2C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="77.10,152.80 99.27,140.00 77.10,127.20 54.93,140.00" fill="#D94F00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="54.93,165.60 77.10,152.80 77.10,127.20 54.93,140.00" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="99.27,165.60 77.10,152.80 77.10,127.20 99.27,140.00" fill="#7A2C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="121.44,178.40 143.61,165.60 143.61,140.00 121.44,152.80" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="165.78,178.40 143.61,165.60 143.61,140.00 165.78,152.80" fill="#7A2C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="77.10,127.20 99.27,114.40 99.27,88.80 77.10,101.60" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="121.44,127.20 99.27,114.40 99.27,88.80 121.44,101.60" fill="#7A2C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="121.44,152.80 143.61,140.00 143.61,114.40 121.44,127.20" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="165.78,152.80 143.61,140.00 143.61,114.40 165.78,127.20" fill="#7A2C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="99.27,88.80 121.44,76.00 99.27,63.20 77.10,76.00" fill="#D94F00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="77.10,101.60 99.27,88.80 99.27,63.20 77.10,76.00" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="121.44,101.60 99.27,88.80 99.27,63.20 121.44,76.00" fill="#7A2C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="121.44,127.20 143.61,114.40 143.61,88.80 121.44,101.60" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="121.44,101.60 143.61,88.80 143.61,63.20 121.44,76.00" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="165.78,101.60 143.61,88.80 143.61,63.20 165.78,76.00" fill="#7A2C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="165.78,101.60 187.95,88.80 165.78,76.00 143.61,88.80" fill="#D94F00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="143.61,114.40 165.78,101.60 165.78,76.00 143.61,88.80" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="143.61,63.20 165.78,50.40 143.61,37.60 121.44,50.40" fill="#D94F00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="121.44,76.00 143.61,63.20 143.61,37.60 121.44,50.40" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="187.95,88.80 210.12,76.00 187.95,63.20 165.78,76.00" fill="#D94F00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="165.78,101.60 187.95,88.80 187.95,63.20 165.78,76.00" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="210.12,101.60 187.95,88.80 187.95,63.20 210.12,76.00" fill="#7A2C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="165.78,50.40 187.95,37.60 165.78,24.80 143.61,37.60" fill="#D94F00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="143.61,63.20 165.78,50.40 165.78,24.80 143.61,37.60" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="187.95,37.60 210.12,24.80 187.95,12.00 165.78,24.80" fill="#D94F00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="165.78,50.40 187.95,37.60 187.95,12.00 165.78,24.80" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="210.12,24.80 232.29,12.00 210.12,-0.80 187.95,12.00" fill="#D94F00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="187.95,37.60 210.12,24.80 210.12,-0.80 187.95,12.00" fill="#A83C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  <polygon points="232.29,37.60 210.12,24.80 210.12,-0.80 232.29,12.00" fill="#7A2C00" stroke="#1C2024" stroke-width="0.5" stroke-linejoin="round"/>
+  </g>
+  <g font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, sans-serif">
+    <text x="580" y="305" font-size="112" font-weight="700" fill="#1C2024" letter-spacing="-3">voxelforge</text>
+    <text x="584" y="365" font-size="28" fill="#1C2024" opacity="0.72">Computational engineering for voxel-based additive manufacturing</text>
+  </g>
+  <g font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace">
+    <text x="584" y="425" font-size="20" fill="#6B7280" letter-spacing="0.6">.NET 9   ·   PicoGK   ·   LOX/CH4 regen cooling   ·   TPMS   ·   SA optimiser</text>
+  </g>
+  <line x1="85" y1="555" x2="1195" y2="555" stroke="#1C2024" stroke-opacity="0.12"/>
+  <text x="85" y="595" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="18" fill="#6B7280">github.com/poetac/voxelforge</text>
+  <rect x="1145" y="581" width="50" height="6" fill="#D94F00"/>
+</svg>

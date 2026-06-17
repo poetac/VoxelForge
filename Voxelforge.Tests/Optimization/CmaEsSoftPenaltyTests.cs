@@ -1,0 +1,131 @@
+// CmaEsSoftPenaltyTests — Phase 2 of #627 (tracked under #743). Pins
+// the CmaEsOptimizer.useSoftPenalty=true behavior:
+//   • Default (useSoftPenalty=false) → infeasible candidates still hit +∞ cliff
+//   • useSoftPenalty=true → infeasible candidates get finite soft-penalty score
+//   • Default behavior bit-identical to explicit useSoftPenalty=false (back-compat)
+
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using Voxelforge.Optimization;
+using Xunit;
+
+namespace Voxelforge.Tests.Optimization;
+
+public sealed class CmaEsSoftPenaltyTests
+{
+    /// <summary>
+    /// Synthetic IObjective that always returns one WALL_TEMP violation
+    /// (foundation default: AboveLimit). The +∞ score matches the
+    /// production gate convention. Magnitude varies with vector[0] so
+    /// the soft-penalty surface has a learnable gradient.
+    /// </summary>
+    private sealed class AlwaysInfeasibleObjective : IObjective
+    {
+        private readonly DesignVariableInfo[] _vars;
+
+        public AlwaysInfeasibleObjective(int dim)
+        {
+            _vars = new DesignVariableInfo[dim];
+            for (int i = 0; i < dim; i++)
+                _vars[i] = new DesignVariableInfo($"x{i}", 0.0, 1.0);
+        }
+
+        public int DimensionCount => _vars.Length;
+        public IReadOnlyList<DesignVariableInfo> Variables => _vars;
+
+        public EvaluationResult Evaluate(ReadOnlySpan<double> vector, CancellationToken ct = default)
+        {
+            // WALL_TEMP is AboveLimit (foundation default). The breach
+            // magnitude is vector[0] * 100 — small vector[0] = small breach.
+            var violation = new FeasibilityViolation(
+                ConstraintId: "WALL_TEMP",
+                Description:  "synthetic test violation",
+                ActualValue:  1100.0 + vector[0] * 100.0,
+                Limit:        1100.0);
+            return new EvaluationResult(
+                double.PositiveInfinity,
+                new[] { violation },
+                null);
+        }
+    }
+
+    [Fact]
+    public void Default_NoSoftPenalty_BestScoreStaysInfinity()
+    {
+        // Without useSoftPenalty, every candidate is +∞; BestScore stays +∞.
+        var obj = new AlwaysInfeasibleObjective(dim: 2);
+        var opt = new CmaEsOptimizer(
+            objective:      obj,
+            initialMean:    new[] { 0.5, 0.5 },
+            initialSigma:   0.1,
+            maxGenerations: 5,
+            seed:           42);
+        var result = opt.Run();
+        Assert.True(double.IsPositiveInfinity(result.BestScore));
+    }
+
+    [Fact]
+    public void UseSoftPenalty_True_ProducesFiniteScore()
+    {
+        // With useSoftPenalty=true, the +∞ cliff is replaced by a smooth
+        // penalty; the optimizer sees finite values for every candidate.
+        var obj = new AlwaysInfeasibleObjective(dim: 2);
+        var opt = new CmaEsOptimizer(
+            objective:      obj,
+            initialMean:    new[] { 0.5, 0.5 },
+            initialSigma:   0.1,
+            maxGenerations: 5,
+            seed:           42,
+            useSoftPenalty: true);
+        var result = opt.Run();
+        Assert.True(double.IsFinite(result.BestScore));
+        Assert.True(result.BestScore > 0.0,
+            "Soft penalty should be strictly positive on infeasible candidates");
+    }
+
+    [Fact]
+    public void Default_BitIdenticalTo_ExplicitFalse()
+    {
+        // Back-compat: useSoftPenalty defaults to false. Two runs with the
+        // same seed and no soft-penalty enable must produce bit-identical results.
+        var opt1 = new CmaEsOptimizer(
+            objective:      new AlwaysInfeasibleObjective(dim: 2),
+            initialMean:    new[] { 0.5, 0.5 },
+            initialSigma:   0.1,
+            maxGenerations: 3,
+            seed:           42);
+        var r1 = opt1.Run();
+
+        var opt2 = new CmaEsOptimizer(
+            objective:      new AlwaysInfeasibleObjective(dim: 2),
+            initialMean:    new[] { 0.5, 0.5 },
+            initialSigma:   0.1,
+            maxGenerations: 3,
+            seed:           42,
+            useSoftPenalty: false);
+        var r2 = opt2.Run();
+
+        Assert.Equal(r1.BestScore, r2.BestScore);
+        Assert.Equal(r1.BestParams, r2.BestParams);
+        Assert.Equal(r1.TotalEvaluations, r2.TotalEvaluations);
+    }
+
+    [Fact]
+    public void UseSoftPenalty_True_BoundedNearSinglePenaltyScale()
+    {
+        // Single-violation candidate's penalty is bounded by tanh(∞) · scale = 1.0 · 1e6.
+        // After multiple candidates, BestScore = minimum penalty seen ≤ 1.0 * 1e6.
+        var opt = new CmaEsOptimizer(
+            objective:      new AlwaysInfeasibleObjective(dim: 1),
+            initialMean:    new[] { 0.5 },
+            initialSigma:   0.1,
+            maxGenerations: 3,
+            seed:           42,
+            useSoftPenalty: true);
+        var result = opt.Run();
+        Assert.True(result.BestScore > 0.0);
+        Assert.True(result.BestScore <= SoftPenalty.PenaltyScale,
+            $"BestScore {result.BestScore} should be ≤ PenaltyScale {SoftPenalty.PenaltyScale} for a single-violation candidate");
+    }
+}

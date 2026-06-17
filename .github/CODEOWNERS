@@ -1,0 +1,29 @@
+# CODEOWNERS — voxelforge
+#
+# Syntax: <pattern> <@user1> <@user2> ...
+# Rightmost match wins. These are *review* owners, not exclusive editors.
+#
+# Default: repo owner reviews anything without a more specific match.
+*                                                           @poetac
+
+# Hotspot files — monolithic and touched by multiple features.
+/Voxelforge/UI/RegenChamberForm.cs                          @poetac
+/Voxelforge/UI/RegenChamberForm.ResultsDisplay.cs           @poetac
+/Voxelforge/Program.cs                                      @poetac
+/Voxelforge.Core/Optimization/RegenChamberOptimization.cs   @poetac
+/Voxelforge.Voxels/Geometry/ChamberVoxelBuilder.cs          @poetac
+
+# Design record — SA variables are now attribute-driven (ADR-010 resolved).
+/Voxelforge.Core/Optimization/RegenChamberDesign.cs         @poetac
+
+# Feasibility gates — additive only, but reviewed to keep gate discipline.
+/Voxelforge.Core/Optimization/FeasibilityGate.cs            @poetac
+
+# Architecture Decision Records — historical record, reviewed carefully.
+/Voxelforge/docs/ADR/                                       @poetac
+
+# Build & CI config.
+/voxelforge.sln                                             @poetac
+/.github/                                                   @poetac
+/CLAUDE.md                                                  @poetac
+/CONTRIBUTING.md                                            @poetac

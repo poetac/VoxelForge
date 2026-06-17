@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- Pure CLI subprocess: no WinForms, no PicoGK, no project ref to App.
+         Renders happen by invoking Blender via Process.Start. The C# code
+         only orchestrates: arg parsing, Blender discovery, subprocess
+         invoke, exit-code propagation. -->
+    <TargetFramework>net9.0</TargetFramework>
+    <!-- Nullable + ImplicitUsings live in Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge.Renderer</RootNamespace>
+    <AssemblyName>voxelforge-render</AssemblyName>
+    <!-- Mirrors StlExporter / Eval pattern: copy the exe + assets into the
+         main App's bin directory so the App can find them alongside itself
+         without bespoke path logic. -->
+    <OutDir>..\Voxelforge\bin\$(Configuration)\net9.0-windows\</OutDir>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Ship the Blender Python script + material specs alongside the exe.
+         CopyToOutputDirectory: PreserveNewest so editing them doesn't force
+         a full rebuild. -->
+    <Content Include="templates\render.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- Per-design render preset configs (Team V Wave 1, 2026-05-05). -->
+    <Content Include="Presets\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- HDRi assets placeholder; actual .exr files are gitignored and
+         fetched by tools/fetch-hdri.ps1 — see Sprint V.1. -->
+    <Content Include="Assets\Hdri\.gitkeep">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Magick.NET for animated orbit GIF composition (OrbitRig.cs).
+         Q8 = 8-bit-per-channel; sufficient for GIF indexed-palette.
+         Apache 2.0 — same version as Voxelforge.Benchmarks. -->
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge.Tests" />
+  </ItemGroup>
+
+</Project>

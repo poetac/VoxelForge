@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Voxelforge.ElectricPropulsion.Core — headless physics for the
+       electric-propulsion pillar (resistojet today; HET / MPD / ion /
+       arcjet deferred to Wave-2 per ADR-026 §6).
+
+       Sibling to Voxelforge.Core and Voxelforge.Airbreathing.Core.
+       Parallel-pillar architecture, Step 1.5 (Wave-1). The shared
+       optimization framework (IObjective,
+       MultiChainOptimizer, DesignVariableInfo, EngineObjectiveAdapter) is
+       reused via a Voxelforge.Core reference; nothing in Core changes.
+
+       Cross-pillar import discipline (ADR-026 §7): this assembly MUST NOT
+       import from Voxelforge.Combustion / FeedSystem / Injector / Turbopump /
+       Airbreathing. Allowed shared infra: Voxelforge.Engines (interfaces),
+       Voxelforge.Optimization, Voxelforge.Geometry.LpbfAnalysis,
+       Voxelforge.Voxels. Manual grep enforced per PR until VFA001 ships
+       (ADR-026 §8). -->
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <!-- Nullable + ImplicitUsings + TreatWarningsAsErrors live in
+         Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge.ElectricPropulsion</RootNamespace>
+    <AssemblyName>Voxelforge.ElectricPropulsion.Core</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge.ElectricPropulsion.Tests" />
+    <InternalsVisibleTo Include="Voxelforge.ElectricPropulsion.Voxels" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Voxelforge.Core hosts the engine-family-agnostic optimizer
+         framework (IObjective, DesignVariableInfo, MultiChainOptimizer,
+         FeasibilityViolation, EngineObjectiveAdapter, IEngine<,,>). The
+         electric-propulsion pillar consumes those.
+
+         ExcludeAssets="analyzers": Voxelforge.Core's csproj loads
+         Voxelforge.Generators (DesignVariableBinderGenerator) +
+         Voxelforge.Analyzers (DeterministicAnalyzer) as analyzers for
+         its own compilation. By default those analyzers propagate
+         transitively to direct consumers. The DesignVariableBinder
+         source generator emits a partial type that conflicts with the
+         imported type from Voxelforge.Core's DLL when there are zero
+         [SaDesignVariable] properties in the current compilation. The
+         electric-propulsion pillar uses no [SaDesignVariable] attributes
+         (it has its own hand-rolled DesignVariableInfo arrays in
+         ResistojetObjective per Sprint E.4), matching the airbreathing
+         precedent. -->
+    <ProjectReference Include="..\Voxelforge.Core\Voxelforge.Core.csproj"
+                      ExcludeAssets="analyzers" />
+    <!-- VFA001 + VFA002 family-purity guards. The Core reference above
+         blocks all analyzer transit to keep the DesignVariableBinder source
+         generator from emitting into a consumer that has no
+         [SaDesignVariable] properties. The pillar-discipline analyzers live
+         in the same Voxelforge.Analyzers assembly but are independent of the
+         source generator, so we import them here directly. Matches the
+         airbreathing precedent. -->
+    <ProjectReference Include="..\Voxelforge.Analyzers\Voxelforge.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

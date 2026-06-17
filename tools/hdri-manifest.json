@@ -1,0 +1,20 @@
+{
+  "_comment": "SHA-256 content hashes for HDRi assets fetched by tools/fetch-hdri.ps1. Pinned to detect CDN/MITM/upstream-account-takeover swaps. To re-pin after a deliberate asset refresh: download once, compute Get-FileHash <file> -Algorithm SHA256, update the value here, commit. All assets sourced from Polyhaven (CC0) at 1K resolution.",
+  "source": "https://polyhaven.com",
+  "resolution": "1k",
+  "format": "exr",
+  "assets": {
+    "studio_small.exr": {
+      "slug": "studio_small_01",
+      "sha256": "9707671c4932a19d84010cbdc365ea36374c3cdf57b219aa45554df972d5b208"
+    },
+    "white_room.exr": {
+      "slug": "photo_studio_loft_hall",
+      "sha256": "ae706a5f618ac2c19026760b9eb5d96c53953ba7d2badb5a70ee309877132168"
+    },
+    "outdoor.exr": {
+      "slug": "kloofendal_48d_partly_cloudy_puresky",
+      "sha256": "e56328a09baa9c2569e9ab5d91234fc39e91fb2c4b36d27e190c9c3c4f2b26ad"
+    }
+  }
+}

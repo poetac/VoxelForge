@@ -1,0 +1,12 @@
+{
+  "name": "rocket-pressure-fed-small",
+  "description": "Small pressure-fed thruster, stainless steel construction",
+  "pillar": "rocket",
+  "camera_azimuth_deg": 30,
+  "camera_elevation_deg": 20,
+  "hdri_name": "white_room",
+  "material": "stainless",
+  "resolution": "high",
+  "frames": 60,
+  "frame_delay_ms": 33
+}

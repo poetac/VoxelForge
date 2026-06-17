@@ -1,0 +1,48 @@
+name: Contract Checks (B3)
+
+# Lightweight contract checks that run on every PR:
+#   • schema-bump check — fail if DesignPersistence.cs changed without
+#     bumping CurrentSchemaVersion (forcing function for migration discipline)
+#   • gate-census check — fail if FeasibilityGate.cs added a new
+#     ConstraintId without updating ADR-009 + GATES.md (forcing function
+#     for ADR-009 §discipline)
+#
+# Both checks compare HEAD against the PR base branch. Branch protection
+# is unavailable on this free-private repo (audit-prep C1) so failures
+# are informational, not gating — but the check still runs and reports.
+
+on:
+  pull_request:
+    branches: [main]
+
+# Least-privilege token scope (audit 04-supply-chain via #664). The
+# checks run read-only diffs against the PR base; no write needed.
+permissions:
+  contents: read
+
+jobs:
+  contract-checks:
+    # Fork-PR guard: self-hosted runners must not execute untrusted fork code.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
+    timeout-minutes: 5
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout (full history for diff)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          # Need history back to merge-base so git diff origin/main works.
+          fetch-depth: 0
+
+      - name: Make scripts executable
+        run: chmod +x .github/scripts/check-*.sh
+
+      - name: Schema-bump check
+        run: .github/scripts/check-schema-bump.sh origin/${{ github.base_ref }}
+
+      - name: Gate-census check
+        run: .github/scripts/check-gate-census.sh origin/${{ github.base_ref }}

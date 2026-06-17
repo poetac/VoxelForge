@@ -1,0 +1,12 @@
+{
+  "name": "rocket-pintle",
+  "description": "Pintle injector pressure-fed chamber, copper with inconel injector face",
+  "pillar": "rocket",
+  "camera_azimuth_deg": 30,
+  "camera_elevation_deg": 15,
+  "hdri_name": "white_room",
+  "material": "copper",
+  "resolution": "high",
+  "frames": 60,
+  "frame_delay_ms": 33
+}

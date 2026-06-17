@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Nullable + ImplicitUsings live in Directory.Build.props (T1, 2026-04-28). -->
+    <RootNamespace>Voxelforge</RootNamespace>
+    <AssemblyName>Voxelforge</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PicoGK" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Voxelforge.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Voxelforge.Core\Voxelforge.Core.csproj" />
+    <ProjectReference Include="..\Voxelforge.Voxels\Voxelforge.Voxels.csproj" />
+    <!-- Air-breathing pillar (Phase 0: ramjet voxel preview). ExcludeAssets
+         prevents the DesignVariableBinder source generator from running a
+         second time on this project (it already runs via Voxelforge.Core). -->
+    <ProjectReference Include="..\Voxelforge.Airbreathing.Core\Voxelforge.Airbreathing.Core.csproj"
+                      ExcludeAssets="analyzers" />
+    <ProjectReference Include="..\Voxelforge.Airbreathing.Voxels\Voxelforge.Airbreathing.Voxels.csproj"
+                      ExcludeAssets="analyzers" />
+    <!-- Electric-propulsion pillar (issue #441 — Wave-1 WinForms UI + voxel preview).
+         EP.Voxels referenced for live in-app voxel preview of the resistojet shell. -->
+    <ProjectReference Include="..\Voxelforge.ElectricPropulsion.Core\Voxelforge.ElectricPropulsion.Core.csproj"
+                      ExcludeAssets="analyzers" />
+    <ProjectReference Include="..\Voxelforge.ElectricPropulsion.Voxels\Voxelforge.ElectricPropulsion.Voxels.csproj"
+                      ExcludeAssets="analyzers" />
+    <!-- Marine pillar (issue #441 — Wave-2 WinForms UI + voxel preview).
+         Marine.Voxels is referenced for live in-app voxel preview of AUV
+         displacement hulls. -->
+    <ProjectReference Include="..\Voxelforge.Marine.Core\Voxelforge.Marine.Core.csproj"
+                      ExcludeAssets="analyzers" />
+    <ProjectReference Include="..\Voxelforge.Marine.Voxels\Voxelforge.Marine.Voxels.csproj"
+                      ExcludeAssets="analyzers" />
+  </ItemGroup>
+
+  <!-- Avalonia UI library — Phase 1 ADR-027 electric-propulsion proof-of-concept.
+       ExcludeAssets="analyzers" follows the same pattern as the other pillar refs. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Voxelforge.Avalonia\Voxelforge.Avalonia.csproj"
+                      ExcludeAssets="analyzers" />
+  </ItemGroup>
+
+  <!-- Issue #209 / ADR-020: consume the [Deterministic] analyzer. Required
+       here because RegenChamberOptimization.GenerateWith lives in this
+       project. Each project that uses [Deterministic] needs its own
+       analyzer wiring (Roslyn analyzers run per-compilation). -->
+  <ItemGroup>
+    <ProjectReference Include="..\Voxelforge.Analyzers\Voxelforge.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>
