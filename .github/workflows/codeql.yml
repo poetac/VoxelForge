@@ -44,9 +44,13 @@ concurrency:
 jobs:
   analyze:
     name: Analyze (csharp)
-    # GitHub-hosted ubuntu-latest: billing issue (#673) is resolved;
-    # reverting from the temporary self-hosted workaround. CodeQL's
-    # csharp extractor is best supported on GitHub-hosted Linux runners.
+    # GitHub-hosted ubuntu-latest. The solution mixes cross-platform
+    # cores with Windows-only projects (net9.0-windows, WinForms, PicoGK
+    # native), so `dotnet build voxelforge.sln` cannot run on Linux.
+    # CodeQL therefore uses `build-mode: none` — the C# extractor reads
+    # source directly with no compilation, keeping the scan on the
+    # GitHub-hosted runners (free minutes on a public repo) and fully
+    # independent of the self-hosted Windows CI fleet.
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -54,31 +58,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
 
-      # Setup .NET before Initialize CodeQL so the SDK is on PATH
-      # when CodeQL's build tracer starts — required on Windows
-      # self-hosted runners where autobuild cannot reliably detect
-      # the dotnet executable.
-      - name: Setup .NET 9
-        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9  # v4.3.1
-        with:
-          dotnet-version: 9.0.x
-
       - name: Initialize CodeQL
         uses: github/codeql-action/init@03e4368ac7daa2bd82b3e85262f3bf87ee112f57  # v3.36.0
         with:
           languages: csharp
+          # No-build analysis: the Windows-only projects can't compile on
+          # Linux, and build-mode none extracts C# straight from source.
+          build-mode: none
           # `security-and-quality` adds the quality queries on top of
           # the default security ones — catches a wider class of
           # findings (e.g., locale-sensitive string compares the
           # repo's CA1310 rule already polices) at marginal extra
           # analysis cost.
           queries: security-and-quality
-
-      - name: Restore
-        run: dotnet restore voxelforge.sln
-
-      - name: Build
-        run: dotnet build voxelforge.sln --no-restore --configuration Release
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@03e4368ac7daa2bd82b3e85262f3bf87ee112f57  # v3.36.0
