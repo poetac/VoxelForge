@@ -10,7 +10,7 @@ Every `EpsilonFraction` field on a fixture's `Tolerances` block carries an inlin
 
 - **Which physics is not modelled** that limits the prediction (e.g. shifting-equilibrium combustion, 2-D throat compressibility, real-geometry manufacturing tolerances).
 - **The cluster-anchor source** the value came from (datasheet, NASA / NIST table, textbook section).
-- **Cross-link to [ADR-036](../../../Voxelforge/docs/ADR/ADR-036-validation-tolerance-ladder.md)** — the canonical tolerance ladder. Per-fixture bands must agree with the ladder's pillar × variant × quantity entry; mismatch is a bug.
+- **Cross-link to [ADR-036](../../Voxelforge/docs/ADR/ADR-036-validation-tolerance-ladder.md)** — the canonical tolerance ladder. Per-fixture bands must agree with the ladder's pillar × variant × quantity entry; mismatch is a bug.
 
 ### Example (canonical form)
 
@@ -41,7 +41,7 @@ GroundTruth: new PublishedGroundTruth(
 
 - **No rationale.** "0.15" without a comment means a future contributor doesn't know whether they can tighten or whether the band already absorbs a known modelling gap. CI accepts a widened band silently — VFA / CA analyzers can't catch this.
 - **Generic rationale.** "Wide because voxelforge is preliminary-design" is correct but too broad. Pin the SPECIFIC modelling gap (shifting-equilibrium combustion, finite-rate chemistry, regen-side heat-pickup uncertainty, etc.) so the next reader knows which physics layer to look at when tightening.
-- **Mismatch with [ADR-036](../../../Voxelforge/docs/ADR/ADR-036-validation-tolerance-ladder.md).** If the per-fixture band disagrees with the ladder's pillar × variant × quantity row, ADR-036 wins; fix the fixture.
+- **Mismatch with [ADR-036](../../Voxelforge/docs/ADR/ADR-036-validation-tolerance-ladder.md).** If the per-fixture band disagrees with the ladder's pillar × variant × quantity row, ADR-036 wins; fix the fixture.
 
 ## Coverage status (2026-05-17)
 
@@ -61,7 +61,7 @@ When a pillar's coverage completes, drop its row from "Pending" + add a line in 
 
 ## See also
 
-- [ADR-036](../../../Voxelforge/docs/ADR/ADR-036-validation-tolerance-ladder.md) — canonical tolerance ladder (pillar × variant × quantity)
+- [ADR-036](../../Voxelforge/docs/ADR/ADR-036-validation-tolerance-ladder.md) — canonical tolerance ladder (pillar × variant × quantity)
 - [#638](https://github.com/poetac/voxelforge/issues/638) — original "add per-fixture justification" issue
 - [#630](https://github.com/poetac/voxelforge/issues/630) — future conformance test that parses ADR-036 + cross-checks the per-fixture bands
-- [`physics-cascade-status.md`](../../../Voxelforge/docs/physics-cascade-status.md) — known physics gaps; explains why some bands are wide
+- [`physics-cascade-status.md`](../../Voxelforge/docs/physics-cascade-status.md) — known physics gaps; explains why some bands are wide

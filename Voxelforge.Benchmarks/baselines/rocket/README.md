@@ -8,7 +8,7 @@ the `BENCH_MEDIAN` summary block is grep-able without re-parsing the
 JSON.
 
 **Schema:** all records under this directory follow JSONL schema v1
-per [ADR-013](../../Voxelforge/docs/ADR/ADR-013-benchmark-jsonl-schema.md).
+per [ADR-013](../../../Voxelforge/docs/ADR/ADR-013-benchmark-jsonl-schema.md).
 Every record carries a 6-field provenance prefix (`schema_version`,
 `machine_id`, `git_sha`, `bench_name`, `build_config`, `timestamp`)
 followed by the per-bench payload. `BenchmarkJsonSchemaTests` in the
