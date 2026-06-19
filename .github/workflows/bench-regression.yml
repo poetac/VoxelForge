@@ -132,23 +132,24 @@ jobs:
             DIFF_OUT=$(cat "current/bench-diff-${PRESET}.txt")
           fi
           MARKER="<!-- bench-regression-bot-${PRESET} -->"
-          BODY="${MARKER}
-## ⚠ Bench regression: \`${PRESET}\` (commit \`${SHA7}\`)
-
-The SA physics fingerprint for \`${PRESET}\` drifted > 5% from its committed baseline.
-
-<details><summary>Diff output</summary>
-
-\`\`\`
-${DIFF_OUT}
-\`\`\`
-
-</details>
-
-**To acknowledge a deliberate physics change:** reply \`/acknowledge-regression ${PRESET}\` in this thread, then merge.
-**To investigate:** run \`gh workflow run bench-regression.yml\` locally after your fix.
-
-_Updated: $(date -u +%Y-%m-%dT%H:%M:%SZ)_"
+          BODY=$(printf '%s\n' \
+            "${MARKER}" \
+            "## ⚠ Bench regression: \`${PRESET}\` (commit \`${SHA7}\`)" \
+            "" \
+            "The SA physics fingerprint for \`${PRESET}\` drifted > 5% from its committed baseline." \
+            "" \
+            "<details><summary>Diff output</summary>" \
+            "" \
+            "\`\`\`" \
+            "${DIFF_OUT}" \
+            "\`\`\`" \
+            "" \
+            "</details>" \
+            "" \
+            "**To acknowledge a deliberate physics change:** reply \`/acknowledge-regression ${PRESET}\` in this thread, then merge." \
+            "**To investigate:** run \`gh workflow run bench-regression.yml\` locally after your fix." \
+            "" \
+            "_Updated: $(date -u +%Y-%m-%dT%H:%M:%SZ)_")
           EXISTING=$(gh api "repos/${REPO}/issues/${PR_NUM}/comments" \
             --jq "[.[] | select(.body | startswith(\"${MARKER}\"))] | last | .id // empty")
           if [ -n "$EXISTING" ]; then
@@ -254,23 +255,24 @@ _Updated: $(date -u +%Y-%m-%dT%H:%M:%SZ)_"
             DIFF_OUT=$(cat "current/bench-diff-airbreathing-${PRESET}.txt")
           fi
           MARKER="<!-- bench-regression-bot-airbreathing-${PRESET} -->"
-          BODY="${MARKER}
-## ⚠ Bench regression: \`airbreathing / ${PRESET}\` (commit \`${SHA7}\`)
-
-The SA physics fingerprint for \`${PRESET}\` (air-breathing pillar) drifted > 5% from its committed baseline.
-
-<details><summary>Diff output</summary>
-
-\`\`\`
-${DIFF_OUT}
-\`\`\`
-
-</details>
-
-**To acknowledge a deliberate physics change:** reply \`/acknowledge-regression airbreathing-${PRESET}\` in this thread, then merge.
-**To investigate:** run \`gh workflow run bench-regression.yml\` locally after your fix.
-
-_Updated: $(date -u +%Y-%m-%dT%H:%M:%SZ)_"
+          BODY=$(printf '%s\n' \
+            "${MARKER}" \
+            "## ⚠ Bench regression: \`airbreathing / ${PRESET}\` (commit \`${SHA7}\`)" \
+            "" \
+            "The SA physics fingerprint for \`${PRESET}\` (air-breathing pillar) drifted > 5% from its committed baseline." \
+            "" \
+            "<details><summary>Diff output</summary>" \
+            "" \
+            "\`\`\`" \
+            "${DIFF_OUT}" \
+            "\`\`\`" \
+            "" \
+            "</details>" \
+            "" \
+            "**To acknowledge a deliberate physics change:** reply \`/acknowledge-regression airbreathing-${PRESET}\` in this thread, then merge." \
+            "**To investigate:** run \`gh workflow run bench-regression.yml\` locally after your fix." \
+            "" \
+            "_Updated: $(date -u +%Y-%m-%dT%H:%M:%SZ)_")
           EXISTING=$(gh api "repos/${REPO}/issues/${PR_NUM}/comments" \
             --jq "[.[] | select(.body | startswith(\"${MARKER}\"))] | last | .id // empty")
           if [ -n "$EXISTING" ]; then
