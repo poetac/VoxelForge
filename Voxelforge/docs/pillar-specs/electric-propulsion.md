@@ -311,7 +311,7 @@ without gating optimization. All gates evaluate inside
 | 10 | `RESISTOJET_FROZEN_FLOW_LOSS_EXCESSIVE` | EmpiricalBand       | `T_chamber > 2500 K` with N or H species present — recombination suppressed in sub-mm-throat residence time, 5–15 % Isp loss. | NASA TM-2002-211314 §4 (frozen-flow loss anchors). |
 
 **Severity discipline:** the line between Hard and Advisory follows
-[ADR-009 (rocket-side gate doctrine)](ADR-009-feasibility-gates.md):
+[ADR-009 (rocket-side gate doctrine)](../ADR/ADR-009-feasibility-gates.md):
 exceeding a Hard threshold makes the model output non-meaningful (e.g.
 the heater literally melts; the gas literally dissociates into species
 the solver can't handle). Advisory thresholds flag a region where the

@@ -74,8 +74,11 @@ bench workflows can run in parallel on the runner pair.
 - #651–#657 + #831 each need only a `uses:` line + their specific inputs.
 - A long-running bench that overruns its cron slot will block the next day's
   queued run until the runner is free. Mitigated by per-job `timeout-minutes`.
-- `bench-command` is injected into a `run:` step via `${{ inputs.bench-command }}`;
-  safe in this private repo where callers are workflow files, not runtime user input.
+- `bench-command` is injected into a `run:` step via `${{ inputs.bench-command }}`.
+  Callers are committed workflow files (not runtime user input), and the consuming
+  workflows trigger only on `schedule` / `workflow_dispatch` (repo-write required),
+  so the interpolation is not reachable by untrusted fork input. Keep it
+  trusted-input-only — never wire `pull_request`-supplied values into it.
 
 ## Cross-links
 

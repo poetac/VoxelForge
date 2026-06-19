@@ -175,10 +175,9 @@ intentionally kept out of the SA vector:
 ## SA Solve latency budgets (per ResourceMode)
 
 Wall-clock budgets for `MultiChainOptimizer.Run` on representative
-designs, by `ResourceMode` preset. Issue [#636](https://github.com/poetac/voxelforge/issues/636)
-filled these so future Performance P21 (parallel per-station wall-T
-cooling solve, [#642](https://github.com/poetac/voxelforge/issues/642))
-has a decision criterion — "is the solver too slow?" finally has a
+designs, by `ResourceMode` preset. These budgets were measured so
+future Performance P21 (parallel per-station wall-T cooling solve) has
+a decision criterion — "is the solver too slow?" finally has a
 numerical answer.
 
 Method: measured locally with `--bench-sa --design-preset merlin
@@ -198,7 +197,7 @@ the *physics* fingerprint; this layer pins the *wall-clock* envelope.
 The Balanced budget is intentionally above Quiet because synthetic
 benchmarks at 300 iters don't recoup the multi-chain coordination
 overhead — that flips once SA iterations climb to 1 000 +, where the
-parallelism pays off. The placeholder values in [#636](https://github.com/poetac/voxelforge/issues/636)
+parallelism pays off. Earlier placeholder values
 (300 / 500 / 800 ms) were optimistic; the actual ceiling under load
 is closer to the table above.
 

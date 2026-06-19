@@ -100,8 +100,8 @@ Two artifacts:
    Triggers on PR (paths-filtered to source projects) + nightly +
    manual dispatch.
 
-**Branch protection note:** since rulesets / branch-protection are
-unavailable on this free-private repo (audit-prep decision C1), a
+**Branch protection note:** since branch-protection rulesets are
+not configured (audit-prep decision C1), a
 workflow FAIL is INFORMATIONAL — it does NOT block merge. The maintainer can
 choose whether to merge despite drift; the workflow's purpose is to
 surface drift, not to gate it.

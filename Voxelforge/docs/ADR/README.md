@@ -5,6 +5,10 @@ This folder captures the load-bearing architectural decisions behind
 alternatives / consequences / status) so a future reader can understand the
 *why* without excavating sprint notes.
 
+> **Note:** `#NNN` and `PR #NNN` references in these ADRs point to issues and
+> pull requests in voxelforge's original development tracker and may not
+> resolve in this repository.
+
 ## Index
 
 | ID | Title | Status | One-line summary |

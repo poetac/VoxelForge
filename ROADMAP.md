@@ -6,7 +6,7 @@ Items scoped as 1–3 day sprints at single-dev cadence unless noted. Shippable-
 
 ## Strategic framing
 
-The project pursued **Framing B (multi-physics breadth + depth)** through May 2026 — polish + depth on the existing pillar catalogue (6 production pillars + 22 Wave-1 internal pillars), no new pillars until the catalogue was hardened. All three phases — Phase 1 (stabilize), Phase 2 (depth/polish), Phase 3 (coverage backfill) — are complete (see the Done section below).
+The project pursued **Framing B (multi-physics breadth + depth)** through May 2026 — polish + depth on the existing pillar catalogue (5 production pillars + 22 Wave-1 internal pillars), no new pillars until the catalogue was hardened. All three phases — Phase 1 (stabilize), Phase 2 (depth/polish), Phase 3 (coverage backfill) — are complete (see the Done section below).
 
 With framing-B closed, the project is in a **deliberate pause**: the immediate work is the public release (security hardening + doc trim, then the v0.1.0 tag), after which development is demand-driven rather than committed to a new multi-month track.
 

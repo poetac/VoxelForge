@@ -736,4 +736,4 @@ don't re-litigate them.
 
 ## Cross-references
 
-- [`ADR-018-feasibility-audit-2026-04-26.md`](ADR/ADR-018-feasibility-audit-2026-04-26.md) — feasibility-audit cascade verdict.
+- ADR-018 (feasibility-audit cascade verdict) — superseded and removed; see the ADR index for the removal note.

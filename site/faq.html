@@ -70,10 +70,10 @@
     </div>
 
     <div class="qa"><h3>Why does my test crash on dispose?</h3>
-      <p>This was a known issue under PicoGK 1.7.7.5 (documented in ADR-005, now retired). Under PicoGK 2.0.0, in-process xUnit works correctly via the <code>LibraryScope</code> ambient helper: <code>using var lib = new Library(vox_mm); using var libScope = LibraryScope.Set(lib);</code> then call into builders normally. Subprocess tests are now reserved for three specific cases only: CLI-surface tests (<code>voxelforge-eval</code>), cross-process determinism (<code>BenchSADeterminismTests</code>), and cross-platform test projects.</p>
+      <p>This was a known issue under PicoGK 1.7.7.5 (documented in ADR-005, now retired). Under PicoGK 2.2.0, in-process xUnit works correctly via the <code>LibraryScope</code> ambient helper: <code>using var lib = new Library(vox_mm); using var libScope = LibraryScope.Set(lib);</code> then call into builders normally. Subprocess tests are now reserved for three specific cases only: CLI-surface tests (<code>voxelforge-eval</code>), cross-process determinism (<code>BenchSADeterminismTests</code>), and cross-platform test projects.</p>
     </div>
 
-    <div class="qa"><h3>Why pin PicoGK to 2.0.0?</h3>
+    <div class="qa"><h3>Why pin PicoGK to 2.2.0?</h3>
       <p>Voxel-engine output is sensitive to kernel-internal numerics. Floating an unpinned PicoGK breaks reproducibility receipts on every patch release. ADR-011 fixes the version; bumps are tracked as deliberate cascade events with full baseline rebake.</p>
     </div>
 
@@ -95,7 +95,7 @@
     </div>
 
     <div class="qa"><h3>How big is the codebase?</h3>
-      <p>Roughly 3,250+ tests across 25 projects spanning 5 pillars (rocket · air-breathing · electric propulsion · marine · CFD verification), 22 active ADRs (most recent: ADR-025 <code>IEngine&lt;,,&gt;</code> engine-family abstraction, ADR-026 multi-pillar coordination, ADR-027 Avalonia + PicoGK threading spike). <code>.Core</code> holds the headless physics (no PicoGK dependency); <code>.Voxels</code> contains the 19 voxel builders behind <code>IVoxelHandle</code>; <code>.Eval</code> ships the <code>voxelforge-eval</code> subprocess oracle for Python / Julia / R consumers.</p>
+      <p>Roughly 5,700+ tests across 25+ projects spanning the 5 physics pillars (rocket · air-breathing · electric propulsion · marine · nuclear) plus an SU2 CFD-verification harness, with 40+ active ADRs (most recent: ADR-045 scheduled-workflow infrastructure). <code>.Core</code> holds the headless physics (no PicoGK dependency); <code>.Voxels</code> contains the 19 voxel builders behind <code>IVoxelHandle</code>; <code>.Eval</code> ships the <code>voxelforge-eval</code> subprocess oracle for Python / Julia / R consumers.</p>
     </div>
   </div>
 

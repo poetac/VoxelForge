@@ -35,7 +35,7 @@ dotnet run    --project Voxelforge
 6. **CHANGELOG.md entry** for production-code changes (anything under `Voxelforge*/` outside test projects and per-project `docs/`). The [`changelog-check`](.github/workflows/changelog-check.yml) workflow posts a sticky PR comment when the entry is missing; non-blocking on this free-tier repo, but address before merge. Apply the `skip-changelog` label for legitimate exemptions: reverts, hotfixes, infrastructure / tooling-only PRs. Follow the [Keep a Changelog](https://keepachangelog.com/) format for new entries.
 ## Claiming work via Issues
 
-**Canonical workflow (formalized 2026-05-17 via #623).** The next 3-7 ready-to-pick items at any moment live as [GitHub Issues](https://github.com/poetac/voxelforge/issues) tagged with `track:*` labels (e.g. `track:optimization-infra`, `track:physics-cascade`). The audit docs under `Voxelforge/docs/` remain the SSOT for *rationale*; issues are atomic claim tickets with three-line bodies that link back to the SSOT doc.
+**Canonical workflow (formalized 2026-05-17).** The next 3-7 ready-to-pick items at any moment live as [GitHub Issues](https://github.com/poetac/voxelforge/issues) tagged with `track:*` labels (e.g. `track:optimization-infra`, `track:physics-cascade`). The audit docs under `Voxelforge/docs/` remain the SSOT for *rationale*; issues are atomic claim tickets with three-line bodies that link back to the SSOT doc.
 
 **Protocol:**
 
@@ -79,7 +79,7 @@ These files are large, central, and touched by many features. Only one developer
 | `Voxelforge.Core/Optimization/RegenChamberOptimization.cs` | ~2,100 | Scoring + `GenerateWith` orchestrator; imports 9+ subsystems. `Bounds` / `Pack` / `Unpack` are one-line delegations to the registry + binder (ADR-010 / ADR-012). |
 | `Voxelforge.Voxels/Geometry/ChamberVoxelBuilder.cs` | ~1,560 | Sequential phase build; all chamber geometry collides here. Voxel boolean-op temporaries route through `BoolSubtractTemp` / `BoolAddTemp` extensions to avoid the OpenVDB-grid leak pattern. |
 | `Voxelforge.Core/Optimization/RegenChamberDesign.cs` | ~1,500 | SA design record — declares 29 of the 34 SA dimensions (the 5 injector dims 13–17 live on `InjectorPattern`). Each carries a `[SaDesignVariable(index, min, max, gate)]` attribute; adding a new dim is a one-line attribute annotation + a length-assertion bump (see `ADR-012-adding-an-sa-design-variable.md`). |
-| `Voxelforge.Core/Optimization/FeasibilityGate.cs` | ~700 | Rocket regen feasibility-gate evaluator. The legacy inline `Evaluate()` if-chain still coexists with the declarative `GateRegistry` (`RocketGates.cs`, ADR-019); completing the migration is tracked by [#629](https://github.com/poetac/voxelforge/issues/629). Gate IDs are hand-typed strings (no compile-time uniqueness — refactor candidate). |
+| `Voxelforge.Core/Optimization/FeasibilityGate.cs` | ~700 | Rocket regen feasibility-gate evaluator. The legacy inline `Evaluate()` if-chain still coexists with the declarative `GateRegistry` (`RocketGates.cs`, ADR-019); completing the migration is tracked as a follow-up. Gate IDs are hand-typed strings (no compile-time uniqueness — refactor candidate). |
 | `Voxelforge.Voxels/Geometry/MonolithicFeasibility.cs` | ~640 | Body-intersection + tube-vs-tube evaluator for the monolithic-engine pipeline. |
 | `Voxelforge.Voxels/Geometry/AerospikeBuilder.cs` | ~800 | `AerospikeSpec` → `AerospikeBuildResult`. `BuildPhysicsOnly` is the analytical-only entry; `Build` is the voxel path. |
 | `Voxelforge.Core/Optimization/DesignVariableBinder.cs` | ~380 | Reflection-based `Pack` / `Unpack` over `[SaDesignVariable]`-tagged properties. Caches `PropertyInfo` accessors. Source-generator replacement is on the optimization-infrastructure roadmap (T1.4). |
@@ -115,7 +115,7 @@ Longer body welcome when the "why" isn't obvious. Follow existing repo history s
 
 ## Code style
 
-- **No `TODO` / `FIXME` / `HACK` comments.** This repo has zero as of Sprint 0 — keep it that way. If you find a gap, open an ADR or a GitHub issue instead of leaving a comment rot. **The one allowed exception** (#623, 2026-05-17): `// TODO(#NNN): description` with a mandatory GitHub-issue reference. Naked `// TODO` / `// FIXME` / `// HACK` stay banned. Use the form sparingly — preferred patterns are still an issue + an ADR, or splitting the work out of the current PR.
+- **No `TODO` / `FIXME` / `HACK` comments.** This repo has zero as of Sprint 0 — keep it that way. If you find a gap, open an ADR or a GitHub issue instead of leaving a comment rot. **The one allowed exception** (per the 2026-05-17 code-style decision): `// TODO(#NNN): description` with a mandatory GitHub-issue reference. Naked `// TODO` / `// FIXME` / `// HACK` stay banned. Use the form sparingly — preferred patterns are still an issue + an ADR, or splitting the work out of the current PR.
 - **Don't add comments that restate what the code does.** Only comment *why* something non-obvious is true.
 - **Match the existing naming conventions.** `record` types are pervasive; use `x with { … }` for cloning (do not define `Clone()` — CS8859).
 - **Respect ADR-007:** `Smoothen(d)` must stay ≤ 25 % of the minimum feature thickness in the region.
@@ -252,7 +252,7 @@ that would queue all jobs simultaneously on the two-runner pair.
 One-shot parameter sweeps (e.g. "how does Isp vary with chamber pressure?")
 run via the `--sweep` CLI flag on `Voxelforge.Benchmarks` and the
 [`sweep-on-demand`](.github/workflows/sweep-on-demand.yml) `workflow_dispatch`
-workflow (#830). No session token spend required after the first run.
+workflow. No session token spend required after the first run.
 
 **Running locally:**
 
@@ -311,7 +311,7 @@ To acknowledge a deliberate physics change: reply `/acknowledge-regression merli
 ```
 
 The comment updates on each push (no duplicate spam). There is no automated
-branch-protection block (free-tier private repo, audit-prep C1) — a reviewer
+branch-protection block configured (audit-prep C1) — a reviewer
 must read the diff and decide.
 
 **Acknowledgment ceremony:**
@@ -336,7 +336,7 @@ dotnet run --project Voxelforge.Benchmarks -- --bench-sa-airbreathing --preset m
 ```
 
 Commit the new JSONL files in the same PR as the physics change so the
-nightly fingerprint workflow (#651) does not see a false regression overnight.
+nightly fingerprint workflow does not see a false regression overnight.
 
 ## Questions
 
