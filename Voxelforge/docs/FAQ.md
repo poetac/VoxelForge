@@ -157,7 +157,7 @@ One attribute. See [ADR-012](ADR/ADR-012-adding-an-sa-design-variable.md).
 
 **I want to add a new feasibility gate.**
 Pattern-match on an existing gate in
-[`FeasibilityGate.cs`](../Optimization/FeasibilityGate.cs). Gate IDs
+[`FeasibilityGate.cs`](../../Voxelforge.Core/Optimization/FeasibilityGate.cs). Gate IDs
 are stable strings; don't reuse. Add a row to [`GATES.md`](GATES.md)
 and a paragraph to [`ADR-009`](ADR/ADR-009-feasibility-gates.md).
 

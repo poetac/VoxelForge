@@ -20,7 +20,7 @@ wall T or ΔP as having at least those bands on it.
 
 **Citation:** Bartz, D.R. (1957). *A simple equation for rapid estimation of rocket nozzle convective heat transfer coefficients*. Jet Propulsion 27 (1), 49–51.
 
-**Source:** [`HeatTransfer/BartzHeatFlux.cs`](../HeatTransfer/BartzHeatFlux.cs).
+**Source:** [`HeatTransfer/BartzHeatFlux.cs`](../../Voxelforge.Core/HeatTransfer/BartzHeatFlux.cs).
 
 $$
 h_g = \frac{0.026}{D_t^{0.2}} \left(\frac{\mu^{0.2} C_p}{\Pr^{0.6}}\right)_0 \left(\frac{P_c}{C^*}\right)^{0.8} \left(\frac{D_t}{r_c}\right)^{0.1} \left(\frac{A_t}{A}\right)^{0.9} \sigma
@@ -91,7 +91,7 @@ transfer CFD run.
 
 ## Coolant-side heat transfer
 
-**Source:** [`HeatTransfer/CoolantCorrelations.cs`](../HeatTransfer/CoolantCorrelations.cs).
+**Source:** [`HeatTransfer/CoolantCorrelations.cs`](../../Voxelforge.Core/HeatTransfer/CoolantCorrelations.cs).
 
 Three correlations are available; the optimiser picks Sieder-Tate by
 default.
@@ -155,7 +155,7 @@ TPMS (see below).
 
 ## TPMS coolant correlations
 
-**Source:** [`HeatTransfer/TpmsCorrelations.cs`](../HeatTransfer/TpmsCorrelations.cs).
+**Source:** [`HeatTransfer/TpmsCorrelations.cs`](../../Voxelforge.Core/HeatTransfer/TpmsCorrelations.cs).
 
 TPMS (Triply Periodic Minimal Surface) lattices replace discrete
 channels with a continuous porous medium. voxelforge supports Schwarz-P,
@@ -170,7 +170,7 @@ thinner struts.
 
 ## Combustion stability <a id="combustion-stability"></a>
 
-**Source:** [`Combustion/Stability/`](../Combustion/Stability/).
+**Source:** [`Combustion/Stability/`](../../Voxelforge.Core/Combustion/Stability/).
 
 Three-mode screen: chug, buzz, screech.
 
@@ -186,7 +186,7 @@ penalised but not rejected.
 
 ## Injector sizing
 
-**Source:** [`Injector/`](../Injector/).
+**Source:** [`Injector/`](../../Voxelforge.Core/Injector/).
 
 Element types: coax, impinging-doublet (unlike and like), pintle,
 showerhead, swirl.
@@ -197,7 +197,7 @@ showerhead, swirl.
 
 ### Injector-face thermal
 
-**Source:** [`HeatTransfer/InjectorFaceThermal.cs`](../HeatTransfer/InjectorFaceThermal.cs) (regen) + [`HeatTransfer/AerospikeInjectorFaceThermal.cs`](../HeatTransfer/AerospikeInjectorFaceThermal.cs) (aerospike).
+**Source:** [`HeatTransfer/InjectorFaceThermal.cs`](../../Voxelforge.Core/HeatTransfer/InjectorFaceThermal.cs) (regen) + [`HeatTransfer/AerospikeInjectorFaceThermal.cs`](../../Voxelforge.Core/HeatTransfer/AerospikeInjectorFaceThermal.cs) (aerospike).
 
 Equilibrium model — Bartz-ish h_g on the combustion-gas side balanced
 against bore-scale Dittus-Boelter h_back on the bore-cooling side,
@@ -211,7 +211,7 @@ service limit, `INJECTOR_FACE_T_EXCEEDED` fires (regen) or
 
 **Citation:** hard-start threshold per Sutton *Rocket Propulsion Elements* 10th ed. §10.6.
 
-**Source:** [`Combustion/StartTransientSim.cs`](../Combustion/StartTransientSim.cs).
+**Source:** [`Combustion/StartTransientSim.cs`](../../Voxelforge.Core/Combustion/StartTransientSim.cs).
 
 0-D lumped simulator, explicit Euler integration:
 
@@ -227,7 +227,7 @@ Opt-in via `OperatingConditions.IncludeStartTransient`. Fires
 
 ## Chilldown transient
 
-**Source:** [`HeatTransfer/ChilldownTransient.cs`](../HeatTransfer/ChilldownTransient.cs).
+**Source:** [`HeatTransfer/ChilldownTransient.cs`](../../Voxelforge.Core/HeatTransfer/ChilldownTransient.cs).
 
 Lumped two-phase jacket model, integrated to steady state. Default
 two-phase HTC of 5000 W·m⁻²·K⁻¹ sits in the Chen / Shah
@@ -241,7 +241,7 @@ when integrated time > user budget. Skipped on non-cryogenic pairs
 
 ## Feed-system pressure stackup
 
-**Source:** [`FeedSystem/`](../FeedSystem/).
+**Source:** [`FeedSystem/`](../../Voxelforge.Core/FeedSystem/).
 
 Stackup sequence:
 
@@ -275,7 +275,7 @@ Opt-in via `OperatingConditions.TankUllagePressure_Pa > 0`. Fires
 
 ## Turbopump sizing
 
-**Source:** [`FeedSystem/TurbopumpSizing.cs`](../FeedSystem/TurbopumpSizing.cs).
+**Source:** [`FeedSystem/TurbopumpSizing.cs`](../../Voxelforge.Core/FeedSystem/TurbopumpSizing.cs).
 
 Per-pump sizing with NPSH + rotordynamics + shaft-whirl checks.
 
@@ -290,7 +290,7 @@ Only runs when `EngineCycle != PressureFed`.
 
 ## Structural analysis
 
-**Source:** [`Structure/`](../Structure/).
+**Source:** [`Structure/`](../../Voxelforge.Core/Structure/).
 
 Axisymmetric pressure-vessel + thermal-stress model:
 
@@ -306,7 +306,7 @@ manufacturing-tolerance envelope.
 
 ## Manufacturing
 
-**Source:** [`Manufacturing/`](../Manufacturing/).
+**Source:** [`Manufacturing/`](../../Voxelforge.Core/Manufacturing/).
 
 - **LPBF minimum feature:** 0.30 mm universal floor (`FEATURE_TOO_SMALL`).
 - **LPBF recoater-drag ceiling:** geometry-dependent; enforced through the voxel-adequacy 2/3-voxel rule.

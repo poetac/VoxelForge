@@ -38,7 +38,7 @@ perturbation the next time the user flipped topology.
 
 ### Chamber & nozzle geometry — dims 0–5
 
-Declared on [`RegenChamberDesign`](../Optimization/RegenChamberDesign.cs).
+Declared on [`RegenChamberDesign`](../../Voxelforge.Core/Optimization/RegenChamberDesign.cs).
 
 | # | Property | Range | Units | Gate | Notes |
 |---|---|---|---|---|---|
@@ -51,7 +51,7 @@ Declared on [`RegenChamberDesign`](../Optimization/RegenChamberDesign.cs).
 
 ### Regen cooling channels — dims 6–12
 
-Declared on [`RegenChamberDesign`](../Optimization/RegenChamberDesign.cs).
+Declared on [`RegenChamberDesign`](../../Voxelforge.Core/Optimization/RegenChamberDesign.cs).
 
 | # | Property | Range | Units | Gate | Notes |
 |---|---|---|---|---|---|
@@ -65,7 +65,7 @@ Declared on [`RegenChamberDesign`](../Optimization/RegenChamberDesign.cs).
 
 ### Injector pattern — dims 13–17
 
-Declared on [`InjectorPattern`](../Injector/InjectorPattern.cs). Gated
+Declared on [`InjectorPattern`](../../Voxelforge.Core/Injector/InjectorPattern.cs). Gated
 on `SaGate.InjectorPatternPresent` — inert when no pattern is configured.
 
 | # | Property | Range | Units | Gate | Notes |
@@ -78,7 +78,7 @@ on `SaGate.InjectorPatternPresent` — inert when no pattern is configured.
 
 ### TPMS coolant cells — dims 18–19
 
-Declared on [`RegenChamberDesign`](../Optimization/RegenChamberDesign.cs).
+Declared on [`RegenChamberDesign`](../../Voxelforge.Core/Optimization/RegenChamberDesign.cs).
 Gated on `SaGate.TpmsTopology`.
 
 | # | Property | Range | Units | Gate | Notes |
@@ -88,7 +88,7 @@ Gated on `SaGate.TpmsTopology`.
 
 ### Feed-system & preburner — dims 20–21
 
-Declared on [`RegenChamberDesign`](../Optimization/RegenChamberDesign.cs).
+Declared on [`RegenChamberDesign`](../../Voxelforge.Core/Optimization/RegenChamberDesign.cs).
 
 | # | Property | Range | Units | Gate | Notes |
 |---|---|---|---|---|---|
@@ -97,7 +97,7 @@ Declared on [`RegenChamberDesign`](../Optimization/RegenChamberDesign.cs).
 
 ### Aerospike — dims 22–23
 
-Declared on [`RegenChamberDesign`](../Optimization/RegenChamberDesign.cs).
+Declared on [`RegenChamberDesign`](../../Voxelforge.Core/Optimization/RegenChamberDesign.cs).
 Gated on `SaGate.AerospikeTopology`.
 
 | # | Property | Range | Units | Gate | Notes |
@@ -107,7 +107,7 @@ Gated on `SaGate.AerospikeTopology`.
 
 ### Film cooling — dims 24–25
 
-Declared on [`RegenChamberDesign`](../Optimization/RegenChamberDesign.cs).
+Declared on [`RegenChamberDesign`](../../Voxelforge.Core/Optimization/RegenChamberDesign.cs).
 Override-style (default 0 = use `FilmCoolingInputs.FuelFractionAsFilm` / `FilmCoolingInputs.FilmSlotHeight_mm` baseline).
 
 | # | Property | Range | Units | Gate | Notes |
@@ -117,7 +117,7 @@ Override-style (default 0 = use `FilmCoolingInputs.FuelFractionAsFilm` / `FilmCo
 
 ### Pintle injector — dims 26–27
 
-Declared on [`RegenChamberDesign`](../Optimization/RegenChamberDesign.cs).
+Declared on [`RegenChamberDesign`](../../Voxelforge.Core/Optimization/RegenChamberDesign.cs).
 Override-style; ignored on non-pintle injector patterns.
 
 | # | Property | Range | Units | Gate | Notes |
@@ -127,7 +127,7 @@ Override-style; ignored on non-pintle injector patterns.
 
 ### Per-station gas-side wall thickness — dims 28–30 (Track B, 2026-04-27)
 
-Declared on [`RegenChamberDesign`](../Optimization/RegenChamberDesign.cs).
+Declared on [`RegenChamberDesign`](../../Voxelforge.Core/Optimization/RegenChamberDesign.cs).
 Override-style: each defaults to 0 (uniform fallback to dim 11 `GasSideWallThickness_mm`). When set, the structural check + proof-test analysis interpolate a per-station thickness profile linearly between the three anchors. Primary use case: RL10-class large-ε designs where the exit hoop dominates feasibility — thicken the exit without paying the chamber/throat thermal penalty.
 
 | # | Property | Range | Units | Gate | Notes |
@@ -138,7 +138,7 @@ Override-style: each defaults to 0 (uniform fallback to dim 11 `GasSideWallThick
 
 ### Acoustic dampers — dims 31–33 (OOB-6 / Sprint B-3, 2026-04-30)
 
-Declared on [`RegenChamberDesign`](../Optimization/RegenChamberDesign.cs).
+Declared on [`RegenChamberDesign`](../../Voxelforge.Core/Optimization/RegenChamberDesign.cs).
 Override-style: co-tuned against the chamber's stability response when
 `DamperType` is set (Helmholtz / quarter-wave); inert noise when
 `DamperType = None` (the default). See `AcousticDamper.Evaluate` /

@@ -255,7 +255,7 @@ encounter ill-conditioned inputs at the optimizer boundary.
 ## §6 — Feasibility gates
 
 Three hard + three advisory gates. All evaluate inside
-[`NuclearGates.Evaluate`](../../Voxelforge.Nuclear.Core/Optimization/NuclearGates.cs)
+[`NuclearGates.Evaluate`](../../../Voxelforge.Nuclear.Core/Optimization/NuclearGates.cs)
 — a parallel evaluator (not registry-driven), per
 [ADR-026 §6 risk #2](../ADR/ADR-026-multi-pillar-coordination.md).
 

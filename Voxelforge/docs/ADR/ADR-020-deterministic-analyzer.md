@@ -114,7 +114,7 @@ Roslyn analyzers run per-compilation; cross-assembly call closure is *not* analy
 - Architecture review recommendation #9 — original auditor recommendation that motivated this ADR.
 - [ADR-009: Feasibility-gate discipline](ADR-009-feasibility-gates.md) — the gate-as-SSOT principle that determinism's audit trail depends on.
 - [ADR-017: Multi-chain parallel SA](ADR-017-multi-chain-parallel-sa.md) — the strict-determinism contract this analyzer guards.
-- [`MultiChainOptimizerTests.StrictDeterminism_SameSeedAndChains_ProducesIdenticalBest`](../../Voxelforge.Tests/MultiChainOptimizerTests.cs) — the runtime invariant that this analyzer prevents from drifting.
+- [`MultiChainOptimizerTests.StrictDeterminism_SameSeedAndChains_ProducesIdenticalBest`](../../../Voxelforge.Tests/MultiChainOptimizerTests.cs) — the runtime invariant that this analyzer prevents from drifting.
 - `Voxelforge.Analyzers/DeterministicAnalyzer.cs` — implementation.
 - `Voxelforge.Tests/Analyzers/DeterministicAnalyzerTests.cs` — the 12-test pin.
 - [Issue #209](https://github.com/poetac/voxelforge/issues/209) — work item.

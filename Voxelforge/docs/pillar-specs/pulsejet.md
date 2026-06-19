@@ -13,7 +13,7 @@ The pulsejet is a self-resonating intermittent-combustion airbreather: ambient a
 
 This spec covers Wave 1 only — valveless. Valved Argus-type variants (V-1 reed-valve canonical) are deferred to a later sub-step.
 
-Structurally mirrors [`RamjetCycleSolver`](../../Voxelforge.Airbreathing.Core/Cycles/RamjetCycleSolver.cs) — same `IAirbreathingCycleSolver` contract, same null `CompressorDiagnostics` / `TurbineDiagnostics` shape on the result, same constant-property `cp`/`γ` gas. Differs in the combustion model (constant-volume Humphrey vs ramjet's constant-pressure Brayton) and adds a Helmholtz-resonance frequency calculation that drives the acoustic-overpressure feasibility gate.
+Structurally mirrors [`RamjetCycleSolver`](../../../Voxelforge.Airbreathing.Core/Cycles/RamjetCycleSolver.cs) — same `IAirbreathingCycleSolver` contract, same null `CompressorDiagnostics` / `TurbineDiagnostics` shape on the result, same constant-property `cp`/`γ` gas. Differs in the combustion model (constant-volume Humphrey vs ramjet's constant-pressure Brayton) and adds a Helmholtz-resonance frequency calculation that drives the acoustic-overpressure feasibility gate.
 
 ## Physics model
 
@@ -40,7 +40,7 @@ Structurally mirrors [`RamjetCycleSolver`](../../Voxelforge.Airbreathing.Core/Cy
 **Simplifying assumptions.** All load-bearing — open for follow-up sprints:
 
 1. **Time-averaged station map.** Cycle dynamics (buzz frequency, valve-less reverse flow during charge phase) are absorbed into mean values. A transient solver is not in Wave 1.
-2. **Constant-property gas (`cp`/`γ`).** Hot-side cp(T) variation deferred per the same trade-off [`RamjetCycleSolver`](../../Voxelforge.Airbreathing.Core/Cycles/RamjetCycleSolver.cs) accepts.
+2. **Constant-property gas (`cp`/`γ`).** Hot-side cp(T) variation deferred per the same trade-off [`RamjetCycleSolver`](../../../Voxelforge.Airbreathing.Core/Cycles/RamjetCycleSolver.cs) accepts.
 3. **Perfect expansion at the tailpipe exit** (`P_9 = P_∞`).
 4. **Forward-firing-diffuser pressure recovery hard-coded to 0.85.** A real Lockwood-Hiller diffuser recovery depends on tailpipe-to-intake area ratio + buzz frequency; deferred.
 5. **Humphrey peak-pressure model is a closed-form approximation.** Real cycle dynamics would require a 1-D unsteady solver.
@@ -53,7 +53,7 @@ Structurally mirrors [`RamjetCycleSolver`](../../Voxelforge.Airbreathing.Core/Cy
 - `InletRecovery.Pi_d` — applicable to subsonic forward-firing diffuser.
 - `TurbojetCycleSolver.SolveCombustorExitT` — public static helper for hot-side cp routing on JP-8 (kerosene curve) vs H₂ (constant-cp). For Wave 1, pulsejet uses the same routing as ramjet; constant-volume Humphrey applies the same enthalpy balance with the additional `T_t4` → `P_peak` post-step.
 
-New helpers ship in [`Voxelforge.Airbreathing.Core/Cycles/HelmholtzFrequencyCalculator.cs`](../../Voxelforge.Airbreathing.Core/Cycles/HelmholtzFrequencyCalculator.cs) (PR-4) and [`Voxelforge.Airbreathing.Core/Cycles/HumphreyCyclePerformance.cs`](../../Voxelforge.Airbreathing.Core/Cycles/HumphreyCyclePerformance.cs) (PR-4).
+New helpers ship in [`Voxelforge.Airbreathing.Core/Cycles/HelmholtzFrequencyCalculator.cs`](../../../Voxelforge.Airbreathing.Core/Cycles/HelmholtzFrequencyCalculator.cs) (PR-4) and [`Voxelforge.Airbreathing.Core/Cycles/HumphreyCyclePerformance.cs`](../../../Voxelforge.Airbreathing.Core/Cycles/HumphreyCyclePerformance.cs) (PR-4).
 
 ## Design variables
 
@@ -74,7 +74,7 @@ New helpers ship in [`Voxelforge.Airbreathing.Core/Cycles/HelmholtzFrequencyCalc
 | `PULSEJET_BLOWOUT_LEAN` | Hard | PhysicsLimit | Fuel-air mass fraction `f < 0.030` (LFL for hydrocarbon mass basis; 1.4 % vol → ~0.030 mass for JP-8). Fires regardless of φ-bookkeeping because pulsejets blow off below LFL whatever the equivalence-ratio model says. | Glassman §3 Table 3.1 (lower flammability limit for hydrocarbons). |
 | `PULSEJET_ACOUSTIC_OVERPRESSURE` | Advisory | EmpiricalBand | `HumphreyCyclePerformance.PeakChamberPressureRatio(...) > 1.30` — predicted resonant pressure spike exceeds 1.3× steady chamber pressure suggests cycle-stability margin is tight. Advisory only (model is empirical). | Foa 1960 §11.4; NACA RM E50A04 instrumented V-1 buzz-bomb data. |
 
-Both gates register from [`AirbreathingGates.RegisterAll()`](../../Voxelforge.Airbreathing.Core/Optimization/AirbreathingGates.cs) against `AirbreathingGateRegistry.Instance` (the air-breathing-pillar wrapper around the generic `GateRegistry<AirbreathingGateInput>`). Gate applicability mask = `EngineFamilyMask.Airbreathing`; predicate guards on `input.Design.Kind == AirbreathingEngineKind.Pulsejet` to avoid firing on ramjet/turbojet/etc.
+Both gates register from [`AirbreathingGates.RegisterAll()`](../../../Voxelforge.Airbreathing.Core/Optimization/AirbreathingGates.cs) against `AirbreathingGateRegistry.Instance` (the air-breathing-pillar wrapper around the generic `GateRegistry<AirbreathingGateInput>`). Gate applicability mask = `EngineFamilyMask.Airbreathing`; predicate guards on `input.Design.Kind == AirbreathingEngineKind.Pulsejet` to avoid firing on ramjet/turbojet/etc.
 
 **Inherited gates** (no re-listing): `COMBUSTOR_BLOWOUT_LEAN`/`COMBUSTOR_BLOWOUT_RICH` (φ-based, separate basis from the LFL gate above), `T_T4_EXCEEDS_LIMIT`, `NOZZLE_INSUFFICIENT_DRIVE_PRESSURE`. These continue to apply because they're keyed on the pillar mask, not the variant kind.
 
@@ -90,7 +90,7 @@ Both gates register from [`AirbreathingGates.RegisterAll()`](../../Voxelforge.Ai
 4. **Tailpipe** — long straight section transitioning to the tapered exhaust.
 5. **Exit** — tapered to `PulsejetTailpipeArea_m2`.
 
-**SDF primitives.** Reuse [`RevolvedContourImplicit`](../../Voxelforge.Airbreathing.Voxels/Geometry/RevolvedContourImplicit.cs) — same axis-symmetric SDF the ramjet builder uses. Construct two: inner gas path + outer shell offset by `WallThickness_mm`.
+**SDF primitives.** Reuse [`RevolvedContourImplicit`](../../../Voxelforge.Airbreathing.Voxels/Geometry/RevolvedContourImplicit.cs) — same axis-symmetric SDF the ramjet builder uses. Construct two: inner gas path + outer shell offset by `WallThickness_mm`.
 
 **Boolean topology.** Outer shell – inner cavity, then `Smoothen` clamped per ADR-007 to ≤ 25 % of `WallThickness_mm`. No internal sub-features (no sensor bosses for Wave 1 — pulsejet is a "minimum LPBF" target).
 
@@ -115,7 +115,7 @@ Variant-specific concerns:
 |---|---|---|---|
 | `FockeWulfV1_Pulsejet` | Argus As 109-014 (V-1 buzz bomb) — sea-level static. ~3,000 N thrust, ~600 m/s effective Isp, ~45 Hz buzz frequency. | ±15 % thrust / ±12 % Isp / ±20 % station T (model is closed-form Humphrey approximation; real cycle is highly non-linear). | Foa 1960 *Elements of Flight Propulsion* §11.3; NACA RM E50A04 Cleveland-instrumented V-1 buzz-bomb static-thrust tests. |
 
-The fixture lives in [`Voxelforge.Airbreathing.Tests/Validation/AirbreathingFixtures.cs`](../../Voxelforge.Airbreathing.Tests/Validation/AirbreathingFixtures.cs) (extended; not split into a separate file — `All` is the iteration anchor for parameterised tests). Three fixture-anchored tests in [`AirbreathingValidationTests.cs`](../../Voxelforge.Airbreathing.Tests/Validation/AirbreathingValidationTests.cs):
+The fixture lives in [`Voxelforge.Airbreathing.Tests/Validation/AirbreathingFixtures.cs`](../../../Voxelforge.Airbreathing.Tests/Validation/AirbreathingFixtures.cs) (extended; not split into a separate file — `All` is the iteration anchor for parameterised tests). Three fixture-anchored tests in [`AirbreathingValidationTests.cs`](../../../Voxelforge.Airbreathing.Tests/Validation/AirbreathingValidationTests.cs):
 
 - `FockeWulfV1_Pulsejet_NetThrust_WithinTolerance`
 - `FockeWulfV1_Pulsejet_SpecificImpulse_WithinTolerance`

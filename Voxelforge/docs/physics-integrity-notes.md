@@ -201,7 +201,7 @@ area ratio if PH-4 station-by-station propellant tables surface it.
 `oxDischargePressure_Pa` parameter to
 [`TurbopumpSizing.Size()`](../../Voxelforge.Core/FeedSystem/TurbopumpSizing.cs)
 (default 0 = back-compat to legacy shared-discharge behavior). Caller
-[`SizeTurbopumpFor`](../../Voxelforge/Optimization/RegenChamberOptimization.cs)
+[`SizeTurbopumpFor`](../../Voxelforge.Core/Optimization/RegenChamberOptimization.cs)
 passes `max(Pc × 1.2, 0.5 MPa)` for the OX pump — chamber pressure
 plus typical 20 % injector ΔP per Huzel & Huang §3.2, with a low-Pc
 floor for small thrusters.
@@ -343,7 +343,7 @@ YF-2 for any future fix path.
 
 ### ID-8 — `gasGamma` defaults to chamber γ for full-station static-P calc
 
-**File.** [`Voxelforge\Optimization\RegenChamberOptimization.cs`](../../Voxelforge/Optimization/RegenChamberOptimization.cs) ~line 384 (Sprint G').
+**File.** [`Voxelforge\Optimization\RegenChamberOptimization.cs`](../../Voxelforge.Core/Optimization/RegenChamberOptimization.cs) ~line 384 (Sprint G').
 
 **The simplification.** Sprint G' passes `gas.GammaThroat` as the
 single γ used for ALL stations' isentropic-flow static-P calculation.

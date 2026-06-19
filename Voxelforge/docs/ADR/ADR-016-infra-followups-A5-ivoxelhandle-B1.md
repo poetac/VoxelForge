@@ -89,7 +89,7 @@ Two artifacts:
    `Voxelforge.Benchmarks/Program.cs` (`--bench-diff
    <baseline.jsonl> <current.jsonl> [--threshold-percent N]
    [--summary-only]`). Implementation in
-   [`BenchDiff.cs`](../../Voxelforge.Benchmarks/BenchDiff.cs).
+   [`BenchDiff.cs`](../../../Voxelforge.Benchmarks/BenchDiff.cs).
    Loads both JSONL files, groups by `(preset, seed)`, diffs 12
    physics scalars at the configured threshold + 4 boolean fields
    exactly. Skips provenance + timing fields by design.

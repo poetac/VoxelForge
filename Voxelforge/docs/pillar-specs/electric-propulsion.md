@@ -286,7 +286,7 @@ heater + niobium nozzle hardware photos.
 Five hard + five advisory gates. Hard gates fail the candidate (optimizer
 treats `Score = +∞`); advisory gates emit warnings on `Result.Advisories`
 without gating optimization. All gates evaluate inside
-[`ElectricPropulsionFeasibility.Evaluate`](../../Voxelforge.ElectricPropulsion.Core/ElectricPropulsionFeasibility.cs)
+[`ElectricPropulsionFeasibility.Evaluate`](../../../Voxelforge.ElectricPropulsion.Core/ElectricPropulsionFeasibility.cs)
 — a parallel evaluator (not registry-driven), per
 [ADR-026 §6 risk #2](../ADR/ADR-026-multi-pillar-coordination.md).
 
@@ -514,7 +514,7 @@ across SA iterations: `Kind`, `AnodeMaterial`, `CathodeType`.
 ### Physics — Busch discharge model (Goebel & Katz §3)
 
 The lumped first-principles model lives in
-[`BuschDischargeModel`](../../Voxelforge.ElectricPropulsion.Core/Solvers/BuschDischargeModel.cs):
+[`BuschDischargeModel`](../../../Voxelforge.ElectricPropulsion.Core/Solvers/BuschDischargeModel.cs):
 
 - v_i = √(2·e·V_d·η_b / m_xe)              (Eq 3.36)
 - I_b = η_t · I_d                            (current utilisation)
@@ -546,12 +546,12 @@ Advisory:
 - `HET_MASS_UTILIZATION_LOW` — η_m < 0.85
 
 All 6 gates are kind-predicated by `design.Kind == HallEffect` inside
-[`ElectricPropulsionFeasibility.Evaluate`](../../Voxelforge.ElectricPropulsion.Core/ElectricPropulsionFeasibility.cs);
+[`ElectricPropulsionFeasibility.Evaluate`](../../../Voxelforge.ElectricPropulsion.Core/ElectricPropulsionFeasibility.cs);
 resistojet gates do not fire on HET designs and vice versa.
 
 ### Validation — BPT-4000 fixture
 
-[`ElectricPropulsionFixture_BPT4000`](../../Voxelforge.ElectricPropulsion.Tests/Validation/ElectricPropulsionFixture_BPT4000.cs)
+[`ElectricPropulsionFixture_BPT4000`](../../../Voxelforge.ElectricPropulsion.Tests/Validation/ElectricPropulsionFixture_BPT4000.cs)
 asserts:
 - Thrust 0.270 N ± 20 % → [0.216, 0.324] N
 - Isp 1543 s ± 15 % → [1311, 1775] s
@@ -561,7 +561,7 @@ asserts:
 
 ### Voxel pipeline
 
-[`HetEnvelopeBuilder`](../../Voxelforge.ElectricPropulsion.Voxels/Geometry/HetEnvelopeBuilder.cs)
+[`HetEnvelopeBuilder`](../../../Voxelforge.ElectricPropulsion.Voxels/Geometry/HetEnvelopeBuilder.cs)
 produces an annular outer body (anode + magnetic-shroud-ring integrated
 in the wall) plus a central cathode post. Wave-3 will add detailed
 magnet-pole geometry, cathode-keeper hollow construction, and a

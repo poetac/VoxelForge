@@ -9,7 +9,7 @@
 
 ## Context
 
-The Electric Propulsion pillar shipped Wave-1 (resistojet) with `ElectricPropulsionEngineKind.HallEffect = 3` reserved at [`ElectricPropulsionEngineKind.cs:52`](../../Voxelforge.ElectricPropulsion.Core/ElectricPropulsionEngineKind.cs#L52) and bit 8 reserved in [`family-allocations.md` §1](../family-allocations.md#§1) for `ElectricHallEffect`. Wave-2 introduces plasma physics — ion velocity, plume divergence, magnetic confinement — that the electrothermal solvers (`ElectrothermalHeaterSolver`, `IsentropicNozzleSolver`) do not model.
+The Electric Propulsion pillar shipped Wave-1 (resistojet) with `ElectricPropulsionEngineKind.HallEffect = 3` reserved at [`ElectricPropulsionEngineKind.cs:52`](../../../Voxelforge.ElectricPropulsion.Core/ElectricPropulsionEngineKind.cs#L52) and bit 8 reserved in [`family-allocations.md` §1](../family-allocations.md#§1) for `ElectricHallEffect`. Wave-2 introduces plasma physics — ion velocity, plume divergence, magnetic confinement — that the electrothermal solvers (`ElectrothermalHeaterSolver`, `IsentropicNozzleSolver`) do not model.
 
 [ADR-026 §6](ADR-026-multi-pillar-coordination.md) and [`pillar-specs/electric-propulsion.md` §9](../pillar-specs/electric-propulsion.md) explicitly defer Wave-2 to a follow-up ADR-029 audit settling: (a) plasma-state abstraction shape, (b) variant-dispatch idiom, (c) conditions-record strategy, (d) validation-tolerance contract, (e) SA bounds, (f) gate strategy. This ADR is that audit. Hall-Effect Thruster (HET) is the first concrete consumer; arcjet / gridded ion / MPD inherit the contract.
 
@@ -29,7 +29,7 @@ Concrete `HetPlasmaState : IPlasmaState` adds `MagneticField_T`, `MassUtilizatio
 
 ### D2. Variant-dispatch pattern
 
-Adopt a `switch (design.Kind)` block inside [`ElectricPropulsionOptimization.GenerateWith`](../../Voxelforge.ElectricPropulsion.Core/ElectricPropulsionOptimization.cs), mirroring [`MarineOptimization.cs:39-45`](../../Voxelforge.Marine.Core/MarineOptimization.cs#L39-L45):
+Adopt a `switch (design.Kind)` block inside [`ElectricPropulsionOptimization.GenerateWith`](../../../Voxelforge.ElectricPropulsion.Core/ElectricPropulsionOptimization.cs), mirroring [`MarineOptimization.cs:39-45`](../../../Voxelforge.Marine.Core/MarineOptimization.cs#L39-L45):
 
 ```csharp
 return design.Kind switch
@@ -46,13 +46,13 @@ The Wave-1 `if (Kind != Resistojet) throw` arm becomes the `_ => throw` default.
 
 Keep `ResistojetConditions` (do **not** rename or generalise). HET-specific design knobs (DischargeVoltage, DischargeCurrent, MagneticField, AnodeRadius, ChannelLength, XenonMassFlow, AnodeMaterial, CathodeType — eight fields total) ride on `ElectricPropulsionEngineDesign` as `init`-only properties with NaN/sentinel defaults. Resistojet ignores them; HET reads them.
 
-Rationale: the design record's class-level comment at [`ElectricPropulsionEngineDesign.cs:1-13`](../../Voxelforge.ElectricPropulsion.Core/ElectricPropulsionEngineDesign.cs#L1-L13) already chose "single record over per-kind subtypes so the SA framework's reflection-driven binding works without special-casing." This ADR ratifies that choice for HET. Wave-3 (the third concrete plasma engine) reopens the question of splitting conditions records.
+Rationale: the design record's class-level comment at [`ElectricPropulsionEngineDesign.cs:1-13`](../../../Voxelforge.ElectricPropulsion.Core/ElectricPropulsionEngineDesign.cs#L1-L13) already chose "single record over per-kind subtypes so the SA framework's reflection-driven binding works without special-casing." This ADR ratifies that choice for HET. Wave-3 (the third concrete plasma engine) reopens the question of splitting conditions records.
 
 ### D4. Validation-tolerance contract
 
 Wave-2 HET fixtures assert **±20 % thrust, ±15 % Isp** against the published anchor (BPT-4000 — Aerojet Rocketdyne, 4.5 kW, 300 V / 15 A / 16 mg/s Xe / B = 0.02 T → T ≈ 0.242 N, Isp ≈ 1543 s).
 
-Wider than MR-501B's ±10 % / ±8 % ([`ElectricPropulsionFixture_MR501B.cs:37-39`](../../Voxelforge.ElectricPropulsion.Tests/Validation/ElectricPropulsionFixture_MR501B.cs#L37-L39)) because the Busch discharge model (Goebel & Katz §3) lacks ionisation-rate calibration that real BPT-4000 hardware exhibits. Future tightening uses the `[Fact(Skip = "...")]` idiom with calibration justification — the model is [`ElectricPropulsionFixture_MR501B.cs:84-103`](../../Voxelforge.ElectricPropulsion.Tests/Validation/ElectricPropulsionFixture_MR501B.cs#L84-L103).
+Wider than MR-501B's ±10 % / ±8 % ([`ElectricPropulsionFixture_MR501B.cs:37-39`](../../../Voxelforge.ElectricPropulsion.Tests/Validation/ElectricPropulsionFixture_MR501B.cs#L37-L39)) because the Busch discharge model (Goebel & Katz §3) lacks ionisation-rate calibration that real BPT-4000 hardware exhibits. Future tightening uses the `[Fact(Skip = "...")]` idiom with calibration justification — the model is [`ElectricPropulsionFixture_MR501B.cs:84-103`](../../../Voxelforge.ElectricPropulsion.Tests/Validation/ElectricPropulsionFixture_MR501B.cs#L84-L103).
 
 ### D5. SA bounds (HET design vector)
 
@@ -67,7 +67,7 @@ Wider than MR-501B's ±10 % / ±8 % ([`ElectricPropulsionFixture_MR501B.cs:37-39
 | 4   | ChannelLength_mm        | 15 – 40 mm                    | Goebel & Katz §3.3                 |
 | 5   | XenonMassFlow_kgs       | 5e-6 – 3e-5 kg/s              | Goebel & Katz §3.4                 |
 
-Bind-time clip on `DischargeVoltage_V × DischargeCurrent_A ≤ conditions.BusPower_W_avail`, mirroring the resistojet bus-power clip at [`ResistojetObjective.cs`](../../Voxelforge.ElectricPropulsion.Core/Optimization/ResistojetObjective.cs).
+Bind-time clip on `DischargeVoltage_V × DischargeCurrent_A ≤ conditions.BusPower_W_avail`, mirroring the resistojet bus-power clip at [`ResistojetObjective.cs`](../../../Voxelforge.ElectricPropulsion.Core/Optimization/ResistojetObjective.cs).
 
 ### D6. Gate strategy
 
@@ -99,7 +99,7 @@ Rejected: a separate `HetFeasibility` static class (duplicates the helper-method
 
 ### Positive
 
-- Resistojet path is bit-identical pre/post (covered by [`ElectricPropulsionFixture_MR501B`](../../Voxelforge.ElectricPropulsion.Tests/Validation/ElectricPropulsionFixture_MR501B.cs) + 5 solver test files + `ScaffoldingSmokeTests`).
+- Resistojet path is bit-identical pre/post (covered by [`ElectricPropulsionFixture_MR501B`](../../../Voxelforge.ElectricPropulsion.Tests/Validation/ElectricPropulsionFixture_MR501B.cs) + 5 solver test files + `ScaffoldingSmokeTests`).
 - HET landing requires only schema v1 → v2 identity migration, 6 new gates, `IPlasmaState` shared abstraction — no rewrite of Wave-1 code.
 - Future plasma variants (arcjet / GriddedIon / MPD) extend the `Kind` switch and the kind-predicated gate blocks additively.
 
