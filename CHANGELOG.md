@@ -2066,7 +2066,7 @@ With VASIMR shipping, all 8 Phase 2 sprints have landed:
 - B.7 VFD011 Console.* coverage (#531)
 - B.8 SI integrator polish (multiple sprints; CN-NEWTON via A.59)
 
-**Phase 3 (Coverage backfill) is now the active queue per [`framing-b-roadmap.md`](Voxelforge/docs/framing-b-roadmap.md)** — second-anchor fixtures for ~10 remaining Wave-1 pillars + voxel-pipeline backfill for 6 geometry-bearing pillars.
+**Phase 3 (Coverage backfill) is now the active queue per `framing-b-roadmap.md`** — second-anchor fixtures for ~10 remaining Wave-1 pillars + voxel-pipeline backfill for 6 geometry-bearing pillars.
 
 ### Sprint A.63 — EP.W6 phase 2 — HDLT Helicon Double-Layer model (#504, closes B.5)
 
@@ -3082,7 +3082,7 @@ Closes [#639](https://github.com/poetac/voxelforge/issues/639). Pins
 the three canonical surfaces for "what should I work on next?" and
 marks the deprecated parallel queues as dated snapshots:
 
-- **Header added** to [`framing-b-roadmap.md`](Voxelforge/docs/framing-b-roadmap.md):
+- **Header added** to `framing-b-roadmap.md`:
   declares it as the canonical strategic queue + names the three
   load-bearing surfaces (ROADMAP for the public summary, this file
   for the queue + acceptance criteria, GitHub Issues for atomic
@@ -5788,7 +5788,7 @@ predicts free-piston output by 10-100×; needs solver refinement).
 runner. Same constraint profile that produced #489 itself; CI is
 expected to red until the next local-runner cleanup pass (tracked via
 issue [#501](https://github.com/poetac/voxelforge/issues/501)). See
-[`Voxelforge/docs/post-pr-489-sprint-stack.md`](Voxelforge/docs/post-pr-489-sprint-stack.md)
+`Voxelforge/docs/post-pr-489-sprint-stack.md`
 for the per-sprint ledger + risk-ranked cleanup hotspots.
 
 **Branch-level follow-on issues opened:**
@@ -9307,7 +9307,7 @@ Sub-step 1d of the scope-expansion-roadmap Step 1 air-breathing staircase. Adds 
 
 ### Step 1 sub-step 1c — turbofan phase 1 (2026-05-03)
 
-Per [`scope-expansion-roadmap.md`](Voxelforge/docs/scope-expansion-roadmap.md). Extends the air-breathing pillar with a single-spool low-bypass mixed-flow turbofan on top of the A7 turbojet machinery. Bypass-ratio (BPR) lands as the 8th SA design variable; F404-class fixture activates. Rocket pipeline untouched: zero changes to any `RegenChamberDesigner.*` folder.
+Per `scope-expansion-roadmap.md`. Extends the air-breathing pillar with a single-spool low-bypass mixed-flow turbofan on top of the A7 turbojet machinery. Bypass-ratio (BPR) lands as the 8th SA design variable; F404-class fixture activates. Rocket pipeline untouched: zero changes to any `RegenChamberDesigner.*` folder.
 
 **Sprint A8 — Turbofan phase 1 (single-spool low-bypass, mixed-flow).** `AirbreathingEngineDesign` extended with `BypassRatio` (default 0.0; ramjet / turbojet ignore — record stays single-shape per the rocket-side `RegenChamberDesign` precedent). `TurbofanCycleSolver` ships full Brayton station march with bypass duct + mixer: stations 0 → 2 → 13 (fan exit, cold) → 16 (bypass duct exit, lossless in phase 1) + 3 (HPC exit, core) → 4 → 5 (turbine exit, hot mixer entry) → 6 (mixer exit) → 8 → 9. `StationMap.Stations` array length is 17 for turbofan (vs 10 for ramjet / turbojet) so SAE-AS755 indices 13 + 16 are addressable directly; `Stations.Count`-based accessor keeps the API backward-compatible. Single-spool shaft balance (per-core-mass): `ΔT_turb = ((1+BPR)·(T_t13−T_t2) + (T_t3−T_t13)) / ((1+f)·η_mech)` — the `(1 + BPR)` factor on the fan-work term is exactly how bypass loads the single shaft. Fan pressure ratio derived as `π_fan = √π_c` via `TurbofanCycleSolver.DefaultFanPressureRatio` (single-spool min-fuel proxy; extracted into a named static so a Stream B sprint can swap in the BPR-aware Mattingly §7 optimum or promote π_fan to a 9th SA dim without touching this solver's caller surface). Constant-area mixer absorbed into a single `π_mixer = 0.97` recovery factor that subsumes both pressure-recovery and entropy-of-mixing losses (the canonical Mach-equilibrium mixer is deferred to Stream B alongside cp(T) tabulation). Wired into `AirbreathingCycleSolvers` registry. New gates: `BYPASS_RATIO_OUT_OF_BAND` (0.10 ≤ BPR ≤ 2.00, the single-spool envelope where fan-on-the-same-shaft-as-HPC stays physically sensible) + `BYPASS_MIXER_ENTHALPY_IMBALANCE` (mixer energy balance |residual| / (m·cp·T_avg) > 0.005 — silent today by construction with constant cp, forward-compatible defence for cp(T) Stream B). `TurbofanObjective` 8-dim IObjective adapter (extends turbojet's 7 with BypassRatio at index 7; default bounds [0.10, 2.00]). `F404_SeaLevelStatic_Dry` fixture activates: `Kind=Turbofan`, π_c=25, BPR=0.34, JP-8, φ=0.30 → ThrustNet≈50.5 kN, Isp≈5230 s vs F404-GE-402 published dry-mil 48 kN @ 4555 s; lands within the ±25 % performance tolerance (matching J85's band; absorbs both the constant-cp shortcoming and the single-spool simplification of F404's actual two-spool LP+HP architecture). +28 unit tests on solver + objective + gates + F404 validation.
 
@@ -9333,7 +9333,7 @@ Per [`scope-expansion-roadmap.md`](Voxelforge/docs/scope-expansion-roadmap.md). 
 
 ### Air-breathing pillar — ramjet PicoGK voxel/SDF/STL pipeline (sub-step 1a follow-on, 2026-05-03)
 
-Per [`scope-expansion-roadmap.md`](Voxelforge/docs/scope-expansion-roadmap.md). Stands up the air-breathing pillar's voxel + STL + LPBF-printability layer behind sprints A1-A7. Follow-on to sub-step 1a (ramjet cycle physics) — produces the concrete LPBF/STL consumer the previous CHANGELOG entry deferred. Rocket pipeline untouched: zero changes to any `RegenChamberDesigner.*` folder.
+Per `scope-expansion-roadmap.md`. Stands up the air-breathing pillar's voxel + STL + LPBF-printability layer behind sprints A1-A7. Follow-on to sub-step 1a (ramjet cycle physics) — produces the concrete LPBF/STL consumer the previous CHANGELOG entry deferred. Rocket pipeline untouched: zero changes to any `RegenChamberDesigner.*` folder.
 
 **Two new projects:**
 - **`Voxelforge.Airbreathing.Voxels`** — PicoGK seam (`net9.0-windows`, `UseWindowsForms=true`, `PicoGK 1.7.7.5`). Mirrors the rocket-side `Voxelforge.Voxels` parallel-pillar policy: each pillar's Voxels project owns its own concrete `PicoGKVoxelHandle` impl of the Core marker `IVoxelHandle`. References Airbreathing.Core only — no rocket refs.
@@ -9385,7 +9385,7 @@ ConstraintIds match the rocket-side strings exactly so downstream consumers can 
 
 ### Step 1 sub-step 1a + 1b — air-breathing pillar entry (2026-05-03)
 
-Per [`scope-expansion-roadmap.md`](Voxelforge/docs/scope-expansion-roadmap.md). Stands up `Voxelforge.Airbreathing.Core` + `.Tests` as a parallel pillar to the rocket side, ramjet → turbojet through Sprint A7 (turbojet phase 1, parametric stand-in compressor + turbine maps). Rocket pipeline untouched: zero changes to any `RegenChamberDesigner.*` folder.
+Per `scope-expansion-roadmap.md`. Stands up `Voxelforge.Airbreathing.Core` + `.Tests` as a parallel pillar to the rocket side, ramjet → turbojet through Sprint A7 (turbojet phase 1, parametric stand-in compressor + turbine maps). Rocket pipeline untouched: zero changes to any `RegenChamberDesigner.*` folder.
 
 **Sprint A1 — Scaffolding.** New `Voxelforge.Airbreathing.Core` (net9.0, no PicoGK) + `Voxelforge.Airbreathing.Tests` (xUnit, plain net9.0, sidesteps PicoGK pitfall #8) wired into `voxelforge.sln`. Empty `AirbreathingEngineDesign` record, `AirbreathingEngineKind` enum (Ramjet/Turbojet/Turbofan/Scramjet/Rbcc), `IAirbreathingCycleSolver` interface + empty `AirbreathingCycleSolvers` registry, `StationMap` (SAE AS755 0-9 station numbering), `AirbreathingFeasibility` evaluator skeleton, `AirbreathingOptimization.GenerateWith` dispatch. PublicApiAnalyzers intentionally omitted while surface is in flux. +5 smoke tests.
 
@@ -9708,7 +9708,7 @@ Closes [#274](https://github.com/poetac/voxelforge/issues/274). Replaces the con
 
 GMEAN captures **5.79 % of the 6.66 % theoretical maximum** — within 0.93 % of the iterative optimum — while staying closed-form and deterministic (no per-call iteration, no termination tolerance, no NPSH-fallback complexity). Lifts `min(η_fuel, η_ox)` from 0.71 to 0.81 on Merlin-class.
 
-**Code change.** Single line in [`Voxelforge.Core/FeedSystem/TurbopumpSizing.cs:373`](Voxelforge.Core/FeedSystem/TurbopumpSizing.cs:373): `Math.Min(fuelPump.Rpm, oxPump.Rpm)` → `Math.Sqrt(fuelPump.Rpm * oxPump.Rpm)`. Behaviour for explicit user RPM (`pumpRpm_rpm > 0`) and non-common-shaft cycles (FullFlow / ElectricPump / PressureFed) unchanged. The `COMMON_SHAFT_RPM_INCONSISTENT` regression-guard gate stays silent — both pumps still get re-sized at the same shared `commonRpm`.
+**Code change.** Single line in `Voxelforge.Core/FeedSystem/TurbopumpSizing.cs:373`: `Math.Min(fuelPump.Rpm, oxPump.Rpm)` → `Math.Sqrt(fuelPump.Rpm * oxPump.Rpm)`. Behaviour for explicit user RPM (`pumpRpm_rpm > 0`) and non-common-shaft cycles (FullFlow / ElectricPump / PressureFed) unchanged. The `COMMON_SHAFT_RPM_INCONSISTENT` regression-guard gate stays silent — both pumps still get re-sized at the same shared `commonRpm`.
 
 **Test changes.**
 - `PumpEfficiencyCorrelationTests.TurbopumpSizing_ReportsCorrelatedEfficiency_NotConstant` η threshold restored from `> 0.70` (relaxed during PR #269 merge) to `> 0.75`.
@@ -9923,7 +9923,7 @@ Pre-existing bug, surfaced during this refresh; tracked separately.
 
 Closes [#205](https://github.com/poetac/voxelforge/issues/205) (S-1 / T2
 gate registry refactor). First half of the trimmed Sprint 0 — see
-[`scope-expansion-roadmap.md`](Voxelforge/docs/scope-expansion-roadmap.md)
+`scope-expansion-roadmap.md`
 for the rule-of-three reasoning and [ADR-019](Voxelforge/docs/ADR/ADR-019-gate-registry.md)
 for the design.
 
@@ -10093,7 +10093,7 @@ Files touched:
 - [`Core/Geometry/AerospikeThermalResult.cs`](Voxelforge.Core/Geometry/AerospikeThermalResult.cs) — new `Notes` field.
 - [`Tests/Ph42AerospikeMachMocTests.cs`](Voxelforge.Tests/Ph42AerospikeMachMocTests.cs) (new).
 - [`Core/PublicAPI.Unshipped.txt`](Voxelforge.Core/PublicAPI.Unshipped.txt) — Notes get/init + constructor + Deconstruct entries.
-- [`docs/physics-audit.md`](Voxelforge/docs/physics-audit.md) — PH-42 marked SHIPPED; status header bumped 44 → 45 shipped.
+- `docs/physics-audit.md` — PH-42 marked SHIPPED; status header bumped 44 → 45 shipped.
 
 Test count delta: +6 (final post-PR count from rebased tree at merge time).
 
@@ -10123,7 +10123,7 @@ is deferred as a follow-up issue). Builds on BB-3 (PR #247) + BB-4 (PR #251).
   — 3 benches at 100 / 500 / 1000 samples. The xUnit `Phase4PerfBenchmarks.Bench_ToleranceSweep_100Samples`
   is retained as the fast CI smoke guard; this is the high-fidelity measurement.
 
-**Coverage matrix:** [`Voxelforge.Benchmarks/baselines/README.md`](Voxelforge.Benchmarks/baselines/README.md#feature-coverage-matrix-sprint-bb-5-2026-04-29)
+**Coverage matrix:** `Voxelforge.Benchmarks/baselines/README.md`
 gains a "Feature coverage matrix" section. Every Sprint 18-27 feature has ≥ 1 baseline
 row except the two BB-5b deferrals (dual-bell + linear-aerospike CLI). Total BDN bench
 count 33 → 50.
@@ -10178,7 +10178,7 @@ was unaffected because IN625 (520 MPa cold) still dominates CuCrZr
 Files touched:
 - [`Core/HeatTransfer/WallMaterial.cs`](Voxelforge.Core/HeatTransfer/WallMaterial.cs) — CuCrZr yield anchors + DataSource + LPBFProcessNote + CertificationStatus.
 - [`Tests/CuCrZrLpbfYieldTests.cs`](Voxelforge.Tests/CuCrZrLpbfYieldTests.cs) (new), [`Tests/A1FollowOnGateFixTests.cs`](Voxelforge.Tests/A1FollowOnGateFixTests.cs) (comment-only update).
-- [`docs/physics-audit.md`](Voxelforge/docs/physics-audit.md) — PH-32 marked SHIPPED; status header bumped 43 → 44 shipped.
+- `docs/physics-audit.md` — PH-32 marked SHIPPED; status header bumped 43 → 44 shipped.
 
 Test count delta: +12 (final post-PR count from rebased tree at merge time).
 
@@ -10234,10 +10234,10 @@ the aerospike side, preserving the PH-18 invariant under the PH-19 split.
 Files touched:
 - [`Core/Chamber/RaoBellTable.cs`](Voxelforge.Core/Chamber/RaoBellTable.cs) — new `DivergenceLossFactor(ε, L%)` static helper.
 - [`Core/Optimization/RegenChamberDesign.cs`](Voxelforge.Core/Optimization/RegenChamberDesign.cs) — expanded XML doc on `OperatingConditions.NozzleCfEfficiency`; new `DerivedValues.DivergenceLoss` field (default 1.0).
-- [`Optimization/RegenChamberOptimization.cs`](Voxelforge/Optimization/RegenChamberOptimization.cs) — `ComputeDerived` C_F decomp + topology dispatch.
+- `Optimization/RegenChamberOptimization.cs` — `ComputeDerived` C_F decomp + topology dispatch.
 - [`Tests/DivergenceLossTests.cs`](Voxelforge.Tests/DivergenceLossTests.cs) (new), [`Tests/Sprint37b34bCascadeTests.cs`](Voxelforge.Tests/Sprint37b34bCascadeTests.cs) (test invariant updated).
 - [`Core/PublicAPI.Unshipped.txt`](Voxelforge.Core/PublicAPI.Unshipped.txt) — three new entries (`DerivedValues.DivergenceLoss` get/init, `RaoBellTable.DivergenceLossFactor`).
-- [`docs/physics-audit.md`](Voxelforge/docs/physics-audit.md) — PH-19 marked SHIPPED; status header bumped from 42 → 43 shipped.
+- `docs/physics-audit.md` — PH-19 marked SHIPPED; status header bumped from 42 → 43 shipped.
 
 Test count delta: +19 (final post-PR count is computed from the rebased tree).
 
@@ -10367,7 +10367,7 @@ thermal solve at the requested grid; emits BENCH summary block + one
 schema-v1 JSONL row.
 
 **Phantom regenerated:**
-[bench-cfd-export.jsonl](Voxelforge.Benchmarks/baselines/bench-cfd-export.jsonl)
+bench-cfd-export.jsonl
 + `.stdout.log` are now real schema-v1-conformant captures
 (file_bytes 21,234,640 vs phantom's 21,234,617 — within 23 bytes;
 median_ms 15.13 vs phantom's 15.38 — within ±5%). `BenchmarkJsonSchemaTests`
@@ -11223,7 +11223,7 @@ deferred opportunistic).
 Promotes `MultiChainOptimizer`'s `Func<double[], (score, breakdown)>`
 evaluator shape to a real interface in Core. Each engine family ships
 an `IObjective`; `voxelforge-eval` becomes a thin wrapper. Closes
-[`architecture-greenfield-memo.md`](Voxelforge/docs/architecture-greenfield-memo.md)
+`architecture-greenfield-memo.md`
 **rec #4** — the optimizer/oracle boundary is now genuinely pluggable
 ahead of the long-term scope-expansion staircase.
 
@@ -11929,7 +11929,7 @@ thermal), ID-8 (single γ for all stations).
 
 ## Sprint feasibility-audit cascade — 16 PRs across four sessions (2026-04-26 to 2026-04-27, PRs #72-#88)
 
-**The cascade that moved RL10 from "100 % infeasible across the board" to "one gate from feasibility."** Drives from [ADR-018](Voxelforge/docs/ADR/ADR-018-feasibility-audit-2026-04-26.md): every canonical bench-sa preset returned 0 feasible candidates pre-cascade. After 16 PRs, **all 5 presets now pass INJ_FACE at the seed**, and RL10 has only YIELD remaining.
+**The cascade that moved RL10 from "100 % infeasible across the board" to "one gate from feasibility."** Drives from ADR-018: every canonical bench-sa preset returned 0 feasible candidates pre-cascade. After 16 PRs, **all 5 presets now pass INJ_FACE at the seed**, and RL10 has only YIELD remaining.
 
 ### Phase 1 (PR #73-#76) — initial 4-PR feasibility audit
 
@@ -12069,7 +12069,7 @@ gate work. Both warrant their own dedicated commits with subject-
 matter review.
 
 - **PH-14 — Aerospike injector-face recovery factor + Bartz h_g.**
-  Pre-Sprint-37b, [`AerospikeInjectorFaceThermal.cs`](Voxelforge/HeatTransfer/AerospikeInjectorFaceThermal.cs)
+  Pre-Sprint-37b, `AerospikeInjectorFaceThermal.cs`
   used a constant 0.90 recovery factor (turbulent-flat-plate value at
   significant Mach) — wrong direction at the low-M face (M ≈ 0.1)
   where T_aw should recover essentially T_chamber. The h_g model was
@@ -12136,7 +12136,7 @@ dedicated reference-table sourcing (PH-16) that warrants its own
 commit.
 
 - **PH-13 — Injector-face cylindrical-fin efficiency.** Pre-Sprint-37,
-  [`InjectorFaceThermal.cs:143`](Voxelforge/HeatTransfer/InjectorFaceThermal.cs:143)
+  `InjectorFaceThermal.cs:143`
   weighted `h_back` by the bore-area fraction but silently dropped
   the fin-efficiency on the bore-wall conductive path between the
   back-cooled bore and the gas-loaded face top. Real injector faces
@@ -12149,7 +12149,7 @@ commit.
   ±100-300 K on T_face. New `InjectorFaceThermal.DefaultFaceThickness_mm`
   constant (4 mm — median LPBF LRE injector face).
 - **PH-20 — Dual-bell sea-level / altitude ε mode switch.** Pre-Sprint-37,
-  [`RegenChamberOptimization.ComputeDerived`](Voxelforge/Optimization/RegenChamberOptimization.cs)
+  `RegenChamberOptimization.ComputeDerived`
   used `design.ExpansionRatio` (full outer bell ε) regardless of
   ambient pressure. At sea level a dual-bell designed-for-altitude
   flow-separates at the contour inflection → effective ε is the
@@ -12178,9 +12178,9 @@ Picard iteration) are deferred to a separate Sprint 34b — both require
 larger restructures with significant test-fixture cascade.
 
 - **PH-26 — `TURBINE_UNCHOKED` feasibility gate.** Pre-Sprint-34, none
-  of the three turbine sizers ([`TurbineSizing.cs`](Voxelforge/FeedSystem/TurbineSizing.cs),
-  [`ExpanderCycleSizing.cs`](Voxelforge/FeedSystem/ExpanderCycleSizing.cs),
-  [`TapOffCycleSizing.cs`](Voxelforge/FeedSystem/TapOffCycleSizing.cs))
+  of the three turbine sizers (`TurbineSizing.cs`,
+  `ExpanderCycleSizing.cs`,
+  `TapOffCycleSizing.cs`)
   checked whether the stator throat reaches the sonic condition.
   Subsonic flow on a supersonic-stator wheel collapses the assumed
   η ≈ 0.55-0.60 to ~0.30. Each sizer now computes `π_crit =
@@ -12190,7 +12190,7 @@ larger restructures with significant test-fixture cascade.
   cycle (low-Pc designs discharging to ambient may not choke);
   closed-expander is also at risk because jacket ΔP is modest.
 - **PH-10 — `ShaftLayout` enum + boundary-condition split.** Pre-
-  Sprint-34, [`ShaftCriticalSpeed.cs`](Voxelforge/FeedSystem/ShaftCriticalSpeed.cs)
+  Sprint-34, `ShaftCriticalSpeed.cs`
   hardcoded the fixed-fixed Euler-Bernoulli eigenvalue β₁L = 4.73,
   which silently mismodeled overhung / cantilevered turbopumps —
   small Rutherford-class layouts where the pump or turbine hangs
@@ -12269,13 +12269,13 @@ process literature. Gate census **38 → 43**.
 ## Sprint 33 — 2026-04-25 (PR #48, coolant-side correlation upgrades)
 
 **Two paired tier-2 correctness fixes from the 2026-04-23 physics audit,
-both living in [`CoolantCorrelations.cs`](Voxelforge/HeatTransfer/CoolantCorrelations.cs).**
+both living in `CoolantCorrelations.cs`.**
 Both raise predicted heat uptake / pressure drop on previously-flattering
 coolant-side physics; both surface designs that were silently passing
 gates with impossible test-stand requirements.
 
 - **PH-6 — Dravid Dean-number Nu enhancement for helical channels.**
-  Pre-Sprint-33 [`RegenCoolingSolver.cs`](Voxelforge/HeatTransfer/RegenCoolingSolver.cs)
+  Pre-Sprint-33 `RegenCoolingSolver.cs`
   accounted for the helical path-length stretch (`1/cos α` segment
   multiplier on heat uptake + ΔP) and the secondary-flow friction
   bump (`1 + 0.15·tan²α`) but applied no Nu enhancement. Curved-tube
@@ -12311,7 +12311,7 @@ gates with impossible test-stand requirements.
   spurious test failures); only end-to-end design-driven runs pick
   up the new physics.
 - **Latent miss fixed alongside.**
-  [`Analysis/ToleranceAnalysis.cs:171`](Voxelforge/Analysis/ToleranceAnalysis.cs:171)
+  `Analysis/ToleranceAnalysis.cs:171`
   was constructing `RegenSolverInputs` without propagating
   `HelixPitchAngle_deg` from the nominal design — the Monte-Carlo
   cloud silently ran the helical-design's tolerance sweep on the
@@ -12339,8 +12339,8 @@ and cycle solvers. Shipped as one PR alongside Sprints 30 + 31 + BB
 pre-cascade.
 
 - **PH-5 — throat r_curv → Rao-TOP downstream longitudinal radius.**
-  Pre-Sprint-32 [`RegenCoolingSolver.cs:360`](Voxelforge/HeatTransfer/RegenCoolingSolver.cs:360)
-  and [`RegenCoolingSolver.cs:883`](Voxelforge/HeatTransfer/RegenCoolingSolver.cs:883)
+  Pre-Sprint-32 `RegenCoolingSolver.cs:360`
+  and `RegenCoolingSolver.cs:883`
   (bulk solve + wall-T pinned solve) both passed `r_curv_m = 1.5 · R_t`
   — the **upstream** rounded-throat radius — into the Bartz σ
   correction. Bartz 1957 eq. 17a wants the downstream longitudinal
@@ -12348,8 +12348,8 @@ pre-cascade.
   low at the throat; the fix recovers ~14 % h_g locally and shifts
   peak wall-T predictions accordingly.
 - **PH-25 — unified `ChamberInjectionBackPressureRatio` constant.**
-  Pre-Sprint-32 [`TurbineSizing.cs:180`](Voxelforge/FeedSystem/TurbineSizing.cs:180)
-  used `1.10` while [`ExpanderCycleSizing.cs:114`](Voxelforge/FeedSystem/ExpanderCycleSizing.cs:114)
+  Pre-Sprint-32 `TurbineSizing.cs:180`
+  used `1.10` while `ExpanderCycleSizing.cs:114`
   used `1.30` for the same physical concept (injector ΔP margin for
   turbine exhaust re-entering the main chamber), despite the latter's
   docstring claiming to match the former. Promoted to a single SSOT
@@ -12366,10 +12366,10 @@ pre-cascade.
 Angelino curve.** Closes the second of two **Critical** findings in
 the 2026-04-23 physics audit. Bundled with PH-15 because both
 corrections touch the same per-station `Stations[]` loop in
-[`AerospikeContour.cs`](Voxelforge/Chamber/AerospikeContour.cs).
+`AerospikeContour.cs`.
 
 - **PH-1 — linear cone → isentropic area-Mach back-solve.**
-  Pre-Sprint-31 [`AerospikeContour.cs:294-297`](Voxelforge/Chamber/AerospikeContour.cs:294)
+  Pre-Sprint-31 `AerospikeContour.cs:294-297`
   computed `r(x) = R_o · (1 − x / L_full)`: a constant-slope cone,
   not a Prandtl-Meyer-derived contour. It also had a station-0
   discontinuity — `r` jumped from `R_i` at the throat to ≈`R_o` at
@@ -12383,7 +12383,7 @@ corrections touch the same per-station `Stations[]` loop in
 - **New `AerospikeContour.AreaRatio(M, γ)` forward helper** next to
   the existing `SolveExitMachFromAreaRatio` inverse helper.
 - **PH-15 — per-station `FlowAngle` = `ν_exit − ν_local`.**
-  Pre-Sprint-31 [`AerospikeContour.cs:306-307`](Voxelforge/Chamber/AerospikeContour.cs:306)
+  Pre-Sprint-31 `AerospikeContour.cs:306-307`
   reported `FlowAngle = atan(R_o / L_full)` at every station — a
   constant cone half-angle that misrepresents both the upstream-
   bowed throat flow and the axial design-Mach exit flow.
@@ -12418,7 +12418,7 @@ printability fix. Shipped as one commit because both land surgically
 on separate subsystems and stand alone.
 
 - **PH-2 — NPSHR Thoma cavitation form.** Pre-Sprint-30
-  [`TurbopumpSizing.cs:376-378`](Voxelforge/FeedSystem/TurbopumpSizing.cs:376)
+  `TurbopumpSizing.cs:376-378`
   computed `NPSHR = 1.5 · v_eye² / 2g ≈ 1.91 m` with
   `v_eye = 5 m/s` hardcoded — a constant value independent of RPM
   and flow. Real NPSHR scales with `N²` and `Q` via Thoma. Post-
@@ -12427,7 +12427,7 @@ on separate subsystems and stand alone.
   no inducer) or 20,000 (with inducer), per Karassik "Pump
   Handbook" 4e §2.3.
 - **New `RegenChamberDesign.HasInducer` flag** at
-  [`RegenChamberDesign.cs:738`](Voxelforge/Optimization/RegenChamberDesign.cs:738),
+  `RegenChamberDesign.cs:738`,
   defaulting to `false` so the conservative no-inducer path runs
   by default. `RegenChamberOptimization.SizeTurbopumpFor` threads
   `design.HasInducer` through to `TurbopumpSizing`. Backwards-
@@ -12440,7 +12440,7 @@ on separate subsystems and stand alone.
   the no-inducer `S_s = 8,500` produces NPSHR > NPSHA even at
   1 MPa inlet, matching real-world inducer-mandatory practice.
 - **PH-3 — trapped-powder min-volume threshold.** Pre-Sprint-30
-  [`TrappedPowderAnalysis.cs:136-179`](Voxelforge/Geometry/LpbfAnalysis/TrappedPowderAnalysis.cs:136)
+  `TrappedPowderAnalysis.cs:136-179`
   emitted one `TRAPPED_POWDER_REGION` violation per connected
   pocket regardless of size; a single-voxel (~0.5 mm³ at 0.8 mm
   voxel) jitter artifact would fail the gate. Post-Sprint-30: new
@@ -12468,7 +12468,7 @@ reference values before the Sprint 30-37 physics-correctness
 cascade ships**, so the post-cascade diff against this snapshot
 quantifies what the cascade delivered. Lands BB-0 + BB-1 + BB-2
 from the benchmarking-expansion roadmap as one coherent artifact at
-`git_sha 7acb58b94`. See [`benchmarking-expansion-roadmap.md`](Voxelforge/docs/benchmarking-expansion-roadmap.md).
+`git_sha 7acb58b94`. See `benchmarking-expansion-roadmap.md`.
 
 - **New ADR-013 — Benchmark JSONL schema v1.** Every record under
   `Voxelforge.Benchmarks/baselines/` now carries a
@@ -12551,7 +12551,7 @@ timeout) both never reached a result. Post-fix the same CLI
 completes in **905 s (~15 min)** end-to-end (`monolithic_build_ms =
 905401`), producing 16.8 M triangles / 840 MB STL.
 
-- **New `AxialChannelPatternImplicit`** in [`Geometry/ChamberImplicits.cs`](Voxelforge/Geometry/ChamberImplicits.cs).
+- **New `AxialChannelPatternImplicit`** in `Geometry/ChamberImplicits.cs`.
   Mirrors `AxialChannelImplicit` field-for-field except `thetaCenterRad`
   is replaced by `phaseOffsetRad` (whole-pattern rotation), and the
   circumferential math reduces θ modulo `2π/N` to find the nearest
@@ -12566,7 +12566,7 @@ completes in **905 s (~15 min)** end-to-end (`monolithic_build_ms =
   Also pins N=1 degenerate equality and rejects N=0 with
   `ArgumentOutOfRangeException`.
 - **`ChamberVoxelBuilder.Build`** axial-channel branch (was
-  [`ChamberVoxelBuilder.cs:370-410`](Voxelforge/Geometry/ChamberVoxelBuilder.cs:370))
+  `ChamberVoxelBuilder.cs:370-410`)
   collapses to one `new Voxels(patImpl, bounds)` + one `BoolSubtract`.
   Stage profiler still emits `ChannelVoxelise` and `ChannelBoolSubtract`
   ticks so existing baseline JSONL stays comparable. The non-blocking
@@ -12582,7 +12582,7 @@ completes in **905 s (~15 min)** end-to-end (`monolithic_build_ms =
   against. No production code site uses it any more; the aerospike-
   plug path uses its own `AerospikePlugChannelArray` (untouched).
 - **Aerospike monolithic / plug paths untouched.** `AerospikePlugChannelArray`
-  ([`AerospikePlugChannel.cs:141`](Voxelforge/Geometry/AerospikePlugChannel.cs:141))
+  (`AerospikePlugChannel.cs:141`)
   already does a single voxelise + subtract via a UnionImplicit-style
   composite; aerospike's default N=24 stays inside the regime where
   that approach is performant.
@@ -12590,8 +12590,8 @@ completes in **905 s (~15 min)** end-to-end (`monolithic_build_ms =
   census unchanged (38).
 
 **Channel-count cap reduced 180 → 120 (A1).** Both the SA bound on
-`RegenChamberDesign.ChannelCount` ([`RegenChamberDesign.cs:432`](Voxelforge/Optimization/RegenChamberDesign.cs:432))
-and `AutoSeeder.ChannelCountFor`'s clamp ([`AutoSeeder.cs:452`](Voxelforge/Optimization/AutoSeeder.cs:452))
+`RegenChamberDesign.ChannelCount` (`RegenChamberDesign.cs:432`)
+and `AutoSeeder.ChannelCountFor`'s clamp (`AutoSeeder.cs:452`)
 drop their upper bound from 180 to 120. The form-side
 `nudChannelCount` UI control matches. Channel-cooling effectiveness
 saturates well before 180 (Sutton §8.4 – marginal heat-flux gain
@@ -12621,7 +12621,7 @@ working baseline.
 
 **P22 — two-layer fluid-state cache.** Adds a 16-slot
 direct-mapped hint cache in front of the existing unbounded
-`Dictionary<long, CoolantState>` in [`RegenCoolingSolver.cs:329-353`](Voxelforge/HeatTransfer/RegenCoolingSolver.cs:329).
+`Dictionary<long, CoolantState>` in `RegenCoolingSolver.cs:329-353`.
 Hits go through a single masked array-index + key compare (~5 ns)
 instead of Dictionary's hash-and-bucket-probe (~30-50 ns). Misses
 fall through to the Dictionary as before, so no entries are ever
@@ -12633,7 +12633,7 @@ single-entry hint, which was a strict 1-slot variant of the same
 pattern. Audit estimate: 10-30 ms / SA run (CLAUDE.md P22).
 
 **P23 — resistance-weighted initial T_wg seed.** The Picard
-inner loop in [`RegenCoolingSolver.cs:489-558`](Voxelforge/HeatTransfer/RegenCoolingSolver.cs:489)
+inner loop in `RegenCoolingSolver.cs:489-558`
 previously seeded `T_wg = (T_aw_eff + T_bulk) / 2` (an implicit
 α = R_gas / R_total = 0.5). For LOX/CH4 regen the actual α at
 convergence sits closer to 0.3-0.45, so the midpoint seed
@@ -12998,7 +12998,7 @@ for expander cycles (regen-heated fuel drives the turbine rather than
 a preburner), plus the `ClosedExpander` cycle variant that feeds
 turbine discharge into the main chamber (RL10 / Vinci / BE-3U lineage).
 
-- **New module:** [`FeedSystem/ExpanderCycleSizing.cs`](Voxelforge/FeedSystem/ExpanderCycleSizing.cs) —
+- **New module:** `FeedSystem/ExpanderCycleSizing.cs` —
   computes available turbine shaft power from the jacket-outlet
   coolant state (`w_isen = cp · T_in · (1 − (P_out/P_in)^((γ−1)/γ))`,
   `P_avail = ṁ · η · w_isen`). Returns `null` on non-expander cycles
