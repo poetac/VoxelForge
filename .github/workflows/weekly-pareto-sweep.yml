@@ -35,7 +35,6 @@ permissions:
 
 env:
   VF_GIT_SHA: ${{ github.sha }}
-  VF_MACHINE_ID: ${{ runner.name }}
 
 jobs:
   pareto-preset:
