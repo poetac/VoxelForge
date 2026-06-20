@@ -35,10 +35,16 @@ public sealed record MarineConditions(
     /// <summary>
     /// Seawater density [kg/m³] from Millero &amp; Poisson (1981) simplified:
     /// ρ ≈ 1025 + 0.8×S − 0.2×(T − 277). Valid for S ∈ [30, 40] g/kg,
-    /// T ∈ [270, 290 K].
+    /// T ∈ [270, 290 K]. Floored at 900 kg/m³: the linear fit is an
+    /// extrapolation outside that band and goes ≤ 0 for absurd temperatures
+    /// (T ≳ 900 K), which would sign-flip buoyancy/drag and invert the
+    /// HULL_BUOYANCY_NEGATIVE gate. The floor sits safely below any real
+    /// water (fresh water at 100 °C ≈ 958 kg/m³) so the valid band is unchanged.
     /// </summary>
     public double WaterDensity_kgm3
-        => 1025.0 + 0.8 * (Salinity_ppt - 35.0) - 0.2 * (WaterTemperature_K - 277.0);
+        => System.Math.Max(
+               900.0,
+               1025.0 + 0.8 * (Salinity_ppt - 35.0) - 0.2 * (WaterTemperature_K - 277.0));
 
     /// <summary>
     /// Hydrostatic pressure at max depth [Pa] = ρ_water × g × h.
