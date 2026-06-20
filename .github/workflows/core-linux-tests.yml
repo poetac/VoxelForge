@@ -2,10 +2,10 @@ name: Core Tests (Linux)
 
 # Cross-platform verification on free GitHub-hosted runners.
 #
-# The five pillar test projects below are net9.0 and PicoGK-free (no voxel
-# ops, no WinForms) — their headers state they are deliberately
-# cross-platform. They therefore build and run on ubuntu-latest, exercising
-# Voxelforge.Core plus each pillar's headless physics Core. This job gives the
+# The six test projects below (the headless rocket Core plus the five pillars)
+# are net9.0 and PicoGK-free (no voxel ops, no WinForms) — their headers state
+# they are deliberately cross-platform. They therefore build and run on
+# ubuntu-latest, exercising Voxelforge.Core plus each pillar's headless Core. This job gives the
 # public repository a trustworthy green signal that does NOT depend on the
 # self-hosted Windows runners (which carry the PicoGK voxel + rocket suites in
 # ci.yml). The two CI surfaces are complementary, not redundant: this one
@@ -50,6 +50,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - name: core
+            project: Voxelforge.Core.Tests/Voxelforge.Core.Tests.csproj
           - name: marine
             project: Voxelforge.Marine.Tests/Voxelforge.Marine.Tests.csproj
           - name: nuclear
