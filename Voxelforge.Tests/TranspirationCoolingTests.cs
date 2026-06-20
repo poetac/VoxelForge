@@ -55,8 +55,9 @@ public class TranspirationCoolingTests
     [Fact]
     public void ComputeEffectiveAdiabaticWallTemp_SmallB_ApproachesLinearLimit()
     {
-        // For small B, F(B) → 1 − B/2. Verify the helper doesn't
-        // diverge at B → 0 (branch: Math.Abs(B) < 1e-9 → F_B = 1.0).
+        // Transpiration effectiveness η = 1 − F(B) → 0 as B → 0, so with
+        // negligible bleed the wall stays at the baseline T_aw — no phantom
+        // cooling. Also exercises the B ≈ 0 guard (F(B) → 1 ⇒ η → 0).
         double result = TranspirationCooling.ComputeEffectiveAdiabaticWallTemp(
             T_aw_K: 3000.0,
             T_coolantInlet_K: 150.0,
@@ -64,7 +65,7 @@ public class TranspirationCoolingTests
             bleedMassFluxPerArea_kgm2s: 1e-12,
             cpGas_JkgK: 1200.0,
             efficiency: 0.85);
-        Assert.InRange(result, 149.0, 3001.0);   // finite, physically bounded
+        Assert.InRange(result, 2990.0, 3000.001);   // near-zero cooling at B → 0
     }
 
     // ── GenerateWith integration ─────────────────────────────────────

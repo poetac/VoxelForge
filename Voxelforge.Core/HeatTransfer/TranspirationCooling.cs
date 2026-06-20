@@ -31,10 +31,16 @@ public static class TranspirationCooling
         // Spalding blowing parameter B = m_bleed_per_area * cp_gas / h_gas (dimensionless)
         double B = bleedMassFluxPerArea_kgm2s * cpGas_JkgK / Math.Max(h_gas_Wm2K, 1e-9);
 
-        // Eckert-Livingood effectiveness function F(B) = B / (exp(B) - 1)
-        // Guard against B ≈ 0 where exp(B) - 1 ≈ B, giving F(B) → 1
-        double F_B = Math.Abs(B) < 1e-9 ? 1.0 : B / (Math.Exp(B) - 1.0);
+        // F(B) = B / (exp(B) - 1) is the Stanton-number REDUCTION ratio St/St0:
+        // it tends to 1 as B -> 0 (no blowing, no reduction) and to 0 as B -> inf
+        // (strong blowing chokes off gas-side heat transfer). The transpiration
+        // TEMPERATURE effectiveness is its COMPLEMENT eta = 1 - F(B): zero cooling
+        // at no bleed, approaching full cooling at heavy bleed. (Applying F(B)
+        // itself as the effectiveness inverts the physics -- more coolant would
+        // give less cooling.) Guard against B ~ 0 where exp(B) - 1 ~ B, F(B) -> 1.
+        double stRatio = Math.Abs(B) < 1e-9 ? 1.0 : B / (Math.Exp(B) - 1.0);
+        double effectiveness = 1.0 - stRatio;
 
-        return T_aw_K - efficiency * (T_aw_K - T_coolantInlet_K) * F_B;
+        return T_aw_K - efficiency * (T_aw_K - T_coolantInlet_K) * effectiveness;
     }
 }
