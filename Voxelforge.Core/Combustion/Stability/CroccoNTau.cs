@@ -129,6 +129,21 @@ public static class CroccoNTau
         string name, double f_Hz, double n, double tau_s, double gamma)
     {
         double omega = 2 * System.Math.PI * f_Hz;
+
+        // KNOWN LIMITATION (do not "fix" with a blind sign flip): the term
+        // (cos(ωτ) − 1) is ≤ 0 for every input, so σ ≤ 0 always and the
+        // Fail/Marginal branches below are unreachable — this screen currently
+        // can only ever return Pass ("damped"). The canonical Crocco
+        // sensitive-time-lag Rayleigh driving is the COMPLEMENT, +n·(1 − cos ωτ).
+        // BUT simply flipping the sign is non-conservative the other way: with
+        // the published (n, τ) the flight-proven, stable RL10 / LOX-CH4 / LOX-RP1
+        // points produce |σ| ≈ 0.02–0.09, all above FailThreshold (0.02), so a
+        // bare sign flip would mark those validated engines STABILITY_FAIL
+        // (RocketGates STABILITY_FAIL is hard → infeasible) and break the
+        // published-engine validation. A correct re-enable must (a) restore the
+        // +(1 − cos) sign AND (b) recalibrate FailThreshold — ideally after
+        // adding the acoustic-damping term this lumped model omits (see header)
+        // — against the validated-engine fixtures so stable engines pass.
         double sigma = 0.5 * (gamma - 1.0) / System.Math.Max(gamma, 1e-3)
                      * n * (System.Math.Cos(omega * tau_s) - 1.0);
 
