@@ -36,8 +36,12 @@ internal static class LH2ThermalProperties
     /// Ratio of specific heats γ = cp/cv for H₂ gas.
     /// Linear fit valid 300–3000 K: γ ≈ 1.400 − 4.0×10⁻⁵·(T − 300).
     /// At 300 K → 1.400; at 2260 K → ≈ 1.322; at 3000 K → ≈ 1.292.
+    /// Floored at 1.05: the linear extrapolation crosses γ = 1 near 10 300 K
+    /// (far above the fit range), and a too-hot core exit — reachable within the
+    /// NTR reactor-power / mass-flow SA bounds — would otherwise drive γ ≤ 1 and
+    /// produce NaN c*/Isp via √γ and (γ−1) denominators in the cycle solver.
     /// </summary>
-    public static double Gamma(double T_K) => 1.400 - 4.0e-5 * (T_K - 300.0);
+    public static double Gamma(double T_K) => Math.Max(1.05, 1.400 - 4.0e-5 * (T_K - 300.0));
 
     /// <summary>
     /// Dynamic viscosity of H₂ gas via Sutherland's law [Pa·s].
