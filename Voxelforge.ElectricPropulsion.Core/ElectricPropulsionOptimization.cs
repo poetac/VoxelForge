@@ -81,6 +81,14 @@ public static class ElectricPropulsionOptimization
         ElectricPropulsionEngineDesign design,
         ResistojetConditions cond)
     {
+        // Reject a degenerate inlet composition up front: the mixture-property
+        // helpers divide by MixtureMW (= Σ xᵢ·MWᵢ), which is 0 when every mole
+        // fraction is 0, yielding NaN γ/cp that propagate silently to NaN
+        // thrust/Isp — and NaN-vs-limit gate comparisons that never fire. The
+        // (previously dead) ValidateOrThrow also rejects negative fractions and
+        // sums that don't reach 1.0.
+        cond.InletComposition.ValidateOrThrow();
+
         // 1. Solve heater thermal state (lumped 0-D Newton on T_chamber).
         var heater = ElectrothermalHeaterSolver.Solve(design, cond);
 
