@@ -1,0 +1,103 @@
+name: Core Tests (Linux)
+
+# Cross-platform verification on free GitHub-hosted runners.
+#
+# The five pillar test projects below are net9.0 and PicoGK-free (no voxel
+# ops, no WinForms) — their headers state they are deliberately
+# cross-platform. They therefore build and run on ubuntu-latest, exercising
+# Voxelforge.Core plus each pillar's headless physics Core. This job gives the
+# public repository a trustworthy green signal that does NOT depend on the
+# self-hosted Windows runners (which carry the PicoGK voxel + rocket suites in
+# ci.yml). The two CI surfaces are complementary, not redundant: this one
+# covers the portable physics on every push to main; ci.yml covers the
+# Windows-only voxel pipeline on pull requests.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'Voxelforge/docs/**'
+      - 'site/**'
+      - '.gitignore'
+      - 'LICENSE'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'Voxelforge/docs/**'
+      - 'site/**'
+      - '.gitignore'
+      - 'LICENSE'
+  workflow_dispatch:
+
+# Cancel superseded runs on rapid pushes to the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least-privilege: the job only clones + restores; it publishes no content.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: marine
+            project: Voxelforge.Marine.Tests/Voxelforge.Marine.Tests.csproj
+          - name: nuclear
+            project: Voxelforge.Nuclear.Tests/Voxelforge.Nuclear.Tests.csproj
+          - name: electric
+            project: Voxelforge.ElectricPropulsion.Tests/Voxelforge.ElectricPropulsion.Tests.csproj
+          - name: airbreathing
+            project: Voxelforge.Airbreathing.Tests/Voxelforge.Airbreathing.Tests.csproj
+          - name: cfd
+            project: Voxelforge.Cfd.Tests/Voxelforge.Cfd.Tests.csproj
+
+    name: ${{ matrix.name }} (linux)
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7  # v5.2.0
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore ${{ matrix.project }}
+
+      - name: Build
+        run: dotnet build ${{ matrix.project }} --no-restore --configuration Release
+
+      - name: Test
+        run: >
+          dotnet test ${{ matrix.project }}
+          --no-build
+          --configuration Release
+          --logger "console;verbosity=normal"
+          --logger "trx;LogFileName=${{ matrix.name }}-linux.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: ${{ matrix.name }}-linux-results
+          path: "**/${{ matrix.name }}-linux.trx"
+          retention-days: 7
