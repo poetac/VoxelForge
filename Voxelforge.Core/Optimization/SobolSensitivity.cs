@@ -158,8 +158,13 @@ internal static class SobolSensitivity
         sb.AppendLine("|----:|-------------------------------------|---------:|---------:|");
         foreach (var idx in indices.OrderByDescending(x => x.Total))
         {
-            sb.AppendLine(
-                $"| {idx.DimIndex,3} | {idx.DimName,-35} | {idx.FirstOrder,8:F4} | {idx.Total,8:F4} |");
+            // InvariantCulture: the F4 numbers must use '.' decimals regardless
+            // of the host locale (a comma-decimal culture like de-DE would
+            // otherwise corrupt the table). Matches GateExplainer.AppendRankedTable.
+            sb.AppendLine(string.Format(
+                System.Globalization.CultureInfo.InvariantCulture,
+                "| {0,3} | {1,-35} | {2,8:F4} | {3,8:F4} |",
+                idx.DimIndex, idx.DimName, idx.FirstOrder, idx.Total));
         }
         return sb.ToString();
     }
