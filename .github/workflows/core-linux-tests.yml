@@ -72,22 +72,6 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
-      - name: Pin to the latest installed .NET 9 feature band (CI-local)
-        # Voxelforge.Analyzers / Voxelforge.Generators reference Roslyn 4.14
-        # (Microsoft.CodeAnalysis.CSharp 4.14.0). The committed global.json pins
-        # 9.0.0 with rollForward 'feature', which on a runner carrying several
-        # 9.0.x feature bands resolves to the LOWEST (e.g. 9.0.1xx → Roslyn 4.12)
-        # and trips CS9057 — the running csc is older than the analyzer's Roslyn.
-        # Re-pin to the highest installed 9.0.x band for this run so the compiler
-        # matches the analyzers. Runner-local only; the repo's global.json (and
-        # its deliberate pin) is left unchanged.
-        run: |
-          latest=$(dotnet --list-sdks | awk '/^9\.0\./ {print $1}' | sort -V | tail -1)
-          if [ -z "$latest" ]; then echo "::error::no .NET 9 SDK found on runner"; exit 1; fi
-          echo "Pinning CI build to .NET SDK $latest"
-          printf '{\n  "sdk": {\n    "version": "%s",\n    "rollForward": "latestFeature"\n  }\n}\n' "$latest" > global.json
-          cat global.json
-
       - name: Cache NuGet packages
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
         with:
