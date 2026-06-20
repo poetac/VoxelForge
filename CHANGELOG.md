@@ -11,6 +11,18 @@ API surface stabilises.
 
 ## Unreleased
 
+### Sprint A.110 — CI + tests: GitHub-hosted Linux verification for the PicoGK-free physics
+
+**CI:**
+- New **`core-linux-tests.yml`** workflow runs the PicoGK-free suites on GitHub-hosted `ubuntu-latest`, on every push to `main` and on PRs. `ci.yml`'s matrix is self-hosted-Windows-only and `pull_request`-only, so the public default branch carried no green signal while those runners were offline; this workflow gives a trustworthy free-runner signal covering `Voxelforge.Core` plus each pillar's headless physics (~1,900 tests across six legs — the new rocket-physics suite plus marine / nuclear / electric / airbreathing / cfd) with zero dependency on the self-hosted machines. It is complementary to `ci.yml`, which keeps the Windows-only PicoGK voxel + rocket coverage. Conventions (pinned action SHAs, least-privilege `contents: read`, concurrency cancel, paths-ignore, per-pillar matrix) mirror `ci.yml`.
+- **`global.json` rollForward corrected `feature` → `latestFeature`.** With `version: 9.0.0` and plain `feature`, SDK resolution selects the *lowest* installed 9.0.x feature band on a machine carrying several (e.g. a GitHub-hosted runner with 9.0.1xx + 9.0.3xx) — picking 9.0.1xx, whose Roslyn 4.12 is older than the 4.14 that `Voxelforge.Analyzers` / `Voxelforge.Generators` target, tripping `CS9057` at build under `TreatWarningsAsErrors`. `latestFeature` resolves to the highest installed band (matching the analyzers' Roslyn and the pin comment's documented intent), and still never crosses to 9.1 / .NET 10. Pre-empts the same break on the self-hosted `ci.yml` runners once they carry multiple 9.0.x bands.
+
+**Tests:**
+- New cross-platform **`Voxelforge.Core.Tests`** project (net9.0, PicoGK-free) gives the flagship rocket physics runtime coverage it previously had only inside the Windows-only `Voxelforge.Tests` — **52** closed-form regression tests. Primitives: Antoine vapour pressure (NIST saturation anchors, range-clamp, monotonicity), Huzel & Huang orifice flow (√ΔP / linear-Cd scaling, area↔mass-flow round-trip, diameter↔area consistency), Bartz gas-side heat flux, Petukhov / Haaland coolant friction + Dravid Dean-number enhancement, and isentropic gas dynamics (area↔Mach Newton inversion, static T·P, recovery factor, adiabatic wall temp — anchored to standard isentropic-table values and the γ=1.4 choked-flow ratio P\*/P0 = 0.5283). Integration: a headless end-to-end smoke test (`AutoSeeder.Seed` → `RegenChamberOptimization.GenerateWith(skipVoxelGeometry)`) asserting physically defensible LOX/CH4 bands (flame temp, C\*, vacuum > sea-level Isp, nozzle area ratio, mass balance) and the bit-for-bit determinism guarantee. Wired into the solution (so the Windows analyzers/typecheck job builds it) and into the Linux CI matrix. Purely additive — no production-code behaviour changed.
+
+**Documentation:**
+- `README.md` surfaces **Core Tests (Linux)** and **CodeQL** status badges (both green on free runners), alongside the existing self-hosted `ci.yml` badge, so a visitor sees live passing status on the default branch.
+
 ### Sprint A.109 — CI: trustworthy rocket-tests crash tolerance via .trx parsing + one auto re-run (issue #868)
 
 **CI:**
