@@ -9,8 +9,13 @@
 
 **A physics-based propulsion and power-generation optimizer — rocket thrust chambers, gas turbines, turbofans, electric thrusters, and marine hulls, generated from a handful of parameters.**
 
+[![Core Tests (Linux)](https://github.com/poetac/voxelforge/actions/workflows/core-linux-tests.yml/badge.svg?branch=main)](https://github.com/poetac/voxelforge/actions/workflows/core-linux-tests.yml)
+&nbsp;·&nbsp;
+[![CodeQL](https://github.com/poetac/voxelforge/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/poetac/voxelforge/actions/workflows/codeql.yml)
+&nbsp;·&nbsp;
 [![CI](https://github.com/poetac/voxelforge/actions/workflows/ci.yml/badge.svg)](https://github.com/poetac/voxelforge/actions/workflows/ci.yml)
-&nbsp;·&nbsp;  5,700+ tests across 5 physics pillars (+ SU2 verification harness — built, not yet run in CI)  ·  196 feasibility gates  ·  multi-pillar IEngine architecture
+
+5,700+ tests across 5 physics pillars (+ SU2 verification harness — built, not yet run in CI)  ·  196 feasibility gates  ·  multi-pillar IEngine architecture
 
 <br />
 
