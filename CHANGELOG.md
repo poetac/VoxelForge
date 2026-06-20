@@ -11,6 +11,24 @@ API surface stabilises.
 
 ## Unreleased
 
+### Sprint A.111 — Physics-correctness + robustness: red-team fixes
+
+A targeted red-team audit (determinism, physics-formula, numerical/gate-logic) plus live-pipeline fuzzing surfaced correctness holes that green CI did not catch. Each fix lands with a fail-on-old / pass-on-new regression test on the cross-platform suites (Nuclear 194, EP 641, Marine 242, Core 55 all green).
+
+**Physics correctness:**
+- **Transpiration cooling effectiveness was inverted (rocket).** `TranspirationCooling.ComputeEffectiveAdiabaticWallTemp` applied the Eckert-Livingood Stanton-reduction ratio `F(B)=B/(e^B−1)` directly as the temperature effectiveness. `F(B)` runs 1→0 as blowing rises, so the model reported *more* cooling at near-zero bleed and *less* at heavy bleed — non-conservative (a chamber with negligible transpiration passed `WALL_TEMP` as fully cooled, a burn-through risk). Corrected to the complement `η = 1 − F(B)`; the previously too-loose small-B unit test is tightened to pin the no-cooling limit.
+
+**Robustness / NaN guards** (mostly reachable via direct / CLI / deserialized callers; the SA loops were largely shielded by gates or fixed baselines):
+- **NTR Isp went NaN (nuclear).** `LH2ThermalProperties.Gamma` (linear fit) crosses γ=1 near 10 300 K; a high-power / low-ṁ design within the SA bounds drove core-exit T into that range, so `√γ` and `(γ−1)` denominators in `NtrCycleSolver` produced NaN c\*/Isp/thrust. Floored γ at 1.05 (only affects T far above the 300–3000 K fit range).
+- **EP resistojet γ went NaN on a degenerate inlet composition (electric).** The mixture-property helpers divide by `MixtureMW = Σ xᵢ·MWᵢ` (= 0 when every mole fraction is 0). Wired the previously-dead `PropellantInletComposition.ValidateOrThrow()` into `RunResistojetPipeline`, rejecting degenerate / negative / non-normalised compositions with a clear exception instead of silent NaN (which made NaN-vs-limit gate checks never fire).
+- **Marine seawater density could go ≤ 0 (marine).** `MarineConditions.WaterDensity_kgm3` (Millero-Poisson linear fit, valid T ∈ [270,290 K]) extrapolated to ≤ 0 for absurd temperatures, sign-flipping buoyancy/drag and inverting `HULL_BUOYANCY_NEGATIVE`. Floored at 900 kg/m³ (below any real water; valid band unchanged).
+
+**Determinism:**
+- **Sobol sensitivity table leaked the current culture.** `SobolSensitivity.FormatSortedTable` formatted the F4 indices with current-culture interpolation (comma decimals under e.g. de-DE). Switched to `string.Format(InvariantCulture, …)`, matching the sibling `GateExplainer.AppendRankedTable`.
+
+**Documented, not auto-fixed (the fix needs calibration):**
+- **Crocco n-τ stability screen is non-discriminating.** The growth-rate term `(cos ωτ − 1)` is ≤ 0 for all inputs, so the Fail/Marginal branches are dead and the screen always returns Pass — yet it feeds the hard `STABILITY_FAIL` gate. The canonical sensitive-time-lag sign is `+(1 − cos ωτ)`, but a bare flip marks flight-proven stable engines (RL10, LOX/CH4, LOX/RP1: |σ| ≈ 0.02–0.09 > `FailThreshold` 0.02) as `STABILITY_FAIL` → infeasible, breaking the published-engine validation. Documented the defect and the correct re-enable path (restore the sign **and** recalibrate the threshold, ideally after adding the omitted acoustic-damping term, against the validated-engine fixtures).
+
 ### Sprint A.110 — CI + tests: GitHub-hosted Linux verification for the PicoGK-free physics
 
 **CI:**
