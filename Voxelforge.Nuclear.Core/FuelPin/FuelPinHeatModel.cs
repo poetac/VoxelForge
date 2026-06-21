@@ -150,6 +150,20 @@ public static class FuelPinHeatModel
             throw new ArgumentOutOfRangeException(nameof(fuelElementCount),
                 $"FuelElementCount {fuelElementCount} must be ≥ 1.");
         ArgumentNullException.ThrowIfNull(hexGeometry);
+        // Pins must not overlap: PinPitch_mm > PinDiameter_mm. Otherwise the
+        // triangular sub-channel flow area A = (√3/4)·p² − (π/8)·d² collapses to
+        // ≤ 0; the sub-channel mass flux G = ṁ/A would then be floored to a
+        // garbage value, silently over-cooling the pin (vanishing wall ΔT) and
+        // letting an impossible geometry slip past the centreline-overtemp gate.
+        // NuclearThermalDesign enforces the same relation up front; this guards
+        // direct callers of the model and HexArrayGeometry.Resolve — neither of
+        // which validates pin overlap.
+        if (double.IsNaN(hexGeometry.PinPitch_mm) || double.IsNaN(hexGeometry.PinDiameter_mm)
+            || hexGeometry.PinPitch_mm <= hexGeometry.PinDiameter_mm)
+            throw new ArgumentOutOfRangeException(nameof(hexGeometry),
+                $"HexArray PinPitch_mm {hexGeometry.PinPitch_mm:F3} must exceed PinDiameter_mm "
+              + $"{hexGeometry.PinDiameter_mm:F3} (pins cannot overlap); the triangular sub-channel "
+              + "flow area would be non-positive.");
         if (double.IsNaN(fuelPinLength_m) || fuelPinLength_m <= 0)
             throw new ArgumentOutOfRangeException(nameof(fuelPinLength_m),
                 $"FuelPinLength_m {fuelPinLength_m:F4} must be > 0 m.");
