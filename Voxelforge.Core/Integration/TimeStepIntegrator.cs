@@ -1154,6 +1154,13 @@ internal sealed class TimeStepIntegrator
         // callers asked for.
         t = tEnd_s;
 
+        // Refresh time-varying external inputs + scheduled faults at the exact
+        // end time so the final snapshot's port values are consistent with its
+        // Time_s = tEnd_s. The in-loop ticks refresh before solving; the final
+        // solve must too, otherwise it echoes the previous tick's inputs.
+        _network.RefreshTimeVaryingInputsAt(t);
+        _network.ApplyScheduledFaultsAt(t);
+
         // Capture final snapshot at t_end.
         var finalPorts = useIterativeSolve
             ? _network.SolveIterative()
@@ -1545,6 +1552,13 @@ internal sealed class TimeStepIntegrator
         // snapshot's Time_s field carries the exact endpoint value
         // callers asked for.
         t = tEnd_s;
+
+        // Refresh time-varying external inputs + scheduled faults at the exact
+        // end time so the final snapshot's port values are consistent with its
+        // Time_s = tEnd_s. The in-loop ticks refresh before solving; the final
+        // solve must too, otherwise it echoes the previous tick's inputs.
+        _network.RefreshTimeVaryingInputsAt(t);
+        _network.ApplyScheduledFaultsAt(t);
 
         // Capture final snapshot at t_end.
         var finalPorts = useIterativeSolve

@@ -11,7 +11,16 @@ API surface stabilises.
 
 ## Unreleased
 
-### Sprint A.111 — Physics-correctness + robustness: red-team fixes
+### Sprint A.112 — Red-team round 2: integration, economics, marine, EP, refrigeration
+
+A second adversarial audit (parallel pillar sweeps over marine, electric propulsion, system-integration/economics, and the Wave-1 energy pillars) plus targeted probing surfaced more correctness holes that green CI didn't catch. Each fix lands with a fail-on-old / pass-on-new regression test on the cross-platform suites; calibration-laden findings are documented rather than blind-fixed.
+
+**System integration:**
+- **`EnergyDelivered_J` double-counted edge-aligned partial windows.** `TimeHistoryAnalytics.EnergyDelivered_J` clipped the interval width for a window boundary landing mid-tick, but applied the *full-interval* endpoint power average over the *clipped* width (the computed clip-fraction was dead code). A leading half-window read 2× the true energy (250 J vs 125 J for a 0→100 W ramp over [0,10] integrated on [0,5]). Now interpolates the piecewise-linear power to the clip points; the full-window case (the only pinned one) is unchanged.
+- **Adaptive integrators' final snapshot used stale inputs.** `RunAdaptiveCrankNicolson` / `RunAdaptiveCashKarp45` refresh time-varying external inputs + scheduled faults before each in-loop solve, but the post-loop final snapshot at `t = tEnd` solved without refreshing — so its port values echoed the previous tick's inputs while `Time_s = tEnd`. Added the refresh before the final solve (the fixed-step `Run` already captured inside the loop and was correct).
+
+**Economics:**
+- **`SystemCostBreakdown.ToTable()` leaked the current culture.** The cost-rollup table interpolated `F1`/`F0` numbers with the ambient culture (comma decimals under e.g. de-DE). Switched to `string.Format(InvariantCulture, …)`, matching the CSV/Sobol output paths.
 
 A targeted red-team audit (determinism, physics-formula, numerical/gate-logic) plus live-pipeline fuzzing surfaced correctness holes that green CI did not catch. Each fix lands with a fail-on-old / pass-on-new regression test on the cross-platform suites (Nuclear 194, EP 641, Marine 242, Core 55 all green).
 

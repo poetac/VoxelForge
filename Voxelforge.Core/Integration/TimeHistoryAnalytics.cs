@@ -391,14 +391,19 @@ internal static class TimeHistoryAnalytics
             double clipEnd   = Math.Min(t1, tEnd_s);
             if (clipEnd <= clipStart) continue;
             double dt = clipEnd - clipStart;
-            // Trapezoidal integral on the full interval, then scale by
-            // the clipped fraction. This is the simplest accurate
-            // approximation for sub-tick windows.
+            // Interpolate the piecewise-linear power to the clipped endpoints,
+            // then apply the trapezoid over the clipped width. A window
+            // boundary that lands mid-interval then integrates exactly. (The
+            // earlier form applied the FULL-interval endpoint average over the
+            // clipped width — correct only when the clip is the whole interval
+            // or symmetric about its midpoint, and 2× off for an edge-aligned
+            // partial window.)
             double y0 = balance[k - 1].NetPowerImbalance_W;
             double y1 = balance[k].NetPowerImbalance_W;
             double fullInterval = t1 - t0;
-            double fraction = dt / fullInterval;
-            total += 0.5 * (y0 + y1) * dt;
+            double yA = fullInterval > 0.0 ? y0 + (y1 - y0) * (clipStart - t0) / fullInterval : y0;
+            double yB = fullInterval > 0.0 ? y0 + (y1 - y0) * (clipEnd   - t0) / fullInterval : y1;
+            total += 0.5 * (yA + yB) * dt;
         }
         return total;
     }

@@ -31,15 +31,19 @@ internal sealed record SystemCostBreakdown(
     /// </summary>
     public string ToTable()
     {
+        // InvariantCulture so the rendered numbers (and any consumer that
+        // diffs/snapshots this table) are byte-stable regardless of the host
+        // locale's decimal separator — matching the CSV/Sobol output paths.
+        var ci = System.Globalization.CultureInfo.InvariantCulture;
         var sb = new System.Text.StringBuilder();
         sb.AppendLine("Component               Mass_kg       Cost_USD        CO2_kg");
         sb.AppendLine("──────────────────────  ───────────  ───────────  ───────────");
         foreach (var c in Components.OrderByDescending(c => c.CapitalCost_USD))
-            sb.AppendLine($"{c.ComponentName,-22}  {c.Mass_kg,11:F1}  "
-                        + $"{c.CapitalCost_USD,11:F0}  {c.EmbodiedCO2_kgCO2eq,11:F0}");
+            sb.AppendLine(string.Format(ci, "{0,-22}  {1,11:F1}  {2,11:F0}  {3,11:F0}",
+                c.ComponentName, c.Mass_kg, c.CapitalCost_USD, c.EmbodiedCO2_kgCO2eq));
         sb.AppendLine("──────────────────────  ───────────  ───────────  ───────────");
-        sb.AppendLine($"{"Total",-22}  {TotalMass_kg,11:F1}  "
-                    + $"{TotalCapitalCost_USD,11:F0}  {TotalEmbodiedCO2_kgCO2eq,11:F0}");
+        sb.AppendLine(string.Format(ci, "{0,-22}  {1,11:F1}  {2,11:F0}  {3,11:F0}",
+            "Total", TotalMass_kg, TotalCapitalCost_USD, TotalEmbodiedCO2_kgCO2eq));
         return sb.ToString();
     }
 }
