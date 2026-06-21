@@ -257,6 +257,22 @@ namespace Voxelforge.Generators
                 string escapedTypeName = typeGroup.EscapedTypeName;
                 foreach (var m in typeGroup.Members)
                 {
+                    // typeFqn is the SymbolDisplayFormat FQN, which separates a
+                    // nested type from its container with '.' (e.g.
+                    // "global::Ns.Outer.Inner"). The runtime lookup in
+                    // DesignVariableBinder.AccessorFor builds its key from
+                    // Type.FullName, which uses '+' for nesting
+                    // ("Ns.Outer+Inner"). For top-level carriers (all current
+                    // ones: RegenChamberDesign, InjectorPattern, AntennaLinkDesign)
+                    // the two forms are identical, so the fast-path lookup hits.
+                    // KNOWN GAP (red-team audit, documented not fixed): a
+                    // [SaDesignVariable] on a member of a NESTED type would key
+                    // with '.' here and miss the '+'-keyed runtime lookup — the
+                    // binder then silently falls back to its Expression.Compile
+                    // path (correct results, just not the generated fast lane). No
+                    // nested-type carrier exists today; closing it means emitting
+                    // the metadata ('+') name for the key while keeping the
+                    // C#-syntax ('.') form for the cast lambdas below.
                     string key = $"{typeFqn}|{m.MemberName}";
                     string accessorName = "__Set_" + escapedTypeName + "_" + m.MemberName;
                     string getterLambda =

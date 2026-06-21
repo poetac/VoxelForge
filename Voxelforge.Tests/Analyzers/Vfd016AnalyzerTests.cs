@@ -100,6 +100,27 @@ public sealed class Vfd016AnalyzerTests
             .WithLocation(5, 46));
     }
 
+    [Fact]
+    public async Task QualifiedMathFClamp_Fires()
+    {
+        // Namespace-qualified `<ns>.MathF.Clamp(...)` — the receiver of `.Clamp`
+        // is a MemberAccessExpressionSyntax whose trailing name is MathF, not a
+        // bare IdentifierNameSyntax. Before the fix the analyzer required the
+        // bare form and missed this, leaving only the raw CS0117. Fail-on-old /
+        // pass-on-new: the pre-fix analyzer emits no VFD016 and this expectation
+        // fails; the fixed analyzer surfaces the actionable message.
+        var src = """
+            using VoxelforgeTestStubs;
+
+            class C
+            {
+                float Clamp01(float x) => VoxelforgeTestStubs.MathF.Clamp(x, 0f, 1f);
+            }
+            """;
+        await RunAsync(src, new DiagnosticResult(DeterministicAnalyzer.Vfd016)
+            .WithLocation(5, 31));
+    }
+
     // ── Negative — does NOT fire ──────────────────────────────────────
 
     [Fact]

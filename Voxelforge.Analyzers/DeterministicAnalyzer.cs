@@ -889,6 +889,36 @@ namespace Voxelforge.Analyzers
             var owner = m.ContainingType;
             if (owner is null) return;
 
+            // VFD012 catches the static time-SOURCE entry points on Stopwatch:
+            // GetTimestamp() (raw tick read), StartNew() (begins timing),
+            // GetElapsedTime() (elapsed read). Voids that merely (re)start a
+            // running clock — instance Start()/Restart()/Stop() — are NOT flagged:
+            // they read no observable time, so on their own they leak no
+            // non-determinism (the hazard is the subsequent elapsed READ).
+            //
+            // KNOWN GAP (red-team audit, documented not fixed): the instance
+            // elapsed READS — sw.Elapsed / sw.ElapsedMilliseconds /
+            // sw.ElapsedTicks — are NOT caught here (they're property reads, see
+            // CheckIObjectivePropertyReference, which short-circuits on
+            // !prop.IsStatic) nor anywhere else. Those ARE wall-clock reads inside
+            // VFD012's stated contract. The gap is preventive only: no IObjective
+            // implementation in a CI-built (net9.0) library reads them — the live
+            // IObjective carriers (benchmark RocketParetoObjective, the WinForms
+            // app's session objectives) use a Stopwatch for non-scored progress
+            // logging, the exact case the TeeObjective suppression escape hatch
+            // exists for. Closing it means relaxing the IsStatic guard for the
+            // Stopwatch type specifically, then re-auditing those Windows-only
+            // carriers under TreatWarningsAsErrors — deferred until the
+            // self-hosted Windows CI leg (which builds them) is back online so the
+            // broadened detection can be validated rather than shipped blind.
+            //
+            // Likewise scoped-by-design (not a gap): IObjective-structural
+            // detection here only polices wall-clock sources (VFD012). It does NOT
+            // re-police Random (VFD002), Guid (VFD003), or Dictionary/HashSet
+            // iteration order (VFD005) inside an IObjective method — those still
+            // require the [Deterministic] taint chain to reach the call site.
+            // Extending IObjective scope to cover them is an intent decision
+            // (how much the bare interface implies about determinism), not a bug.
             if (SymbolEqualityComparer.Default.Equals(owner, sentinels.Stopwatch) &&
                 (m.Name == "GetTimestamp" || m.Name == "StartNew" ||
                  m.Name == "GetElapsedTime"))
@@ -1111,6 +1141,20 @@ namespace Voxelforge.Analyzers
                 SymbolEqualityComparer.Default.Equals(od, sentinels.ConcurrentDictionaryT2) ||
                 SymbolEqualityComparer.Default.Equals(od, sentinels.ConcurrentBagT1);
 
+            // KNOWN GAP (red-team audit, documented not fixed): this matches a
+            // foreach whose collection IS the dictionary/set, but NOT one over its
+            // projection — `foreach (var k in dict.Keys)` / `foreach (var v in
+            // dict.Values)` iterate Dictionary<,>.KeyCollection / ValueCollection,
+            // distinct types not in the sentinel set, yet with the SAME
+            // unspecified order. The safe, already-in-use idiom is to sort first
+            // (`dict.Keys.OrderBy(k => k, StringComparer.Ordinal)`, e.g.
+            // CsvTimeSeriesExporter) — that foreach's collection is the OrderBy
+            // result, correctly NOT flagged. Broadening to the *Collection types
+            // is deferred because real raw-.Keys/.Values carriers exist (e.g.
+            // ComponentNetwork, not deterministic-scoped today) and adding the
+            // detection under TreatWarningsAsErrors needs a full carrier+scope
+            // audit that the Windows-only analyzer test harness (Windows CI
+            // offline) can't currently validate.
             if (!isDangerous) return;
             context.ReportDiagnostic(Diagnostic.Create(Vfd005, op.Syntax.GetLocation(),
                 collectionType.Name));
@@ -1147,9 +1191,20 @@ namespace Voxelforge.Analyzers
                 return;
             if (memberAccess.Name.Identifier.Text != "Clamp")
                 return;
-            if (memberAccess.Expression is not IdentifierNameSyntax typeName)
-                return;
-            if (typeName.Identifier.Text != "MathF")
+            // The receiver of `.Clamp` must name the type MathF. Accept both the
+            // bare form `MathF.Clamp(...)` (IdentifierNameSyntax receiver) and the
+            // namespace-qualified form `System.MathF.Clamp(...)`
+            // (MemberAccessExpressionSyntax receiver whose trailing name is
+            // MathF). Both are CS0117 at compile time because System.MathF has no
+            // Clamp; VFD016 exists only to turn that into the actionable
+            // "use Math.Clamp" message, so the qualified form must surface it too.
+            string? receiverTypeName = memberAccess.Expression switch
+            {
+                IdentifierNameSyntax id            => id.Identifier.Text,
+                MemberAccessExpressionSyntax outer => outer.Name.Identifier.Text,
+                _                                  => null,
+            };
+            if (receiverTypeName != "MathF")
                 return;
             context.ReportDiagnostic(Diagnostic.Create(Vfd016, invocation.GetLocation()));
         }
