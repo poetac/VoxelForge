@@ -511,11 +511,11 @@ public static partial class Program
             : null;
 
         // Setup-wizard gate.
-        // SetupWizardForm.ShouldShow currently returns false unconditionally;
-        // Step 7 flips it to consult SessionSettings.WizardVersion +
-        // SkipWizardOnLaunch. The wizard's exit feeds into the form via
-        // its returned WizardResult.LastSeedDesignJson which the form
-        // picks up from SessionSettings on its own Load() call.
+        // SetupWizardForm.ShouldShow consults SessionSettings.WizardVersion
+        // (shows when WizardVersion < CurrentWizardVersion), so it DOES fire on
+        // a first launch. The wizard's exit feeds into the form via the returned
+        // WizardResult's seed JSON, which the form picks up from SessionSettings
+        // on its own Load() call.
         {
             var preFormSettings = SessionSettings.Load();
             if (SetupWizardForm.ShouldShow(preFormSettings))
@@ -528,10 +528,9 @@ public static partial class Program
                     return;
                 }
 
-                // Round-trip the wizard's seed through SessionSettings so
-                // the form's Load() pass picks it up. Step 6 populates
-                // wizardResult; Step 5 fires this only when ShouldShow
-                // returns true (= never).
+                // Round-trip the wizard's seed through SessionSettings so the
+                // form's Load() pass picks it up. Fires whenever ShouldShow
+                // returned true (first launch / bumped WizardVersion).
                 preFormSettings.LastSeedDesignJson  = SerializeWizardSeed(
                     wizardResult.Conditions, wizardResult.Design);
                 preFormSettings.LastPresetName      = wizardResult.PresetName;

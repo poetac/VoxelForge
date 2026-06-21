@@ -239,6 +239,12 @@ internal sealed class SetupWizardForm : Form
 
         // Page 2 + 3 are populated from page 1 state when first entered,
         // unless the user has explicitly diverged.
+        // KNOWN LIMITATION (red-team audit): there is no "already-visited /
+        // diverged" guard, so navigating page 2 → 3 → Back to 2 re-runs
+        // PopulatePage2FromSelection and discards the user's page-2 cycle/pair
+        // edits (contradicting the comment above). A fix needs a visited flag
+        // (reset when the page-1 preset changes); deferred to a Windows-verified
+        // change. Recoverable: re-pick the cycle/pair.
         if (i == 1) PopulatePage2FromSelection();
         if (i == 2) PopulatePage3FromSelection();
     }
@@ -284,6 +290,13 @@ internal sealed class SetupWizardForm : Form
             MixtureRatio       = _page2MR,
             WallMaterialIndex  = _page2WallMaterialIndex,
         };
+        // KNOWN LIMITATION (red-team audit): the page-3 injector-pattern combo
+        // is captured into _page3Pattern but NOT applied here, so the wizard
+        // seed always uses AutoSeeder's default injector pattern regardless of
+        // the user's pick. Wiring it needs a InjectorPatternKind → the design's
+        // InjectorElementPattern (an InjectorPattern object) mapping, which
+        // doesn't exist yet — deferred to a Windows-verified fix. Users can set
+        // the pattern in the main form afterward (the seed is editable).
         var design = seed.Design with
         {
             ChannelTopology = _page3Topology,
@@ -475,6 +488,12 @@ internal sealed class SetupWizardForm : Form
         foreach (var m in HeatTransfer.WallMaterials.All)
             _cboWall.Items.Add(m.Name);
         _cboWall.SelectedIndex = 1;     // CuCrZr — middle-of-the-road default
+        // Sync the backing field to the displayed default: the
+        // SelectedIndexChanged handler below is wired AFTER this assignment, so
+        // it does not fire for the initial selection — without this line
+        // _page2WallMaterialIndex would stay 0 (GRCop-42) while the combo shows
+        // CuCrZr, and Finish() would record the wrong material.
+        _page2WallMaterialIndex = _cboWall.SelectedIndex;
 
         _cboPair.SelectedIndexChanged += (_, _) =>
         {
