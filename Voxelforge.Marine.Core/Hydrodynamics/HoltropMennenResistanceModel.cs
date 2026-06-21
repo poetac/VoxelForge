@@ -227,16 +227,25 @@ public static class HoltropMennenResistanceModel
               * Math.Pow(Cb, 1.0686);
 
         // 5. Wave-making resistance, simplified Holtrop dominant term.
-        //    R_W_disp = c₁ · ∇ · ρ · g · exp(m₁ · Fn^d)
-        //    The exp(m₁ Fn^d) term captures the steep rise of wave-making
-        //    drag as Fn approaches 0.4 (the hump speed). For Fn > 0.4 the
-        //    formula extrapolates beyond its validity envelope; the gate
-        //    HOLTROP_FROUDE_OUT_OF_BAND flags this when SD correction is
-        //    disabled.
+        //    R_W_disp = c₁ · ∇ · ρ · g · (exp(m₁ · Fn^d) − 1)
+        //    The (exp(m₁ Fn^d) − 1) term captures the steep rise of wave-making
+        //    drag as Fn approaches 0.4 (the hump speed) AND vanishes as Fn → 0:
+        //    a body at rest makes no waves. The bare exp(m₁ Fn^d) used earlier
+        //    left a non-zero floor c₁·∇·ρ·g at Fn = 0 (≈ 6 kN for a 600 t hull),
+        //    which dominated the (correctly V²-scaling) friction term at low
+        //    speed — inflating low-Fn resistance and inverting the
+        //    wave-making *fraction* so the HOLTROP_WAVE_MAKING_DOMINANT advisory
+        //    fired at low Fn instead of near the hump. The "−1" restores the
+        //    physical rest limit with no new tuning constant. (A higher-fidelity
+        //    pass would adopt the full Holtrop c₁·c₂·c₅·exp(m₁·Fn^−0.9 +
+        //    m₄·cos(λ·Fn^−2)) form with a hull-form-dependent m₁; deferred.)
+        //    For Fn > 0.4 the formula extrapolates beyond its validity envelope;
+        //    the gate HOLTROP_FROUDE_OUT_OF_BAND flags this when SD correction
+        //    is disabled.
         double R_W_disp = WaveMakingCoefficientC1
                         * volume_m3 * rho * g0
-                        * Math.Exp(WaveMakingExponentM1
-                                   * Math.Pow(Fn, WaveMakingFroudeExponent));
+                        * (Math.Exp(WaveMakingExponentM1
+                                    * Math.Pow(Fn, WaveMakingFroudeExponent)) - 1.0);
 
         // 5b. Sprint M.W5 — semi-displacement transition correction.
         //     Apply a quadratic-in-t multiplier on R_W_disp for Fn ∈
