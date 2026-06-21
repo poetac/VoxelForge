@@ -83,6 +83,21 @@ public static class NuclearOptimization
         // thrust-mode pipeline is bit-identical to NervaSolidCore (cycle +
         // regen + fuel-pin + gates); the Brayton loop adds an electric-
         // power output alongside.
+        //
+        // KNOWN LIMITATION (red-team round 3): in BimodalMode.Hybrid this
+        // double-counts reactor power. Step 1 already heated the propellant
+        // (thrust) with the FULL design.ReactorThermalPower_MW, and the Brayton
+        // loop below ALSO taps the full reactor power for electricity — so a
+        // Hybrid design can draw more than the reactor produces (e.g. 1.5 MW
+        // reactor → ~1.5 MW thrust + ~0.2 MW electric tap = 1.7 MW). The
+        // BimodalMode.Hybrid contract documents a ~20 % thrust / ~80 % electric
+        // throttle split that is never applied. A correct fix must SPLIT the
+        // reactor power between the thrust cycle and the Brayton tap (either the
+        // documented 20/80 or thrust = reactor − tap by energy conservation),
+        // which re-orders the pipeline (compute the tap first) and changes Hybrid
+        // thrust/Isp — a design-intent + fixture-recalibration decision, so it is
+        // documented here rather than silently patched. Pure-Thrust and
+        // pure-Electric modes are unaffected (only one consumer each).
         BraytonGasLoopResult? brayton = TryRunBraytonModel(design);
 
         // ── 5. Gate evaluation ────────────────────────────────────────────────

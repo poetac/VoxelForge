@@ -5,6 +5,7 @@
 // γ used, γ source, flat-fallback flag), and NaN guards / Notes append.
 
 using System.Collections.Generic;
+using System.Globalization;
 using Voxelforge.Analysis;
 using Voxelforge.Cfd.Config;
 using Voxelforge.Cfd.Parser;
@@ -97,6 +98,27 @@ public sealed class CfdDriftReportTests
             MakeProfile(peakK: 3000.0), MakeCalibration(), bartzPeakAdiabaticWallTemp_K: 2000.0);
 
         Assert.Contains("Within ±20% acceptance | No ✗", md);
+    }
+
+    [Fact]
+    public void BuildMarkdown_DriftRows_UseInvariantCulture()
+    {
+        // 3000 vs 2950 → drift% ≈ +1.7 %. The drift rows formatted without an
+        // explicit culture would render "+1,7" under a comma-decimal locale,
+        // unlike every other numeric row (which threads InvariantCulture).
+        var prev = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+            string md = CfdDriftReport.BuildMarkdown(
+                MakeProfile(peakK: 3000.0), MakeCalibration(), bartzPeakAdiabaticWallTemp_K: 2950.0);
+            Assert.Contains("+1.7 %", md);
+            Assert.DoesNotContain("+1,7 %", md);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = prev;
+        }
     }
 
     // ── NaN guards ───────────────────────────────────────────────────────────

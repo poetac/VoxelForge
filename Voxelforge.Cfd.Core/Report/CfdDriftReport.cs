@@ -78,8 +78,8 @@ public static class CfdDriftReport
         {
             double driftK   = wallProfile.PeakAdiabaticWallTemp_K - bartzPeakAdiabaticWallTemp_K;
             double driftPct = 100.0 * driftK / bartzPeakAdiabaticWallTemp_K;
-            sb.AppendLine($"| Drift (K) | {driftK:+0.0;-0.0;0.0} K |");
-            sb.AppendLine($"| Drift (%) | {driftPct:+0.0;-0.0;0.0} % |");
+            sb.AppendLine($"| Drift (K) | {driftK.ToString("+0.0;-0.0;0.0", ci)} K |");
+            sb.AppendLine($"| Drift (%) | {driftPct.ToString("+0.0;-0.0;0.0", ci)} % |");
             sb.AppendLine($"| Within ±20% acceptance | {(Math.Abs(driftPct) <= 20.0 ? "Yes ✓" : "No ✗")} |");
         }
 
