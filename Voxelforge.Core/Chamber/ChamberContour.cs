@@ -267,7 +267,9 @@ public static class ChamberContourGenerator
             }
             else
             {
-                xQ1 = (rInflection - rN + m1 * xN + mi * xInflection) / (m1 + mi);
+                // Tangents slope +m1 at N, +mi at the inflection — intersect at
+                // the control point (same form as the single-bell solve).
+                xQ1 = (rInflection - rN + m1 * xN - mi * xInflection) / (m1 - mi);
                 rQ1 = rN + m1 * (xQ1 - xN);
             }
 
@@ -280,7 +282,8 @@ public static class ChamberContourGenerator
             }
             else
             {
-                xQ2 = (R_e - rInflection + m1 * xInflection + m2 * xExit) / (m1 + m2);
+                // Tangents slope +m1 at the inflection, +m2 at the exit.
+                xQ2 = (R_e - rInflection + m1 * xInflection - m2 * xExit) / (m1 - m2);
                 rQ2 = rInflection + m1 * (xQ2 - xInflection);
             }
 
@@ -297,8 +300,10 @@ public static class ChamberContourGenerator
         }
         else
         {
-            // rN + m1 (x - xN) = R_e - m2 (xExit - x)
-            xQ = (R_e - rN + m1 * xN + m2 * xExit) / (m1 + m2);
+            // rN + m1 (x - xN) = R_e - m2 (xExit - x)  →  the two wall tangents
+            // (slope +m1 at N, slope +m2 at E) intersect at the Bezier control
+            // point. Solving: xQ = (R_e − rN + m1·xN − m2·xExit) / (m1 − m2).
+            xQ = (R_e - rN + m1 * xN - m2 * xExit) / (m1 - m2);
             rQ = rN + m1 * (xQ - xN);
         }
 
