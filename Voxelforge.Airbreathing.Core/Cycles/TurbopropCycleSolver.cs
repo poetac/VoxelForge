@@ -153,6 +153,19 @@ public sealed class TurbopropCycleSolver : IAirbreathingCycleSolver
         if (double.IsNaN(design.CompressorPressureRatio) || design.CompressorPressureRatio < 1.0)
             throw new ArgumentOutOfRangeException(nameof(design),
                 $"Turboprop CompressorPressureRatio = {design.CompressorPressureRatio:F3} must be >= 1.");
+        // PropellerPowerExtraction_frac is a fraction ∈ [0, 1]. Over-unity values
+        // are unphysical: the power turbine cannot capture more than the
+        // available isentropic enthalpy. Beyond ~1 they over-extract — at low
+        // pressure ratios the residual-nozzle thrust is silently inflated, and
+        // at high pressure ratios (high altitude) the power-turbine exit T_t6,s
+        // goes negative, so Math.Pow(T_t6,s/T_t5, …) returns NaN and corrupts
+        // every downstream station pressure (and the NaN-vs-limit gate checks).
+        if (double.IsNaN(design.PropellerPowerExtraction_frac)
+            || design.PropellerPowerExtraction_frac < 0.0
+            || design.PropellerPowerExtraction_frac > 1.0)
+            throw new ArgumentOutOfRangeException(nameof(design),
+                $"Turboprop PropellerPowerExtraction_frac = {design.PropellerPowerExtraction_frac:F3} "
+              + "must be in [0, 1].");
 
         var fuel = AirbreathingFuelTables.Lookup(cond.Fuel);
         var atm  = StandardAtmosphere.At(cond.Altitude_m);
