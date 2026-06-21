@@ -71,5 +71,27 @@ internal sealed record RefrigerationDesign(
         if (SuperheatDepth_K < 0)
             throw new ArgumentException("SuperheatDepth_K must be ≥ 0.",
                 nameof(SuperheatDepth_K));
+        // The linear COP boost/penalty model (±0.6 %/K, −0.2 %/K) is only valid
+        // for the small superheat/subcooling band of a real cycle (typ. ≤ ~30 K).
+        // Without an upper bound the superheat penalty 1 − 0.002·ΔT goes ≤ 0 past
+        // 500 K, inverting the sign of the COP and the cold-side heat removal
+        // (a "refrigerator" that adds heat). Cap both at a generous physical
+        // ceiling so the model stays in its calibrated, positive-COP range.
+        if (SubcoolingDepth_K > MaxSubcoolSuperheatDepth_K)
+            throw new ArgumentException(
+                $"SubcoolingDepth_K ({SubcoolingDepth_K:F1}) must be ≤ {MaxSubcoolSuperheatDepth_K:F0} K.",
+                nameof(SubcoolingDepth_K));
+        if (SuperheatDepth_K > MaxSubcoolSuperheatDepth_K)
+            throw new ArgumentException(
+                $"SuperheatDepth_K ({SuperheatDepth_K:F1}) must be ≤ {MaxSubcoolSuperheatDepth_K:F0} K "
+              + "(beyond this the linear COP penalty drives COP ≤ 0).",
+                nameof(SuperheatDepth_K));
     }
+
+    /// <summary>
+    /// Generous physical ceiling [K] on superheat / subcooling depth. Real
+    /// cycles sit well below this (≤ ~30 K); the bound keeps the linear
+    /// COP boost/penalty model in its calibrated, positive-COP range.
+    /// </summary>
+    private const double MaxSubcoolSuperheatDepth_K = 50.0;
 }

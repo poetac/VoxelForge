@@ -22,6 +22,9 @@ A second adversarial audit (parallel pillar sweeps over marine, electric propuls
 **Economics:**
 - **`SystemCostBreakdown.ToTable()` leaked the current culture.** The cost-rollup table interpolated `F1`/`F0` numbers with the ambient culture (comma decimals under e.g. de-DE). Switched to `string.Format(InvariantCulture, …)`, matching the CSV/Sobol output paths.
 
+**Energy pillars:**
+- **Refrigeration superheat could invert the COP (Wave-1).** `RefrigerationSolver` applies a linear COP penalty `1 − 0.002·SuperheatDepth_K` (and boost `1 + 0.006·SubcoolingDepth_K`), but `RefrigerationDesign` validated the depths only `≥ 0`. Past ~500 K the penalty goes ≤ 0, so cooling COP and cold-side heat removal flip sign — a "refrigerator" that adds heat — while the design still validated. (Sibling Wave-2 add-ons on PV/Battery already bound their fields; refrigeration didn't.) Both depths are now capped at a generous physical ceiling (50 K) so the linear model stays in its calibrated, positive-COP range.
+
 A targeted red-team audit (determinism, physics-formula, numerical/gate-logic) plus live-pipeline fuzzing surfaced correctness holes that green CI did not catch. Each fix lands with a fail-on-old / pass-on-new regression test on the cross-platform suites (Nuclear 194, EP 641, Marine 242, Core 55 all green).
 
 **Physics correctness:**
