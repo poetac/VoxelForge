@@ -71,18 +71,29 @@ namespace Voxelforge.Generators
             public readonly string DeclaringTypeFullName;
             public readonly string MemberName;
             public readonly string PropertyTypeFullName;
+            // True when the member exposes a writable accessor (a property
+            // `set`/`init`, or a non-readonly/non-const field). When false the
+            // member is get-only/computed and has NO `set_` method — emitting
+            // an [UnsafeAccessor(Name="set_X")] extern for it would reference a
+            // non-existent accessor that resolves to a MissingMethodException
+            // only when first invoked. We instead emit a throwing setter so the
+            // failure is a clear, eager NotSupportedException at the binder
+            // boundary rather than an obscure JIT-time miss.
+            public readonly bool HasSetter;
 
-            public MemberInfo(string declaringTypeFullName, string memberName, string propertyTypeFullName)
+            public MemberInfo(string declaringTypeFullName, string memberName, string propertyTypeFullName, bool hasSetter)
             {
                 DeclaringTypeFullName = declaringTypeFullName;
                 MemberName = memberName;
                 PropertyTypeFullName = propertyTypeFullName;
+                HasSetter = hasSetter;
             }
 
             public bool Equals(MemberInfo other) =>
                 DeclaringTypeFullName == other.DeclaringTypeFullName &&
                 MemberName == other.MemberName &&
-                PropertyTypeFullName == other.PropertyTypeFullName;
+                PropertyTypeFullName == other.PropertyTypeFullName &&
+                HasSetter == other.HasSetter;
 
             public override bool Equals(object? obj) => obj is MemberInfo other && Equals(other);
 
@@ -93,6 +104,7 @@ namespace Voxelforge.Generators
                     int h = DeclaringTypeFullName?.GetHashCode() ?? 0;
                     h = (h * 397) ^ (MemberName?.GetHashCode() ?? 0);
                     h = (h * 397) ^ (PropertyTypeFullName?.GetHashCode() ?? 0);
+                    h = (h * 397) ^ HasSetter.GetHashCode();
                     return h;
                 }
             }
@@ -120,10 +132,26 @@ namespace Voxelforge.Generators
             if (string.IsNullOrEmpty(propertyTypeFqn))
                 return null;
 
+            // A property is settable when it has any set/init accessor
+            // (init-only properties surface a SetMethod with IsInitOnly=true —
+            // still a real `set_` method the [UnsafeAccessor] extern can bind).
+            // A field has no `set_` method at all, so the Method-kind extern
+            // this generator emits can never bind one; treat fields as
+            // unsettable here (none currently carry [SaDesignVariable]) so they
+            // route to the throwing setter rather than a broken extern. A
+            // Field-kind UnsafeAccessor would be the future fix if a field
+            // carrier ever lands.
+            bool hasSetter = symbol switch
+            {
+                IPropertySymbol p => p.SetMethod is not null,
+                _                 => false,
+            };
+
             return new MemberInfo(
                 declaringTypeFullName: declaringFqn,
                 memberName: memberName,
-                propertyTypeFullName: propertyTypeFqn);
+                propertyTypeFullName: propertyTypeFqn,
+                hasSetter: hasSetter);
         }
 
         private static void EmitBinderPartial(
@@ -201,6 +229,11 @@ namespace Voxelforge.Generators
                 string escapedTypeName = typeGroup.EscapedTypeName;
                 foreach (var m in typeGroup.Members)
                 {
+                    // Get-only / computed members have no set_ accessor — skip
+                    // the extern entirely (its target would never resolve) and
+                    // let the emission loop below wire a throwing setter.
+                    if (!m.HasSetter)
+                        continue;
                     string accessorName = "__Set_" + escapedTypeName + "_" + m.MemberName;
                     sb.AppendLine($"        [global::System.Runtime.CompilerServices.UnsafeAccessor(global::System.Runtime.CompilerServices.UnsafeAccessorKind.Method, Name = \"set_{m.MemberName}\")]");
                     sb.AppendLine($"        private static extern void {accessorName}({typeFqn} instance, {m.PropertyTypeFullName} value);");
@@ -228,9 +261,20 @@ namespace Voxelforge.Generators
                     string accessorName = "__Set_" + escapedTypeName + "_" + m.MemberName;
                     string getterLambda =
                         $"static (object source) => (object?)(({typeFqn})source).{m.MemberName}";
-                    string setterLambda =
-                        $"static (object target, object value) => " +
-                        $"{accessorName}(({typeFqn})target, ({m.PropertyTypeFullName})value)";
+                    // Settable members bind their [UnsafeAccessor] set_ extern;
+                    // get-only/computed members (no set_ method) get a setter
+                    // that throws a clear NotSupportedException instead of an
+                    // extern that resolves to a MissingMethodException only when
+                    // invoked. Such members are read-only SA dims whose sampled
+                    // value must be applied through a hand-coded Unpack helper
+                    // (e.g. AntennaLinkDesign.WithModulationIndex), never the
+                    // registry setter path.
+                    string setterLambda = m.HasSetter
+                        ? $"static (object target, object value) => " +
+                          $"{accessorName}(({typeFqn})target, ({m.PropertyTypeFullName})value)"
+                        : $"static (object target, object value) => throw new global::System.NotSupportedException(" +
+                          $"\"{EscapeString(typeFqn + "." + m.MemberName)} is a get-only [SaDesignVariable] (no setter); " +
+                          $"apply its sampled value through the declaring type's hand-coded Unpack helper, not the registry setter path.\")";
                     string propType = m.PropertyTypeFullName;
                     sb.Append("            [\"");
                     sb.Append(EscapeString(key));
