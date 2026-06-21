@@ -135,6 +135,12 @@ public static class HetEnvelopeBuilder
             (0.0,        R_outer),
             (L_channel,  R_outer),
         };
+        // KNOWN LIMITATION (red-team round 4): subtracting the bore at R_chan_in
+        // leaves a SINGLE solid annulus [R_chan_in, R_outer] — the annular
+        // discharge channel the header/comments describe as a void is NOT cut, so
+        // a Hall thruster's defining hollow channel is absent from the voxel
+        // model. The reported mass is self-consistent with the solid envelope
+        // actually built; cut the [R_chan_in, R_anode] void in a fidelity pass.
         var bodyInnerContour = new (double x_mm, double r_mm)[]
         {
             (0.0,        R_chan_in),

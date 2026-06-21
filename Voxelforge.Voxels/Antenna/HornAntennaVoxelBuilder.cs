@@ -167,10 +167,13 @@ internal sealed class ConeFrustumImplicit : IImplicit
         float qr = MathF.Sqrt(p.X * p.X + p.Y * p.Y);
         float qz = p.Z - _h * 0.5f;          // re-centre to IQ convention
 
-        // IQ sdCappedCone: r1 = bottom radius, r2 = top radius, h = half-height
+        // IQ sdCappedCone: r1 = bottom radius, r2 = top radius, h = half-height.
+        // IQ's k2 = (r2−r1, 2·h) with h = the half-height — so k2y must use halfH,
+        // not the full height _h (which would double the slant vector and
+        // mislocate the zero-isosurface along the flared flank).
         float halfH = _h * 0.5f;
         float k2x   = _r1 - _r0;
-        float k2y   = 2.0f * _h;
+        float k2y   = 2.0f * halfH;
 
         float cax = qr - MathF.Min(qr, qz < 0 ? _r0 : _r1);
         float cay = MathF.Abs(qz) - halfH;

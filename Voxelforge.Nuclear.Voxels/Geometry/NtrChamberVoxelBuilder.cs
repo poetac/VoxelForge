@@ -62,6 +62,13 @@ public static class NtrChamberVoxelBuilder
         // ── 1. Generate nozzle contour (pure math, no PicoGK) ─────────────────
         // Use a contraction ratio of 3.0 (reactor face is ~3× throat area).
         // characteristicLength_m = 0.5 m is representative of NTR convergent volume.
+        // KNOWN LIMITATION (red-team round 4): the stub core radius below is
+        // derived from this hardcoded contraction ratio and does NOT consume
+        // design.ReactorCoreDiameter_mm (which the physics path does use). So the
+        // voxelised core size / SolidVolume / mass ignore the specified core OD.
+        // Intentional as a Wave-1 "core OD ≈ chamber OD" stub, but undocumented
+        // and discards a populated field — wire ReactorCoreDiameter_mm in when
+        // the per-core geometry fidelity pass lands.
         var contour = ChamberContourGenerator.Generate(
             throatRadius_mm:       design.ThroatRadius_mm,
             contractionRatio:      3.0,
@@ -139,7 +146,9 @@ public static class NtrChamberVoxelBuilder
             Voxels:              new PicoGKVoxelHandle(outer),
             SolidVolume_mm3:     solidVolume_mm3,
             TotalMass_g:         mass_g,
-            NozzleLength_mm:     L_nozzle,
+            // Throat→exit per the field's contract (BellLength_mm); L_nozzle is
+            // the full injector→exit contour used for the voxel bbox above.
+            NozzleLength_mm:     contour.BellLength_mm,
             BoundingDiameter_mm: 2.0 * (R_exit + t_wall),
             ThroatRadius_mm:     R_throat,
             ExitRadius_mm:       R_exit,
