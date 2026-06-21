@@ -493,6 +493,8 @@ public static class ElectricPropulsionFeasibility
                 EvaluateHetAnodeOverheat(design, result, hard);
                 // Hard HET gate 3 — magnetic field insufficient for electron confinement.
                 EvaluateHetMagneticFieldInsufficient(design, hard);
+                // Hard HET gate 4 — jet power exceeds discharge power (η_T > 1).
+                EvaluateHetPowerBalanceViolated(design, result, hard);
 
                 // Advisory HET gate 4 — plume divergence excessive.
                 EvaluateHetPlumeDivergenceExcessive(result, advisories);
@@ -893,6 +895,41 @@ public static class ElectricPropulsionFeasibility
               + "collapses to arcjet-style distributed plasma (Goebel & Katz §3.6).",
                 ActualValue: B,
                 Limit:       HetMagneticFieldMin_T));
+        }
+    }
+
+    private static void EvaluateHetPowerBalanceViolated(
+        ElectricPropulsionEngineDesign design,
+        ElectricPropulsionResult result,
+        List<FeasibilityViolation> violations)
+    {
+        // Hard physical law: the jet kinetic power can't exceed the electrical
+        // power into the discharge. The 0-D HET thrust model computes thrust
+        // from V_d and ṁ but NOT from I_d, while discharge power P_d = V_d·I_d
+        // scales with I_d — so a low-I_d corner (which the SA optimizer reaches,
+        // since thrust/Isp carry no I_d penalty) produces ½ṁv² > P_d. The
+        // reported ThrustEfficiency is clamped to 1.0, hiding it; this gate
+        // re-derives the balance from the unclamped thrust and rejects it.
+        double mDot = design.XenonMassFlow_kgs;
+        double pDischarge = design.DischargeVoltage_V * design.DischargeCurrent_A;
+        if (mDot <= 0 || double.IsNaN(pDischarge) || pDischarge <= 0
+            || !double.IsFinite(result.Thrust_N) || result.Thrust_N <= 0)
+            return;
+
+        double vEff = result.Thrust_N / mDot;
+        double jetPower = 0.5 * mDot * vEff * vEff;
+        // 1 % tolerance so a design sitting exactly at η_T = 1 isn't tripped by
+        // floating-point noise.
+        if (jetPower > pDischarge * 1.01)
+        {
+            violations.Add(new FeasibilityViolation(
+                "HET_POWER_BALANCE_VIOLATED",
+                $"Jet kinetic power {jetPower:F1} W exceeds discharge power "
+              + $"{pDischarge:F1} W (η_T = {jetPower / pDischarge:F2} > 1). Discharge "
+              + "current is too low to supply the modelled beam at this voltage / mass "
+              + "flow; the operating point is physically impossible.",
+                ActualValue: jetPower,
+                Limit:       pDischarge));
         }
     }
 

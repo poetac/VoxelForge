@@ -22,6 +22,9 @@ A second adversarial audit (parallel pillar sweeps over marine, electric propuls
 **Economics:**
 - **`SystemCostBreakdown.ToTable()` leaked the current culture.** The cost-rollup table interpolated `F1`/`F0` numbers with the ambient culture (comma decimals under e.g. de-DE). Switched to `string.Format(InvariantCulture, …)`, matching the CSV/Sobol output paths.
 
+**Electric propulsion:**
+- **HET reported physically-impossible (η_T > 1) designs as feasible.** The 0-D Hall-thruster model computes thrust from discharge voltage V_d and mass flow ṁ but not from discharge current I_d, while discharge power P_d = V_d·I_d scales with I_d. A low-I_d corner — which the SA optimizer reaches, since thrust/Isp carry no I_d penalty — yields jet kinetic power ½ṁv² > P_d (efficiency up to ~3×). The reported `ThrustEfficiency` was clamped to 1.0, hiding it, while `Thrust_N`/`IspVacuum_s` were reported unclamped and the design validated as feasible. Added a hard gate `HET_POWER_BALANCE_VIOLATED` that re-derives the balance from the unclamped thrust and rejects jet-power > discharge-power (a hard conservation law — not calibration-dependent). The real BPT-4000/SPT-100 anchors (η_T ≈ 0.5) are unaffected. (The deeper model fix — coupling beam current to I_d — needs recalibration against the fixtures and is left as follow-up.)
+
 **Energy pillars:**
 - **Refrigeration superheat could invert the COP (Wave-1).** `RefrigerationSolver` applies a linear COP penalty `1 − 0.002·SuperheatDepth_K` (and boost `1 + 0.006·SubcoolingDepth_K`), but `RefrigerationDesign` validated the depths only `≥ 0`. Past ~500 K the penalty goes ≤ 0, so cooling COP and cold-side heat removal flip sign — a "refrigerator" that adds heat — while the design still validated. (Sibling Wave-2 add-ons on PV/Battery already bound their fields; refrigeration didn't.) Both depths are now capped at a generous physical ceiling (50 K) so the linear model stays in its calibrated, positive-COP range.
 
