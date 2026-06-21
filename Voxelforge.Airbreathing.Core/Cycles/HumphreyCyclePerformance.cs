@@ -47,17 +47,22 @@ public static class HumphreyCyclePerformance
     public const double CombustionEfficiency = 0.99;
 
     /// <summary>
-    /// Constant-volume combustion exit-temperature energy balance:
-    /// <c>T_t4 = T_t2 + (η_b · f · LHV) / cp</c>
+    /// Constant-volume combustion exit-temperature energy balance with fuel
+    /// mass addition:
+    /// <c>T_t4 = (T_t2 + η_b · f · LHV / cp) / (1 + f)</c>
     /// where f is the actual fuel-air mass fraction and LHV is the fuel's
-    /// lower heating value (J/kg). Returns <c>T_in_K</c> unchanged when
+    /// lower heating value (J/kg). The <c>(1 + f)</c> divisor conserves mass —
+    /// the combustion energy heats the combined air + fuel stream, matching
+    /// every sibling cycle solver (<see cref="TurbojetCycleSolver.SolveCombustorExitT"/>
+    /// and the ramjet/scramjet/RDE paths). Returns <c>T_in_K</c> unchanged when
     /// f ≤ 0 or LHV ≤ 0.
     /// </summary>
     public static double CombustorExitT_K(double T_in_K, double fuelAirMassFraction, double LHV_Jkg)
     {
         if (T_in_K <= 0.0 || double.IsNaN(T_in_K)) return double.NaN;
         if (fuelAirMassFraction <= 0.0 || LHV_Jkg <= 0.0) return T_in_K;
-        return T_in_K + (CombustionEfficiency * fuelAirMassFraction * LHV_Jkg) / CpAir_JkgK;
+        return (T_in_K + (CombustionEfficiency * fuelAirMassFraction * LHV_Jkg) / CpAir_JkgK)
+             / (1.0 + fuelAirMassFraction);
     }
 
     /// <summary>
