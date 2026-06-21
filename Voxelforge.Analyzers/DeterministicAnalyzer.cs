@@ -652,6 +652,20 @@ namespace Voxelforge.Analyzers
             if (field.IsReadOnly) return;
             if (field.IsConst) return;
 
+            // VFD013 is the static-mutable-field READ rule (see messageFormat:
+            // "Reading static mutable field ..."). A pure write — the field
+            // reference is the target of a simple assignment `_field = value;`
+            // — is not a read and introduces no hidden INPUT, so it must not
+            // fire. Compound assignment (`_field += x`), increment/decrement
+            // (`_field++`), and `ref`/`out` arguments all READ the field's
+            // current value, so they are deliberately NOT skipped here. Only a
+            // bare ISimpleAssignmentOperation target is a write-without-read.
+            if (op.Parent is ISimpleAssignmentOperation simpleAssign
+             && ReferenceEquals(simpleAssign.Target, op))
+            {
+                return;
+            }
+
             // Allow-list common safe attributes.
             foreach (var attr in field.GetAttributes())
             {

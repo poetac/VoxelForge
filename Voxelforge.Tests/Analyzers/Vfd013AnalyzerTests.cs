@@ -191,4 +191,74 @@ public sealed class Vfd013AnalyzerTests
             """;
         await RunAsync(src);   // empty diagnostics — Pure-attributed field is allow-listed
     }
+
+    // ── Negative — pure WRITE is not a read ───────────────────────────────
+
+    [Fact]
+    public async Task Vfd013_DoesNotFire_OnPureWriteToStaticMutableField_InDeterministicScope()
+    {
+        // VFD013 is the static-mutable-field READ rule (messageFormat:
+        // "Reading static mutable field ..."). A bare assignment `_x = v;`
+        // writes the field without reading it, so it introduces no hidden
+        // INPUT and must NOT fire. Before the fix the analyzer reported every
+        // IFieldReferenceOperation — including a simple-assignment target —
+        // so this write was flagged as if it were a read. Fail-on-old /
+        // pass-on-new: against the pre-fix analyzer this expects a VFD013 the
+        // test does not list and fails; the fixed analyzer emits none.
+        var src = """
+            using Voxelforge.Optimization;
+
+            [Deterministic]
+            public class C
+            {
+                private static int _x = 0;
+                public void Write(int v) { _x = v; }
+            }
+            """;
+        await RunAsync(src);   // empty diagnostics — a write is not a read
+    }
+
+    // ── Positive — compound assignment READS the field ────────────────────
+
+    [Fact]
+    public async Task Vfd013_FiresOnCompoundAssignmentToStaticMutableField_InDeterministicScope()
+    {
+        // `_x += v` reads the field's current value before writing, so the
+        // read-half is a genuine hidden input. The write-skip is deliberately
+        // scoped to ISimpleAssignmentOperation only, leaving compound
+        // assignment firing.
+        var src = """
+            using Voxelforge.Optimization;
+
+            [Deterministic]
+            public class C
+            {
+                private static int _x = 0;
+                public void Add(int v) { _x += v; }
+            }
+            """;
+        // Line 7: `    public void Add(int v) { _x += v; }` — `_x` at column 30.
+        await RunAsync(src, Vfd013(line: 7, column: 30, fieldDisplay: "C._x"));
+    }
+
+    // ── Positive — increment READS the field ──────────────────────────────
+
+    [Fact]
+    public async Task Vfd013_FiresOnIncrementOfStaticMutableField_InDeterministicScope()
+    {
+        // `_x++` is read-modify-write; the read makes the result depend on a
+        // mutable static, so it stays flagged.
+        var src = """
+            using Voxelforge.Optimization;
+
+            [Deterministic]
+            public class C
+            {
+                private static int _x = 0;
+                public void Inc() { _x++; }
+            }
+            """;
+        // Line 7: `    public void Inc() { _x++; }` — `_x` at column 25.
+        await RunAsync(src, Vfd013(line: 7, column: 25, fieldDisplay: "C._x"));
+    }
 }
