@@ -35,7 +35,12 @@
 //   c* = √(R_chamber · T_c) / Γ(γ) with γ ≈ 1.20 (combustion-products
 //   cluster average).
 //
-//   Vacuum Isp = η_eff · √(2γ/(γ−1) · R · T_c) / g₀ × (1 − (P_e/P_c)^((γ-1)/γ))
+//   Exit velocity (finite area ratio ε = A_e/A_t):
+//     V_e = η_eff · √( 2γ/(γ−1) · R · T_c · (1 − (P_e/P_c)^((γ−1)/γ)) )
+//   where P_e/P_c follows from ε via the isentropic area-Mach relation
+//   (SupersonicExitMachFromAreaRatio). The (1 − (P_e/P_c)^((γ−1)/γ)) factor
+//   sits inside the radical — at the vacuum limit (ε → ∞, P_e → 0) it → 1 and
+//   V_e recovers the maximum √(2γ/(γ−1)·R·T_c). Vacuum Isp = V_e / g₀.
 //
 //   For LACE flight regime (~Mach 5, ~25 km altitude, P_amb ≈ 2.5 kPa),
 //   approximate the ambient-correction by Isp_eff = Isp_vac − ΔIsp(altitude).
@@ -182,19 +187,28 @@ public sealed class LaceCycleSolver : IAirbreathingCycleSolver
         double gm1   = g - 1.0;
         double Pc_Pa = design.LaceChamberPressure_bar * 1e5;
 
-        // Vacuum exit velocity (perfect expansion to vacuum).
-        double V_eq_vac = EffectiveIspEfficiency * Math.Sqrt(2.0 * g / gm1 * R_c * T_c);
-
-        // Approximate pressure ratio at the exit from area ratio
-        // (isentropic). For a CD nozzle at design area ratio ε, with γ=1.20
-        // and ε in cluster range [10, 100], P_e/P_c spans [3e-3, 5e-4].
-        // Use a simplified mid-band: P_e ≈ 0.001 · P_c at ε ≈ 40.
+        // ── Nozzle expansion from the design area ratio ε = A_e/A_t ─────────
+        // Invert the isentropic area-Mach relation for the supersonic exit
+        // Mach, then the exit/chamber pressure ratio P_e/P_c. For γ=1.20 and
+        // ε in the cluster range [10, 100], P_e/P_c spans roughly [3e-3, 5e-4].
         double areaRatio = design.NozzleThroatArea_m2 > 0
             ? design.NozzleExitArea_m2 / design.NozzleThroatArea_m2
             : 40.0;
-        // Approximate ambient correction: ΔV_eq ≈ V_eq_vac · (P_amb/P_c)·factor.
+        double M_e      = SupersonicExitMachFromAreaRatio(Math.Max(1.0001, areaRatio), g);
+        double peOverPc = Math.Pow(1.0 + 0.5 * gm1 * M_e * M_e, -g / gm1);
+
+        // Exit velocity. V_eq_vac is the vacuum (infinite-ε) limit; the
+        // finite-expansion factor √(1 − (P_e/P_c)^((γ−1)/γ)) brings it down to
+        // the value for this nozzle's actual area ratio — the same factor every
+        // rocket-style cycle carries (and that this solver's own docstring
+        // lists). It was previously dropped, so V_e was taken at the
+        // infinite-ε limit, over-predicting exit velocity by ~20-30 % at the
+        // cluster area ratios (and thrust/Isp more, after ram-drag subtraction).
+        double V_eq_vac      = EffectiveIspEfficiency * Math.Sqrt(2.0 * g / gm1 * R_c * T_c);
+        double finiteExp     = Math.Sqrt(Math.Max(0.0, 1.0 - Math.Pow(peOverPc, gm1 / g)));
+        // Coarse ambient back-pressure correction: ΔV_eq ≈ V_eq · (P_amb/P_c)·factor.
         double ambCorrection = Math.Max(0.0, P_amb / Math.Max(Pc_Pa, 1e3));
-        double V_eq_eff = V_eq_vac * (1.0 - 0.3 * ambCorrection);  // coarse linear correction
+        double V_eq_eff      = V_eq_vac * finiteExp * (1.0 - 0.3 * ambCorrection);
 
         double mDot_total = mDot_air + mDot_H2;
         double F_jet      = mDot_total * V_eq_eff;
@@ -224,10 +238,9 @@ public sealed class LaceCycleSolver : IAirbreathingCycleSolver
         stations[7] = new StationState(double.NaN, double.NaN, 0.0, double.NaN);
         // 8  nozzle throat
         stations[8] = new StationState(T_c * 2.0 / gp1, Pc_Pa * Math.Pow(2.0 / gp1, g / gm1), mDot_total, 1.0);
-        // 9  nozzle exit
-        double P_e = Pc_Pa * Math.Max(1e-4, 1.0 - 0.999); // bound P_e well below P_c
-        double T_e = T_c * Math.Pow(P_e / Pc_Pa, gm1 / g);
-        double M_e = Math.Sqrt(Math.Max(0, 2.0 / gm1 * (Math.Pow(Pc_Pa / Math.Max(P_e, 1e-3), gm1 / g) - 1.0)));
+        // 9  nozzle exit — consistent with the area-ratio expansion above.
+        double P_e = Pc_Pa * peOverPc;
+        double T_e = T_c * Math.Pow(peOverPc, gm1 / g);
         stations[9] = new StationState(T_e, P_e, mDot_total, M_e);
 
         var stationMap = new StationMap(
@@ -248,6 +261,33 @@ public sealed class LaceCycleSolver : IAirbreathingCycleSolver
                     0.5 * mDot_total * V_eq_eff * V_eq_eff / (mDot_H2 * 120e6)))
                 : 0.0,
         };
+    }
+
+    /// <summary>
+    /// Supersonic exit Mach number from the nozzle area ratio ε = A_e/A_t,
+    /// by inverting the isentropic area-Mach relation
+    /// A/A* = (1/M)·[(2/(γ+1))·(1 + (γ−1)/2·M²)]^((γ+1)/(2(γ−1))) on its
+    /// monotone supersonic branch. Fixed-iteration bisection → deterministic
+    /// (no convergence-tolerance branching). γ is a parameter because the
+    /// LACE chamber γ (≈1.20) differs from air's 1.40, so the
+    /// air-specialised <c>IdealGasAir</c> helpers don't apply.
+    /// </summary>
+    /// <param name="areaRatio">Nozzle area ratio ε = A_e/A_t (must be ≥ 1).</param>
+    /// <param name="gamma">Ratio of specific heats for the exhaust.</param>
+    internal static double SupersonicExitMachFromAreaRatio(double areaRatio, double gamma)
+    {
+        double gp1 = gamma + 1.0;
+        double gm1 = gamma - 1.0;
+        double expo = gp1 / (2.0 * gm1);
+        double lo = 1.0, hi = 50.0;
+        for (int i = 0; i < 80; i++)
+        {
+            double m = 0.5 * (lo + hi);
+            double term = (2.0 / gp1) * (1.0 + 0.5 * gm1 * m * m);
+            double aOverAStar = Math.Pow(term, expo) / m;
+            if (aOverAStar > areaRatio) hi = m; else lo = m;
+        }
+        return 0.5 * (lo + hi);
     }
 
     /// <summary>
