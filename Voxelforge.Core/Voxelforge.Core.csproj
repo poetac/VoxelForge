@@ -15,6 +15,10 @@
     <InternalsVisibleTo Include="Voxelforge" />
     <InternalsVisibleTo Include="Voxelforge.Voxels" />
     <InternalsVisibleTo Include="Voxelforge.Tests" />
+    <!-- PicoGK-free Core unit tests that run on the GitHub-hosted Linux CI
+         leg (net9.0, no WinForms). Needs friend access to test internal
+         helpers (e.g. CsvTimeSeriesExporter, TimeHistorySnapshot). -->
+    <InternalsVisibleTo Include="Voxelforge.Core.Tests" />
     <InternalsVisibleTo Include="Voxelforge.Benchmarks" />
     <!-- Issue #491. BDN microbench for ComponentNetwork.Solve allocation
          footprint. ComponentNetwork is internal; the bench needs friend

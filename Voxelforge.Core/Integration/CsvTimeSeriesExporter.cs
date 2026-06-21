@@ -31,14 +31,18 @@ internal static class CsvTimeSeriesExporter
         ArgumentNullException.ThrowIfNull(history);
         if (history.Count == 0) return "Time_s\n";
 
-        // 1. Determine column ordering from first snapshot.
+        // 1. Determine column ordering from the first snapshot. Component and
+        //    port/var names are sorted ordinally so the column layout is
+        //    deterministic and culture-invariant regardless of the
+        //    IReadOnlyDictionary iteration order (which the runtime does not
+        //    guarantee and which can vary with upstream insertion order).
         var portColumns  = new List<(string Component, string Port)>();
-        foreach (var (componentName, ports) in history[0].PortValues)
-            foreach (var portName in ports.Keys)
+        foreach (var componentName in history[0].PortValues.Keys.OrderBy(k => k, StringComparer.Ordinal))
+            foreach (var portName in history[0].PortValues[componentName].Keys.OrderBy(k => k, StringComparer.Ordinal))
                 portColumns.Add((componentName, portName));
         var stateColumns = new List<(string Component, string Var)>();
-        foreach (var (componentName, vars) in history[0].StateValues)
-            foreach (var varName in vars.Keys)
+        foreach (var componentName in history[0].StateValues.Keys.OrderBy(k => k, StringComparer.Ordinal))
+            foreach (var varName in history[0].StateValues[componentName].Keys.OrderBy(k => k, StringComparer.Ordinal))
                 stateColumns.Add((componentName, varName));
 
         var sb = new StringBuilder();
