@@ -48,6 +48,15 @@ public static class NuclearOptimization
     {
         ArgumentNullException.ThrowIfNull(design);
         ArgumentNullException.ThrowIfNull(conditions);
+        // Reject structurally-invalid designs up front. Without this, a
+        // degenerate-but-constructible design (e.g. mDot = 0 from a CLI /
+        // deserialized caller) reaches the cycle solver, divides by zero, and
+        // propagates NaN through core-exit-T — which then slips past every hard
+        // gate (NaN > limit is false) so the result reports IsFeasible = true
+        // with NaN performance. ValidateSelf was defined but never invoked;
+        // wiring it here matches the Marine / EP pillars. SA-optimizer designs
+        // are always in-bounds, so this only fires for invalid direct inputs.
+        design.ValidateSelf();
         if (design.Family != EngineFamilies.Nuclear)
             throw new ArgumentException(
                 $"Design family '{design.Family}' is not '{EngineFamilies.Nuclear}'.",
