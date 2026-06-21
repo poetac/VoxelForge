@@ -205,9 +205,12 @@ public sealed class RotatingDetonationCycleSolver : IAirbreathingCycleSolver
             AirbreathingFuel.Jp8  => 43e6,
             _                     => 43e6,
         };
-        // Combustor energy balance with η_b:
-        //   T_t4 = T_t2 + f · LHV · η_b / cp
-        double T_t4 = T_t2 + f * LHV * CombustionEfficiency / HotSideCp_JkgK;
+        // Combustor energy balance with η_b — heat BOTH the incoming air and the
+        // added fuel mass: (1+f)·cp·T_t4 = cp·T_t2 + f·η_b·LHV, so
+        //   T_t4 = (T_t2 + f·LHV·η_b/cp) / (1 + f)
+        // The (1+f) divisor matches every sibling cycle solver (turbojet, ramjet,
+        // scramjet, …); omitting it over-predicted T_t4 by ~f (≈3 % H₂, ≈7 % Jet-A).
+        double T_t4 = (T_t2 + f * LHV * CombustionEfficiency / HotSideCp_JkgK) / (1.0 + f);
 
         // Pressure gain — the defining RDE identity.
         double P_t4 = design.RdePressureGainRatio * P_t2;
