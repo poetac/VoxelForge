@@ -55,9 +55,14 @@ internal sealed class CostRegistry
     /// </summary>
     public SystemCostBreakdown BuildBreakdown()
     {
-        var estimates = new List<CostEstimate>(_factories.Count);
-        foreach (var factory in _factories.Values)
-            estimates.Add(factory());
+        // Iterate registered components in a deterministic, culture-invariant
+        // order (Dictionary enumeration order is not a contract) so the
+        // resulting SystemCostBreakdown.Components list is stable across runs.
+        var keys = new List<string>(_factories.Keys);
+        keys.Sort(StringComparer.Ordinal);
+        var estimates = new List<CostEstimate>(keys.Count);
+        foreach (var key in keys)
+            estimates.Add(_factories[key]());
         return EconomicAnalyzer.Analyze(estimates);
     }
 }

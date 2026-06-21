@@ -200,6 +200,19 @@ public static class HeliconIcrhMagneticNozzleModel
         double E_per_ion_eV = N_ions_per_sec > 0
             ? icrhRfPower_W / (N_ions_per_sec * ElementaryCharge_C)
             : 0.0;
+        // KNOWN LIMITATION (red-team round 2): E_per_ion has no physical ceiling.
+        // Energy IS conserved — the jet kinetic power below works out to
+        // η_nozzle·P_icrh ≤ P_icrh regardless — but at very low ionisation
+        // fraction η_i the whole ICRH power is dumped into very few ions, so
+        // E_per_ion (and hence v_directed / Isp) grows without bound while thrust
+        // shrinks. A constructed low-η_i / high-P_icrh design therefore reports a
+        // physically unrealistic Isp (e.g. >100 000 s) yet stays feasible (only
+        // the advisory VASIMR_IONIZATION_FRACTION_LOW fires). A hard ceiling
+        // can't be derived from a conservation law (energy already balances); it
+        // needs an empirical ion-energy / Isp cap calibrated against VASIMR
+        // (VX-200) test data — deferred rather than guessed. Not on an SA
+        // objective path (no VASIMR optimiser), so reachable only via direct /
+        // CLI / deserialised construction.
 
         // 3. Magnetic-mirror ratio + nozzle conversion efficiency.
         double M = MirrorRatioScale_perTmm * solenoidField_T * nozzleExitRadius_mm;

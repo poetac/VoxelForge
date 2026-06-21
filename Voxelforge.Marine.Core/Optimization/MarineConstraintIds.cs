@@ -70,7 +70,7 @@ internal static class MarineConstraintIds
     /// <summary>Beam-to-draft ratio outside the displacement-hull cluster band [1.5, 5.0].</summary>
     internal const string HoltropBeamToDraftOutOfBand = "HOLTROP_BEAM_TO_DRAFT_OUT_OF_BAND";
 
-    /// <summary>Form factor (1 + k₁) above 1.50 — cluster ceiling for round-bilge hulls.</summary>
+    /// <summary>Form factor (1 + k₁) above 1.30 — cluster ceiling for round-bilge hulls.</summary>
     internal const string HoltropFormFactorAboveBand = "HOLTROP_FORM_FACTOR_ABOVE_BAND";
 
     /// <summary>Wave-making dominates total resistance (> 60 %) — operating above hump speed.</summary>

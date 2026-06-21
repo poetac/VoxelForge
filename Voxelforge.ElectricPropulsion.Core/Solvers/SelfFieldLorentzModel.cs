@@ -209,7 +209,7 @@ public static class SelfFieldLorentzModel
     /// <param name="appliedFieldCoupling">
     /// Optional coupling coefficient k_af for the applied-field fit.
     /// <see cref="double.NaN"/> (default) uses
-    /// <see cref="DefaultAppliedFieldCoupling"/> = 0.30. Must be positive
+    /// <see cref="DefaultAppliedFieldCoupling"/> = 0.20. Must be positive
     /// when finite. Ignored when <paramref name="appliedFieldStrength_T"/>
     /// is zero.
     /// </param>

@@ -117,4 +117,22 @@ public sealed class IntegrationAuditRegressionTests
             CultureInfo.CurrentCulture = prev;
         }
     }
+
+    // ── Finding 4: CostRegistry component ordering determinism ───────────────
+
+    [Fact]
+    public void CostRegistry_BuildBreakdown_ComponentsAreOrdinallySorted()
+    {
+        // Registered in non-sorted order; the breakdown must surface components
+        // in ordinal order rather than Dictionary enumeration (insertion) order.
+        var reg = new CostRegistry();
+        reg.Register("zebra", () => new CostEstimate("zebra", 1.0, 1.0, 1.0));
+        reg.Register("alpha", () => new CostEstimate("alpha", 1.0, 1.0, 1.0));
+        reg.Register("mango", () => new CostEstimate("mango", 1.0, 1.0, 1.0));
+
+        var bd = reg.BuildBreakdown();
+        Assert.Equal("alpha", bd.Components[0].ComponentName);
+        Assert.Equal("mango", bd.Components[1].ComponentName);
+        Assert.Equal("zebra", bd.Components[2].ComponentName);
+    }
 }

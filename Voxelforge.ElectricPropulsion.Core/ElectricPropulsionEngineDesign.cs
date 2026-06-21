@@ -404,9 +404,10 @@ public sealed record ElectricPropulsionEngineDesign(
     /// <summary>
     /// Optional override for the applied-field coupling coefficient k_af
     /// (dimensionless). <see cref="double.NaN"/> (default) uses
-    /// <see cref="Solvers.SelfFieldLorentzModel.DefaultAppliedFieldCoupling"/> = 0.30
-    /// (LiLFA cluster mid-band). Set to a fixture-derived value when calibration
-    /// data exists. Self-field MPD / non-MPD kinds ignore this.
+    /// <see cref="Solvers.SelfFieldLorentzModel.DefaultAppliedFieldCoupling"/> = 0.20
+    /// (cluster mid-band). Set to a fixture-derived value (e.g. the LiLFA Polk
+    /// 1991 anchor ≈ 0.30) when calibration data exists. Self-field MPD / non-MPD
+    /// kinds ignore this.
     /// </summary>
     public double MpdAppliedFieldCouplingOverride { get; init; } = double.NaN;
 

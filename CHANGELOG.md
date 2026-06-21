@@ -31,6 +31,14 @@ A second adversarial audit (parallel pillar sweeps over marine, electric propuls
 **Energy pillars:**
 - **Refrigeration superheat could invert the COP (Wave-1).** `RefrigerationSolver` applies a linear COP penalty `1 − 0.002·SuperheatDepth_K` (and boost `1 + 0.006·SubcoolingDepth_K`), but `RefrigerationDesign` validated the depths only `≥ 0`. Past ~500 K the penalty goes ≤ 0, so cooling COP and cold-side heat removal flip sign — a "refrigerator" that adds heat — while the design still validated. (Sibling Wave-2 add-ons on PV/Battery already bound their fields; refrigeration didn't.) Both depths are now capped at a generous physical ceiling (50 K) so the linear model stays in its calibrated, positive-COP range.
 
+**Documented (calibration-laden, not auto-fixed):**
+- **VASIMR Isp is unbounded at low ionisation fraction.** `HeliconIcrhMagneticNozzleModel` deposits the full ICRH power into `N_ions = η_i·ṁ/m_Ar` ions; energy *is* conserved (jet power resolves to `η_nozzle·P_icrh ≤ P_icrh`), but at very low `η_i` the per-ion energy — and hence exit velocity / Isp — grows without a ceiling while thrust shrinks, so a constructed low-`η_i` design reports an unrealistic Isp (>100 000 s) yet stays feasible (only the advisory `VASIMR_IONIZATION_FRACTION_LOW` fires). No conservation law bounds it (energy already balances), so a hard cap needs an empirical ion-energy/Isp ceiling calibrated against VX-200 data — documented in-code rather than guessed. Reachable only via direct/CLI/deserialised construction (no VASIMR optimiser path).
+
+**Documentation / determinism cleanups:**
+- Corrected the documented MPD applied-field coupling default to 0.20 (matching the const) in the `SelfFieldLorentzModel` param doc and the `ElectricPropulsionEngineDesign` field doc, which both said 0.30 (the LiLFA anchor, not the default). Corrected the Holtrop form-factor advisory ceiling in its constraint-ID doc to 1.30 (the actual threshold; it said 1.50). `CostRegistry.BuildBreakdown` now emits components in ordinal-sorted order rather than `Dictionary` enumeration order, so the `SystemCostBreakdown.Components` list is deterministic.
+
+### Sprint A.111 — Physics-correctness + robustness: red-team fixes
+
 A targeted red-team audit (determinism, physics-formula, numerical/gate-logic) plus live-pipeline fuzzing surfaced correctness holes that green CI did not catch. Each fix lands with a fail-on-old / pass-on-new regression test on the cross-platform suites (Nuclear 194, EP 641, Marine 242, Core 55 all green).
 
 **Physics correctness:**
