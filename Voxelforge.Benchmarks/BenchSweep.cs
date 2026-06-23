@@ -152,6 +152,24 @@ internal static class BenchSweep
             ? RegenChamberOptimization.Pack(preset.Seed.Design)
             : null;
 
+        // Pre-flight: reject a design variable that the selected preset's
+        // baseline gates off. Some descriptors only apply when a categorical
+        // baseline field is set (injector pattern present, TPMS / aerospike
+        // topology); for a preset whose baseline doesn't satisfy the gate,
+        // RegenChamberOptimization.Unpack silently drops the swept value and
+        // the run would emit a flat, misleading "no-effect" curve with exit 0
+        // (#852). Fail fast instead of producing a corrupt experiment.
+        if (desc is not null
+            && !DesignVariableBinder.IsGateSatisfied(desc.Gate, preset.Seed.Design))
+        {
+            Error($"Design variable '{variableName}' is gated off for preset '{preset.Name}': "
+                + $"its gate ({desc.Gate}) is not satisfied by the preset's baseline design, so "
+                + $"RegenChamberOptimization.Unpack would silently ignore the swept value and "
+                + $"produce a flat, misleading curve. Choose a preset whose baseline enables this "
+                + $"variable, or a different --variable.");
+            return 3;
+        }
+
         Console.WriteLine($"# Sweep: preset={preset.Name}  variable={variableName}"
                         + $"  range=[{lo:G4},{hi:G4}]  samples={samples}  objective={objective}");
         Console.WriteLine($"# Output CSV: {outPath}");
