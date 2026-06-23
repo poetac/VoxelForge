@@ -315,7 +315,20 @@ public static partial class DesignVariableBinder
         // site) simply leaves the out-of-range descriptor at baseline.
         if (descriptorIndex >= packedLength) return false;
 
-        return gate switch
+        return IsGateSatisfied(gate, baseline);
+    }
+
+    /// <summary>
+    /// True if a descriptor carrying <paramref name="gate"/> would actually be
+    /// applied to <paramref name="baseline"/> by <see cref="Unpack"/> — i.e. the
+    /// gate's categorical precondition (injector pattern present, TPMS / aerospike
+    /// topology, …) holds. When it does not, <see cref="Unpack"/> silently leaves
+    /// that dimension at its baseline value. Tools that drive a single dimension
+    /// (e.g. a parameter sweep) can pre-flight this to reject a variable the chosen
+    /// baseline would drop, instead of emitting a flat "no-effect" result (#852).
+    /// </summary>
+    internal static bool IsGateSatisfied(SaGate gate, RegenChamberDesign baseline)
+        => gate switch
         {
             SaGate.None                    => true,
             SaGate.InjectorPatternPresent  => baseline.InjectorElementPattern is not null,
@@ -334,7 +347,6 @@ public static partial class DesignVariableBinder
                                           or ChannelTopology.LinearAerospike,
             _                              => true,
         };
-    }
 
     /// <summary>
     /// Clamp <paramref name="v"/> into the descriptor's bounds. The
