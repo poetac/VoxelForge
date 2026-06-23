@@ -94,6 +94,11 @@ if ($env:GITHUB_STEP_SUMMARY) {
     $summaryLines | Write-Host
 }
 
+if ($checked -eq 0) {
+    Write-Error "BDN microbench: 0 kernels compared (empty results dir, renamed benchmarks, or no matching baseline). Drift detection would be blind — failing instead of reporting a false green (#850)."
+    exit 1
+}
+
 if ($regressions -gt 0) {
     Write-Error "BDN microbench: $regressions kernel(s) regressed > $($ThresholdPct)% on mean_ns."
     exit 1
