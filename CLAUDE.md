@@ -66,6 +66,18 @@ Pre-push verification under `TreatWarningsAsErrors`:
 dotnet build voxelforge.sln -c Release -p:TreatWarningsAsErrors=true --verbosity minimal -nologo
 ```
 
+## Build environment & CI signal (hard-won)
+
+**SDK pin.** `global.json` pins **.NET 9.0.x** with `rollForward: latestFeature` — deliberately *not* rolling to a newer major (a 10.x Roslyn shifts analyzer defaults under `TreatWarningsAsErrors`; see #670). A machine carrying only a newer major — e.g. the cloud/web container currently ships **.NET 10** — then fails every `dotnet` call with `NETSDK… A compatible .NET SDK was not found`. To compile-check there without committing the relaxation:
+
+- Set `rollForward` to `latestMajor` in `global.json`, build, then `git checkout -- global.json`. **Never commit the relaxation.**
+- The `net9.0-windows` projects (`Voxelforge`, `*.Voxels`, `Voxelforge.Tests`, `Voxelforge.Benchmarks`, `Voxelforge.Avalonia`) need `-p:EnableWindowsTargeting=true` to compile on Linux.
+- This is a **compile** check only — test *execution* needs the net9.0 runtime (absent on the .NET-10 container). Let the `core (linux)` CI job run the tests.
+
+**Where a cross-platform test goes.** A PicoGK/WinForms-free **Core** test belongs in **`Voxelforge.Core.Tests`** (`net9.0`, friend of Core via `InternalsVisibleTo`, runs on the Linux CI leg). **`Voxelforge.Tests` is `net9.0-windows`** (PicoGK + WinForms) and only runs on the self-hosted Windows runner — a cross-platform test placed there silently never runs in Linux CI. The per-pillar `*.Tests` (Marine/Nuclear/EP/Airbreathing/Cfd) are net9.0 and mirror this.
+
+**Reading CI.** The lone self-hosted Windows runner is a SPOF (#13/#51) and is often offline; its jobs (`rocket-tests`, `analyzers-and-typecheck`, `*-tests`, `bench-*`, `contract-checks`, `changelog-check`) then sit **queued** and **cancel after ~24 h** — infra, not a regression. The six **`*(linux)`** jobs (`core-linux-tests.yml`) are the reliable signal, and `core (linux)` is where Core tests actually execute. A PR is safe to merge on `mergeable_state: unstable` when the Linux leg is green and only self-hosted jobs are stuck (`changelog-check` is non-blocking; `bench-regression.yml` is a soft-gate). The sandbox git proxy also blocks deletion pushes (`git push --delete` → 403); rely on GitHub's auto-delete-head-branches or delete merged branches in the web UI.
+
 ## Hardware guidance
 
 Voxel memory scales with the cube of resolution. For thrust > 10 kN or
