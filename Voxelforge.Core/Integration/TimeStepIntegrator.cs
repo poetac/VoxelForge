@@ -386,10 +386,10 @@ internal sealed class TimeStepIntegrator
                     AdvanceExplicitEuler(ports, dt_s);
                     break;
                 case IntegrationMethod.Rk4:
-                    AdvanceRk4(useIterativeSolve, dt_s);
+                    AdvanceRk4(useIterativeSolve, dt_s, t);
                     break;
                 case IntegrationMethod.CrankNicolson:
-                    AdvanceCrankNicolson(ports, useIterativeSolve, dt_s);
+                    AdvanceCrankNicolson(ports, useIterativeSolve, dt_s, t);
                     break;
                 case IntegrationMethod.CashKarpRk45Adaptive:
                     throw new ArgumentOutOfRangeException(nameof(method),
@@ -504,10 +504,10 @@ internal sealed class TimeStepIntegrator
                     AdvanceExplicitEuler(ports, dt_s);
                     break;
                 case IntegrationMethod.Rk4:
-                    AdvanceRk4(useIterativeSolve, dt_s);
+                    AdvanceRk4(useIterativeSolve, dt_s, t);
                     break;
                 case IntegrationMethod.CrankNicolson:
-                    AdvanceCrankNicolson(ports, useIterativeSolve, dt_s);
+                    AdvanceCrankNicolson(ports, useIterativeSolve, dt_s, t);
                     break;
                 case IntegrationMethod.CashKarpRk45Adaptive:
                     throw new ArgumentOutOfRangeException(nameof(method),
@@ -582,7 +582,7 @@ internal sealed class TimeStepIntegrator
         }
     }
 
-    private void AdvanceRk4(bool useIterativeSolve, double dt_s)
+    private void AdvanceRk4(bool useIterativeSolve, double dt_s, double t_s)
     {
         // Sprint SI.W6 — RK4 advance.
         //   k1 = f(t,         y)
@@ -598,20 +598,20 @@ internal sealed class TimeStepIntegrator
         EnsureBuffersAllocated();
         SnapshotStateInto(_origBuf!);
 
-        // k1 — at original state.
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf1!);
+        // k1 = f(t, y) — at original state.
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf1!, t_s);
 
-        // k2 — at y + dt/2 · k1.
+        // k2 = f(t + dt/2, y + dt/2 · k1).
         ApplyPerturbationInPlace(_origBuf!, _kBuf1!, dt_s / 2.0);
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf2!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf2!, t_s + dt_s / 2.0);
 
-        // k3 — at y + dt/2 · k2.
+        // k3 = f(t + dt/2, y + dt/2 · k2).
         ApplyPerturbationInPlace(_origBuf!, _kBuf2!, dt_s / 2.0);
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf3!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf3!, t_s + dt_s / 2.0);
 
-        // k4 — at y + dt · k3.
+        // k4 = f(t + dt, y + dt · k3).
         ApplyPerturbationInPlace(_origBuf!, _kBuf3!, dt_s);
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf4!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf4!, t_s + dt_s);
 
         // Combine: y(t+dt) = y(t) + dt/6 · (k1 + 2k2 + 2k3 + k4).
         // Issue #736 Phase 2 — write into _state's owned flat arrays
@@ -779,7 +779,8 @@ internal sealed class TimeStepIntegrator
     private void AdvanceCrankNicolson(
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, double>> portsAtTn,
         bool useIterativeSolve,
-        double dt_s)
+        double dt_s,
+        double t_s)
     {
         // Crank-Nicolson implicit trapezoid solved by Newton-Raphson (CN-NEWTON):
         //   G(y) = y − y_n − (dt/2)·[f(t,y_n) + f(t+dt,y)] = 0
@@ -829,6 +830,10 @@ internal sealed class TimeStepIntegrator
 
         var order   = _cnStateOrder!;
         double halfDt = 0.5 * dt_s;
+        // CN implicit point — f(t+dt, y^(k)) and its finite-difference Jacobian
+        // columns are evaluated at the END of the step. (The explicit f(t, y_n)
+        // above used portsAtTn, already solved at the tick-start time t.)
+        double tImplicit_s = t_s + dt_s;
         // sqrt(double.Epsilon) — standard forward finite-difference step size.
         const double sqrtEps = 1.4901161193847656e-8;
 
@@ -846,7 +851,7 @@ internal sealed class TimeStepIntegrator
             }
 
             // f(t+dt, y^(k)).
-            ComputeAllDerivativesInto(useIterativeSolve, fEnd);
+            ComputeAllDerivativesInto(useIterativeSolve, fEnd, tImplicit_s);
 
             // Residual: G_i = y^(k)_i − y_n_i − (dt/2)·(f_n_i + f(y^(k))_i).
             foreach (var (name, ofs, cnt) in order)
@@ -871,7 +876,7 @@ internal sealed class TimeStepIntegrator
                 _state[cName][localJ] = yj + hj;
                 _statefulComponents[cName].SetState(_state[cName]);
 
-                ComputeAllDerivativesInto(useIterativeSolve, _kBuf1!);
+                ComputeAllDerivativesInto(useIterativeSolve, _kBuf1!, tImplicit_s);
 
                 _state[cName][localJ] = yj;
                 _statefulComponents[cName].SetState(_state[cName]);
@@ -1101,7 +1106,7 @@ internal sealed class TimeStepIntegrator
             }
             previousTickTime = t;
 
-            AdvanceCrankNicolson(ports, useIterativeSolve, dtThisStep);
+            AdvanceCrankNicolson(ports, useIterativeSolve, dtThisStep, t);
             int iters = LastCrankNicolsonIterations;
 
             // Issue #553 / audit C3 — snap the final step to land exactly
@@ -1240,13 +1245,22 @@ internal sealed class TimeStepIntegrator
 
     private void ComputeAllDerivativesInto(
         bool useIterativeSolve,
-        Dictionary<string, double[]> destBuf)
+        Dictionary<string, double[]> destBuf,
+        double stageTime_s)
     {
         // Re-solve the algebraic network at the current state, then
         // gather derivatives for every stateful component into destBuf.
         // Faulted components: derivatives are zero (state frozen).
         // Issue #738 Phase 3 — span-based ComputeDerivatives writes into
         // destBuf[name] directly.
+        //
+        // Refresh time-varying external inputs at THIS stage's node time so a
+        // multi-stage method (RK4 / Crank-Nicolson / Cash-Karp) evaluates the
+        // forcing at t + cᵢ·dt rather than the frozen tick-start value — without
+        // it every internal stage saw u(t_tickstart) and the higher-order
+        // methods silently collapsed to first-order (Euler) accuracy for any
+        // time-varying external input. No-op for an autonomous network.
+        _network.RefreshTimeVaryingInputsAt(stageTime_s);
         var ports = useIterativeSolve
             ? _network.SolveIterative()
             : _network.Solve();
@@ -1333,6 +1347,14 @@ internal sealed class TimeStepIntegrator
     private const double CK_A63 = 575.0 / 13824.0;
     private const double CK_A64 = 44275.0 / 110592.0;
     private const double CK_A65 = 253.0 / 4096.0;
+
+    // Cash-Karp nodes cᵢ (abscissae) = the row-sums of the A-matrix above.
+    // Stage derivative kᵢ is evaluated at time t + cᵢ·dt (c1 = 0).
+    private const double CK_C2 = 1.0 / 5.0;
+    private const double CK_C3 = 3.0 / 10.0;
+    private const double CK_C4 = 3.0 / 5.0;
+    private const double CK_C5 = 1.0;
+    private const double CK_C6 = 7.0 / 8.0;
 
     // 5th-order combination weights (b_2 and b_5 are zero in Cash-Karp).
     private const double CK_B5_1 = 37.0 / 378.0;
@@ -1480,7 +1502,7 @@ internal sealed class TimeStepIntegrator
             // Trial step. Returns the per-step error norm and the y5
             // estimate; commits y5 to _state when accepted.
             bool accepted = TryCashKarpStep(
-                useIterativeSolve, dtThisStep, atol, rtol,
+                useIterativeSolve, dtThisStep, t, atol, rtol,
                 out double errorNorm);
 
             if (accepted)
@@ -1526,7 +1548,7 @@ internal sealed class TimeStepIntegrator
                     // further. Commit the unrejected y5 to make
                     // forward progress; flag via the rejected-step
                     // counter.
-                    CommitCashKarpFloorStep(useIterativeSolve, dtThisStep);
+                    CommitCashKarpFloorStep(useIterativeSolve, dtThisStep, t);
                     // Issue #553 / audit C3 — endpoint snap (see above).
                     if (t + dtThisStep >= tEnd_s)
                     {
@@ -1580,6 +1602,7 @@ internal sealed class TimeStepIntegrator
     private bool TryCashKarpStep(
         bool useIterativeSolve,
         double dt_s,
+        double t_s,
         double atol,
         double rtol,
         out double errorNorm)
@@ -1588,22 +1611,22 @@ internal sealed class TimeStepIntegrator
         SnapshotStateInto(_origBuf!);
         var origState = _origBuf!;
 
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf1!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf1!, t_s);
 
         ApplyMultiPerturbationInPlace(origState, CkWeightsStage2, _ksStage2!, dt_s);
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf2!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf2!, t_s + CK_C2 * dt_s);
 
         ApplyMultiPerturbationInPlace(origState, CkWeightsStage3, _ksStage3!, dt_s);
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf3!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf3!, t_s + CK_C3 * dt_s);
 
         ApplyMultiPerturbationInPlace(origState, CkWeightsStage4, _ksStage4!, dt_s);
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf4!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf4!, t_s + CK_C4 * dt_s);
 
         ApplyMultiPerturbationInPlace(origState, CkWeightsStage5, _ksStage5!, dt_s);
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf5!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf5!, t_s + CK_C5 * dt_s);
 
         ApplyMultiPerturbationInPlace(origState, CkWeightsStage6, _ksStage6!, dt_s);
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf6!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf6!, t_s + CK_C6 * dt_s);
 
         // Compute y5 + per-var weighted error |y5 − y4| / (atol + rtol · |y|).
         // Issue #736 Phase 2 — index-based walk through the per-component
@@ -1680,23 +1703,23 @@ internal sealed class TimeStepIntegrator
 
     // dt-floor fallback used when the controller can't shrink further.
     // Re-runs the step and commits the 5th-order estimate unconditionally.
-    private void CommitCashKarpFloorStep(bool useIterativeSolve, double dt_s)
+    private void CommitCashKarpFloorStep(bool useIterativeSolve, double dt_s, double t_s)
     {
         EnsureBuffersAllocated();
         SnapshotStateInto(_origBuf!);
         var origState = _origBuf!;
 
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf1!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf1!, t_s);
         ApplyMultiPerturbationInPlace(origState, CkWeightsStage2, _ksStage2!, dt_s);
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf2!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf2!, t_s + CK_C2 * dt_s);
         ApplyMultiPerturbationInPlace(origState, CkWeightsStage3, _ksStage3!, dt_s);
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf3!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf3!, t_s + CK_C3 * dt_s);
         ApplyMultiPerturbationInPlace(origState, CkWeightsStage4, _ksStage4!, dt_s);
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf4!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf4!, t_s + CK_C4 * dt_s);
         ApplyMultiPerturbationInPlace(origState, CkWeightsStage5, _ksStage5!, dt_s);
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf5!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf5!, t_s + CK_C5 * dt_s);
         ApplyMultiPerturbationInPlace(origState, CkWeightsStage6, _ksStage6!, dt_s);
-        ComputeAllDerivativesInto(useIterativeSolve, _kBuf6!);
+        ComputeAllDerivativesInto(useIterativeSolve, _kBuf6!, t_s + CK_C6 * dt_s);
 
         // Write y5 directly into _state's owned flat arrays.
         // Issue #738 Phase 3 — SetState is span-based.
