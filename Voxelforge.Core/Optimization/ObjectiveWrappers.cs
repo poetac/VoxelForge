@@ -496,6 +496,17 @@ public sealed class SubsamplingObjective : IObjective
             //    starts mutating.
             var centralResult = _inner.Evaluate(vector, ct);
 
+            // 1a. An infeasible central design keeps the +∞ infeasibility
+            //     sentinel. Subsampling robustness is only meaningful around a
+            //     *feasible* centre; relabeling an infeasible centre with a
+            //     finite neighbour-median would erase the sentinel (per
+            //     IObjective: "+∞ … SA never accepts a +Inf candidate") and let
+            //     SA accept an infeasible design as a candidate / new best. A
+            //     *finite* score carrying advisory Violations is still feasible
+            //     ("feasible with warnings") and proceeds to the median below.
+            if (!double.IsFinite(centralResult.Score))
+                return centralResult;
+
             // 2. Per-dim ±ε neighbours, cycling through the first
             //    neighbourCount dims deterministically. We pick the dims
             //    with LARGEST range (Max - Min) first to maximise probe
