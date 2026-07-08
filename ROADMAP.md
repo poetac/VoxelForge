@@ -8,7 +8,7 @@ Items scoped as 1–3 day sprints at single-dev cadence unless noted. Shippable-
 
 The project pursued **Framing B (multi-physics breadth + depth)** through May 2026 — polish + depth on the existing pillar catalogue (5 production pillars + 22 Wave-1 internal pillars), no new pillars until the catalogue was hardened. All three phases — Phase 1 (stabilize), Phase 2 (depth/polish), Phase 3 (coverage backfill) — are complete (see the Done section below).
 
-With framing-B closed, the project is in a **deliberate pause**: the immediate work is the public release (security hardening + doc trim, then the v0.1.0 tag), after which development is demand-driven rather than committed to a new multi-month track.
+With framing-B closed, the project is in a **deliberate pause**: the repository went public on 2026-06-17, and the remaining committed work is closing the v0.1.0 release-readiness criteria (see Now), after which development is demand-driven rather than committed to a new multi-month track.
 
 Two larger directions remain **documented and available, but neither is being actively pursued** — each is a demand-gated unlock, not a queued plan:
 
@@ -27,13 +27,17 @@ Two larger directions remain **documented and available, but neither is being ac
 
 See `CHANGELOG.md` for sprint-level detail.
 
-## Now — public release + v0.1.0 tag
+## Now — v0.1.0 release readiness
 
-Framing-B is closed; the active work is shipping the repository publicly as a portfolio piece.
+Framing-B is closed and the repository **is public**: initial public release 2026-06-17, GitHub Pages enabled 2026-06-18 with green deploys (issue #2 is satisfied by observation and can close). The planned "harden → flip → tag" sequence deliberately paused before the tag: two post-public red-team rounds (CHANGELOG Sprints A.111 + A.112) each surfaced 10+ real correctness bugs that green CI had not caught — several safety-relevant (inverted transpiration-cooling effectiveness, a never-invoked `ValidateSelf` letting NaN nuclear designs report feasible, HET designs violating energy conservation, a combustion-stability screen whose Fail branch is unreachable). All are fixed or explicitly documented, but the discovery rate has not dried up — and ~3,900 of ~5,900 test methods (~67 %, the PicoGK voxel + WinForms suites in `Voxelforge.Tests`) execute only on the often-offline self-hosted Windows runner, so "green CI" currently attests the Linux third of the suite.
 
-1. **Public-release hardening — landed.** Fork-PR security guards on every self-hosted-runner CI job + de-personalized docs/tooling. This was the gate to flip the repo public.
-2. **Flip the repository public** and **enable GitHub Pages** — both one-click in repo Settings (Pages → Source → GitHub Actions). The Pages workflow is already committed.
-3. **Cut the v0.1.0 release tag** per ADR-037 (`git tag -a v0.1.0 …`). ADR-037 D7's preconditions are now both resolved, so the tag is unblocked. Marks framing-B Phase 3 (Tracks C.1 + C.2) + the framing-C ANT.W1–W7 antenna parity block as a coherent shippable release.
+Cut the tag when the criteria below hold. They extend — without amending — ADR-037 D7, whose original preconditions are both resolved:
+
+1. **Red-team dry round.** One further adversarial audit round finds zero new hard-gate-class defects (conservation violations, dead gates, erased infeasibility sentinels). Rounds 1–2 each found 10+; tag on the first (near-)dry round. Sandbox-runnable — no Windows runner needed.
+2. **Linux coverage parity for pure-Core physics.** Only 4 of 23 Wave-1 pillar solver families (HeatExchanger, Radiator, Tankage, Refrigeration) have Linux-leg regression tests; the other 19 are tested solely in the Windows-only `Voxelforge.Tests` despite being PicoGK-free and portable. Backfill exact closed-form tests into `Voxelforge.Core.Tests` (the Sprint A.112 pattern). Voxel/UI suites stay Windows-bound by nature — this criterion covers what *can* move.
+3. **One green Windows-leg run before the tag.** A.111/A.112 shipped Windows-only fixes (voxel SDFs, setup wizard, analyzer rules) whose regression tests are math-verified but have never executed. A full green `ci.yml` run converts "shipped blind" into "validated". This is the only runner-blocked criterion — consistent with the "runner restored" close condition already encoded in issue #14.
+4. **Known-gaps ledger current at the cut.** [`physics-cascade-status.md`](Voxelforge/docs/physics-cascade-status.md) refreshed (it had gone two sprints stale against its own 1-sprint rule); the calibration-blocked gaps (Crocco stability screen, VASIMR Isp ceiling, bimodal-Hybrid power split, HET beam-current coupling, Stirling MEP) are recorded there; release notes reference it per ADR-037 D6.
+5. **Release mechanics** per ADR-037: D6-structure release notes, `PublicAPI.Unshipped.txt` → `Shipped.txt`, `git tag -a v0.1.0 …`. Marks framing-B Phase 3 (Tracks C.1 + C.2) + the framing-C ANT.W1–W7 antenna parity block as a coherent shippable release.
 
 ## Later — demand-gated unlocks (not actively pursued)
 
@@ -54,7 +58,7 @@ Framing-B has closed, so these are technically actionable — but under the curr
 
 - **Additional propellant pairs** — N2O4/MMH, H2O2/RP-1, N2O4/N2H4. Blocked on CEA table data.
 - **Preburner axial march** — current `PreburnerCooling` is lumped-parameter. Build per-station solver only if a real design lands near `PREBURNER_WALL_TEMP` and the lumped estimate can't discriminate.
-- **CI runner parallelization** — multi-runner install at 2 / 3 / 6 instances. Revisit when CI wall-clock becomes a daily annoyance or a second machine arrives.
+- **CI runner parallelization** — multi-runner install at 2 / 3 / 6 instances. Revisit when CI wall-clock becomes a daily annoyance or a second machine arrives. The runner-*offline* SPOF is a different risk: it is mitigated by the Linux leg (Sprint A.110) plus the coverage-parity backfill (Now §2), not by more Windows runners.
 - **Marine hybrid ramjet** (Al/H₂O underwater) — scoped as MHR.W1–W5 but not started. Deferred under the current pause; pick up only if marine propulsion is confirmed strategic.
 - **Performance P20** — TPMS implicit bounds hint. PicoGK-API-blocked.
 
@@ -73,3 +77,10 @@ These were evaluated and explicitly declined; do not reconsider without new evid
 ## Claiming work
 
 Active items live as [GitHub Issues](https://github.com/poetac/voxelforge/issues). Self-assign via `gh issue edit <N> --add-assignee @me` before starting; PR closes the issue. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the protocol.
+
+Tracker state (2026-07-08): the 33 open issues are all 2026-06-22 restorations from the retired tracker. Hygiene notes:
+
+- **#2 (enable GitHub Pages) is satisfied by observation** — Pages has been enabled and deploying green since 2026-06-18; close it.
+- **#46 is one-third fixed** — the Horn `sdCappedCone` factor-2 slip landed in Sprint A.112; the Helical not-a-helix and Patch RF/built-geometry mismatch remain open (both Windows-leg voxel code).
+- **#30 and #32 both claim the VFA003 diagnostic ID** — de-conflict before either lands.
+- The v0.1.0 checklist deliberately lives in this file, not in a tracking issue (per Declined: no separate planning doc; issues are the queue, this file is the design space).
