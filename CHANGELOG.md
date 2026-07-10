@@ -11,6 +11,13 @@ API surface stabilises.
 
 ## Unreleased
 
+### Sprint A.115 — Test coverage: Linux-leg backfill wave 3 — six more Wave-1 solver families
+
+Continues the Sprint A.112/A.114 Linux CI backfill pattern (ROADMAP → Now §2). Together with wave 2 this lifts Wave-1 solver-family coverage on the reliable `core (linux)` leg from 4/23 to 16/23. Test-only; no production-code change.
+
+**Test coverage (Linux CI backfill):**
+- **Six more pure-Core Wave-1 solver families gain exact closed-form regression tests in `Voxelforge.Core.Tests`**: `CentrifugalPumpSolverTests` (ρ·g·Q·H hydraulic power, SI specific speed, NPSH_a suction balance + Thoma-fit NPSH_r, exact Q∝N / H∝N² / P∝N³ affinity laws, PMP.W2 positive-displacement flow), `CentrifugalCompressorSolverTests` (isentropic-then-corrected temperature chain, ideal-gas density ratio, CMP.W2 polytropic↔isentropic conversions pinned as mutual inverses + the widening polytropic-isentropic gap with π), `MotorSolverTests` (τ = K_t·I, Kirchhoff back-EMF, exact P_in = P_mech + P_cu bookkeeping, no-load/stall envelope bounds, beyond-stall throw, EM.W2 efficiency-map sweep contract), `BatteryPackSolverTests` (series-parallel roll-up, ∫OCV·dSoC stored-energy integral — 96s46p NMC = 79 488 Wh exactly, quadratic-in-SoC pin, BP.W2 piecewise temperature derating with the 0.1 floor, charge-direction sign), `PvPanelSolverTests` (irradiance-linear I_sc, β_V thermal droop, 0.85/0.93 MPP cluster ratios, PV.W2 bifacial (1+φ·β) multiplier, zero-irradiance guard), `PemFuelCellSolverTests` (Nernst + Tafel + ohmic + concentration breakdown at the documented Mirai-class anchor V_cell ≈ 0.6615 V, exact first-law P_elec + Q_heat = N·V_LHV·I, open-circuit-equals-Nernst, the documented no-throw +∞ at i ≥ i_L, PG.W2 polarisation-curve sweep contract). Every expected value hand-derived and independently recomputed before assertion; guard tests pin each design record's `ValidateSelf`. 40 new tests; full `Voxelforge.Core.Tests` suite green locally via runtime roll-forward (142/142 on this branch's baseline).
+
 ### Sprint A.114 — Test coverage: Linux-leg backfill wave 2 — six more Wave-1 solver families
 
 Continues the Sprint A.112 Linux CI backfill pattern (ROADMAP → Now §2: only 4 of 23 Wave-1 pure-Core solver families had Linux-leg regression tests). Test-only + docs; no production-code change.
