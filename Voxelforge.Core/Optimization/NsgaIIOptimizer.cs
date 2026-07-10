@@ -206,9 +206,14 @@ public sealed class NsgaIIOptimizer
 
     private static double ComputeConstraintViolation(EvaluationResult eval)
     {
-        // Infinity score → infeasible. Sum the absolute violation
-        // magnitudes from FeasibilityViolation entries when present.
-        if (double.IsPositiveInfinity(eval.Score))
+        // Any non-finite score → infeasible. +∞ is the hard-gate sentinel;
+        // NaN is contract-legal too ("infinite or NaN scores are surfaced
+        // verbatim") and MUST be caught here — NaN objectives compare false
+        // both ways in Dominates, so a NaN individual with CV = 0 would be
+        // permanently non-dominated: rank 0, straight into the returned
+        // Pareto front. Sum the absolute violation magnitudes from
+        // FeasibilityViolation entries when present.
+        if (!double.IsFinite(eval.Score))
         {
             // No magnitudes available; flag as 1.0 so any feasible
             // candidate dominates this one. If FeasibilityViolations
@@ -221,7 +226,7 @@ public sealed class NsgaIIOptimizer
                 double gap = Math.Abs(v.ActualValue - v.Limit) / denom;
                 if (!double.IsNaN(gap)) sum += gap;
             }
-            return Math.Max(sum, 1.0);  // never zero on +Inf
+            return Math.Max(sum, 1.0);  // never zero on a non-finite score
         }
         // Score is finite — feasible.
         return 0.0;

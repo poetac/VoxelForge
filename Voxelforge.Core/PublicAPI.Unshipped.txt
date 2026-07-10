@@ -1,1 +1,2 @@
 #nullable enable
+Voxelforge.Optimization.SimulatedAnnealingOptimizer.MigrateFrom(double[]! migratedParams, double migratedScore, object? migratedBreakdown) -> void

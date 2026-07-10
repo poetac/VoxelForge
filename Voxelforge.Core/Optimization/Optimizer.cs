@@ -155,11 +155,26 @@ public sealed class SimulatedAnnealingOptimizer
     /// Sprint T1.1 (2026-04-25): Replace this chain's <c>_current</c> walk
     /// state with the given (params, score). Used by
     /// <see cref="MultiChainOptimizer"/> to migrate elites from neighbouring
-    /// chains. Does NOT touch <c>_best</c> — the chain retains its own
-    /// historical best independent of received elites. Caller must clone
-    /// the params array if it intends to keep modifying it.
+    /// chains. Caller must clone the params array if it intends to keep
+    /// modifying it. Without a breakdown, a migrated elite that beats the
+    /// local best CLEARS <see cref="BestBreakdown"/> — the previous best's
+    /// breakdown describes a different design and must not be paired with
+    /// the migrated score. Prefer the 3-argument overload, which carries
+    /// the donor's breakdown along.
     /// </summary>
     public void MigrateFrom(double[] migratedParams, double migratedScore)
+        => MigrateFrom(migratedParams, migratedScore, migratedBreakdown: null);
+
+    /// <summary>
+    /// Elite migration carrying the donor chain's breakdown, so the
+    /// receiving chain's <see cref="BestBreakdown"/> stays consistent with
+    /// <see cref="BestScore"/> when the elite becomes its new best. The
+    /// final multi-chain tournament breaks score ties by lowest chain
+    /// index — commonly crowning a RECEIVER — so a stale breakdown here
+    /// surfaced as <c>Result.BestBreakdown</c> describing a different,
+    /// worse design than <c>Result.BestParams</c>.
+    /// </summary>
+    public void MigrateFrom(double[] migratedParams, double migratedScore, object? migratedBreakdown)
     {
         if (migratedParams.Length != _dim)
             throw new System.ArgumentException(
@@ -167,14 +182,13 @@ public sealed class SimulatedAnnealingOptimizer
         for (int i = 0; i < _dim; i++)
             _current[i] = System.Math.Clamp(migratedParams[i], _lo[i], _hi[i]);
         _currentScore = migratedScore;
-        // If the migrated candidate beats the local best, update _best too.
+        // If the migrated candidate beats the local best, update _best —
+        // including its breakdown, which belongs to the migrated design.
         if (migratedScore < _bestScore)
         {
             _best = (double[])_current.Clone();
             _bestScore = migratedScore;
-            // _bestBreakdown stays null for migrated elites; original
-            // breakdown lives on the donor chain. UI consumers can recover
-            // it from the donor's BestBreakdown if they need it.
+            _bestBreakdown = migratedBreakdown;
         }
     }
 
