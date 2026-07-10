@@ -72,7 +72,7 @@ dotnet build voxelforge.sln -c Release -p:TreatWarningsAsErrors=true --verbosity
 
 - Set `rollForward` to `latestMajor` in `global.json`, build, then `git checkout -- global.json`. **Never commit the relaxation.**
 - The `net9.0-windows` projects (`Voxelforge`, `*.Voxels`, `Voxelforge.Tests`, `Voxelforge.Benchmarks`, `Voxelforge.Avalonia`) need `-p:EnableWindowsTargeting=true` to compile on Linux.
-- This is a **compile** check only — test *execution* needs the net9.0 runtime (absent on the .NET-10 container). Let the `core (linux)` CI job run the tests.
+- Test *execution* on the .NET-10 container works too: prefix with **`DOTNET_ROLL_FORWARD=LatestMajor`** (e.g. `DOTNET_ROLL_FORWARD=LatestMajor dotnet test Voxelforge.Core.Tests/… -c Release --no-build`) — the env var rolls the net9.0 *runtime* forward at launch without touching `global.json`. Verified on the full `Voxelforge.Core.Tests` suite (145/145). `core (linux)` CI remains the authoritative signal; this is for fast local iteration.
 
 **Where a cross-platform test goes.** A PicoGK/WinForms-free **Core** test belongs in **`Voxelforge.Core.Tests`** (`net9.0`, friend of Core via `InternalsVisibleTo`, runs on the Linux CI leg). **`Voxelforge.Tests` is `net9.0-windows`** (PicoGK + WinForms) and only runs on the self-hosted Windows runner — a cross-platform test placed there silently never runs in Linux CI. The per-pillar `*.Tests` (Marine/Nuclear/EP/Airbreathing/Cfd) are net9.0 and mirror this.
 
