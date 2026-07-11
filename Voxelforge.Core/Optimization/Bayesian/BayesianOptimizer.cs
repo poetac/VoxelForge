@@ -250,47 +250,90 @@ public sealed class BayesianOptimizer
         {
             if (cancellationToken.IsCancellationRequested) break;
 
-            // Refit GP on current training set.
-            gp.Fit(X.ToArray(), y.ToArray());
+            // Refit GP on the FINITE-score subset of the training set. A
+            // single +∞ (hard-infeasible sentinel) or NaN target poisons
+            // the Cholesky solve (α = K⁻¹y goes all-NaN), which poisons
+            // every Predict mean → every acquisition value is NaN → no
+            // candidate ever "improves" and the unclamped zero-vector
+            // initializer would be evaluated for the rest of the budget.
+            // Same guard as SurrogateObjective. The raw X/y lists keep
+            // every sample for best-tracking and the iteration history.
+            var fitX = new List<double[]>(X.Count);
+            var fitY = new List<double>(y.Count);
+            for (int k = 0; k < y.Count; k++)
+            {
+                if (double.IsFinite(y[k]))
+                {
+                    fitX.Add(X[k]);
+                    fitY.Add(y[k]);
+                }
+            }
 
-            // Optimize acquisition: draw _acquisitionCandidates Sobol points
-            // (deterministic, low-discrepancy) and pick the one that
-            // best satisfies the criterion. EI is maximised, LCB minimised.
             double bestAcq = (_acquisition == AcquisitionFunction.ExpectedImprovement)
                 ? double.NegativeInfinity
                 : double.PositiveInfinity;
-            double[] bestCand = new double[_dim];
+            double[] bestCand;
             double bestCandMean = 0.0;
             double bestCandStd  = 0.0;
 
-            for (int c = 0; c < _acquisitionCandidates; c++)
+            if (fitY.Count == 0)
             {
+                // Nothing finite to condition the GP on yet — keep
+                // exploring deterministically (next Sobol point, scaled
+                // into bounds) until a finite sample seeds the surrogate.
                 var raw = sobol.Next();
-                var cand = new double[_dim];
+                bestCand = new double[_dim];
                 for (int d = 0; d < _dim; d++)
-                    cand[d] = _bounds[d].Min + raw[d] * (_bounds[d].Max - _bounds[d].Min);
-                var (mean, variance) = gp.Predict(cand);
-                double std = Math.Sqrt(variance);
+                    bestCand[d] = _bounds[d].Min + raw[d] * (_bounds[d].Max - _bounds[d].Min);
+                bestAcq = double.NaN;   // no acquisition was evaluated
+            }
+            else
+            {
+                gp.Fit(fitX.ToArray(), fitY.ToArray());
 
-                double a = _acquisition switch
-                {
-                    AcquisitionFunction.ExpectedImprovement
-                        => ExpectedImprovement(mean, std, bestScore, _eiXi),
-                    AcquisitionFunction.LowerConfidenceBound
-                        => LowerConfidenceBound(mean, std, _ucbBeta),
-                    _ => throw new InvalidOperationException("Unknown acquisition function")
-                };
+                // Optimize acquisition: draw _acquisitionCandidates Sobol points
+                // (deterministic, low-discrepancy) and pick the one that
+                // best satisfies the criterion. EI is maximised, LCB minimised.
+                double[]? selected = null;
+                double[] firstCand = new double[_dim];
 
-                bool improves = _acquisition == AcquisitionFunction.ExpectedImprovement
-                    ? a > bestAcq
-                    : a < bestAcq;
-                if (improves)
+                for (int c = 0; c < _acquisitionCandidates; c++)
                 {
-                    bestAcq = a;
-                    bestCand = cand;
-                    bestCandMean = mean;
-                    bestCandStd  = std;
+                    var raw = sobol.Next();
+                    var cand = new double[_dim];
+                    for (int d = 0; d < _dim; d++)
+                        cand[d] = _bounds[d].Min + raw[d] * (_bounds[d].Max - _bounds[d].Min);
+                    if (c == 0) firstCand = cand;
+                    var (mean, variance) = gp.Predict(cand);
+                    double std = Math.Sqrt(variance);
+
+                    double a = _acquisition switch
+                    {
+                        AcquisitionFunction.ExpectedImprovement
+                            => ExpectedImprovement(mean, std, bestScore, _eiXi),
+                        AcquisitionFunction.LowerConfidenceBound
+                            => LowerConfidenceBound(mean, std, _ucbBeta),
+                        _ => throw new InvalidOperationException("Unknown acquisition function")
+                    };
+
+                    bool improves = _acquisition == AcquisitionFunction.ExpectedImprovement
+                        ? a > bestAcq
+                        : a < bestAcq;
+                    if (improves)
+                    {
+                        bestAcq = a;
+                        selected = cand;
+                        bestCandMean = mean;
+                        bestCandStd  = std;
+                    }
                 }
+
+                // Defence in depth: if the acquisition never selected a
+                // candidate (e.g. an all-NaN sweep from a degenerate
+                // kernel), evaluate the first drawn candidate — bounds-
+                // scaled and deterministic — never the unclamped zero
+                // vector.
+                bestCand = selected ?? firstCand;
             }
 
             // Evaluate the chosen candidate.

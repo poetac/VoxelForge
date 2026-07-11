@@ -240,7 +240,11 @@ public sealed class NsgaIIIOptimizer
 
     private static double ComputeConstraintViolation(EvaluationResult eval)
     {
-        if (!double.IsPositiveInfinity(eval.Score)) return 0.0;
+        // Finite → feasible. Non-finite covers the +∞ hard-gate sentinel
+        // AND NaN — a NaN individual with CV = 0 is permanently
+        // non-dominated (NaN comparisons are false both ways in Dominates)
+        // and would pollute the returned front. Mirrors NsgaIIOptimizer.
+        if (double.IsFinite(eval.Score)) return 0.0;
         if (eval.Violations.Count == 0) return 1.0;
         double sum = 0.0;
         foreach (var v in eval.Violations)
@@ -425,6 +429,18 @@ public sealed class NsgaIIIOptimizer
                     double d = PerpDistance(normObjs[idx], _refDirs[jStar]);
                     if (d < bestDist) { bestDist = d; chosen = idx; }
                 }
+                if (chosen == -1)
+                {
+                    // Every distance was NaN (degenerate normalisation).
+                    // Fall back to the first available candidate rather
+                    // than aborting the pick loop — an aborted loop could
+                    // return an EMPTY next generation, which crashes
+                    // TournamentSelect on the following MakeOffspring.
+                    foreach (int idx in refCands[jStar])
+                    {
+                        if (available[idx]) { chosen = idx; break; }
+                    }
+                }
             }
             else
             {
@@ -489,6 +505,10 @@ public sealed class NsgaIIIOptimizer
             int    bestI  = 0;
             for (int i = 0; i < n; i++)
             {
+                // Restrict to feasible rows (mirrors the zStar loop): an
+                // infeasible row carries ±∞/NaN objectives that either
+                // hijack or NaN-poison the extreme-point pick.
+                if (anyFeasible && !combined[i].IsFeasible) continue;
                 double asf = ComputeAsf(translated[i], objM, m);
                 if (asf < minAsf) { minAsf = asf; bestI = i; }
             }
@@ -499,13 +519,22 @@ public sealed class NsgaIIIOptimizer
         double[]? intercepts = SolveIntercepts(extremeRows, m);
         if (intercepts == null!)
         {
-            // Singular — fallback: max(f'_m) + 1e-10.
+            // Singular — fallback: max(f'_m) + 1e-10 over FEASIBLE rows
+            // only. Including infeasible rows poisoned the fallback:
+            // Math.Max(x, NaN) = NaN made every intercept NaN (all
+            // normalised objectives NaN → niching picks nothing → an
+            // EMPTY next generation → TournamentSelect crash), and +∞
+            // rows drove the intercepts to +∞ (all normalised objectives
+            // 0 → niching by perpendicular distance degenerated).
             intercepts = new double[m];
             for (int objM = 0; objM < m; objM++)
             {
                 double mx = 0.0;
                 for (int i = 0; i < n; i++)
+                {
+                    if (anyFeasible && !combined[i].IsFeasible) continue;
                     mx = Math.Max(mx, translated[i][objM]);
+                }
                 intercepts[objM] = mx + 1e-10;
             }
         }

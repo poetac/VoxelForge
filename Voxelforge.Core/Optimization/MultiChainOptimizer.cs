@@ -490,11 +490,16 @@ public sealed class MultiChainOptimizer
             return;
 
         var globalBestParams = chains[globalBestIdx].BestParams;
+        // The donor's breakdown rides along so a receiving chain that
+        // adopts the elite as its new best reports a breakdown that
+        // actually belongs to it (the final tournament tie-breaks by
+        // lowest index, so receivers commonly win).
+        var globalBestBreakdown = chains[globalBestIdx].BestBreakdown;
         // Broadcast to all chains EXCEPT the donor itself (no-op there).
         for (int i = 0; i < N; i++)
         {
             if (i == globalBestIdx) continue;
-            chains[i].MigrateFrom(globalBestParams, globalBestScore);
+            chains[i].MigrateFrom(globalBestParams, globalBestScore, globalBestBreakdown);
         }
     }
 }
