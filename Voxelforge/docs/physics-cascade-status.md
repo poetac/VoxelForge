@@ -6,14 +6,15 @@ test-failure that exists *to* surface the gap; do not "fix" the
 gap by loosening the test threshold without first understanding
 which physics is broken.
 
-> Updated 2026-07-08: No active pinned-failure entries. The two post-public
-> red-team rounds (CHANGELOG Sprints A.111 + A.112, 2026-06) surfaced 30+
+> Updated 2026-07-11: No active pinned-failure entries. Three post-public
+> red-team rounds (CHANGELOG Sprints A.111, A.112, A.116) have surfaced 30+
 > correctness defects and fixed each in the same sprint with a
 > fail-on-old / pass-on-new regression test — none ever became a pinned
-> failure here. Their calibration-blocked residue is tracked in
-> § Documented gaps below; fixes whose regression tests target the offline
-> Windows leg are queued in § Windows-leg validation pending. Two known
-> CI/infrastructure flakes documented below (§ Known CI/infrastructure
+> failure here. Their calibration-blocked / design-intent residue is
+> tracked in § Documented gaps below (round 3 added the Sobol and
+> DesignPersistence entries); fixes whose regression tests target the
+> offline Windows leg are queued in § Windows-leg validation pending. Two
+> known CI/infrastructure flakes documented below (§ Known CI/infrastructure
 > flakes) — neither is a physics regression.
 > Refresh whenever an entry's fix lands (drop the entry, add a
 > CHANGELOG sprint line). Stale-after: 1 sprint past the last refresh.
@@ -80,6 +81,18 @@ the release-notes "known issues" list for v0.1.0 (ROADMAP → Now §4).
 - **What's wrong:** the Helical SDF builds disconnected toroidal rings instead of a continuous helix; the Patch builder reports RF metrics from the unfloored design while building geometry from floored dimensions. (The third finding in the same review — Horn `sdCappedCone` factor-2 — was fixed in Sprint A.112.)
 - **Where:** `Voxelforge.Voxels/Antenna/HelicalAntennaVoxelBuilder.cs`, `Voxelforge.Voxels/Antenna/PatchAntennaVoxelBuilder.cs` (net9.0-windows — not built on the Linux leg).
 - **Tracking issue:** #46.
+
+### `SobolSequence` direction numbers are mis-transcribed vs. Joe-Kuo (quality, not correctness)
+
+- **What's wrong:** dimension 3 pairs `a = 2` with `s = 4` (`m = {1,1,3,3}`), whose decoded polynomial x⁴+x²+1 = (x²+x+1)² over GF(2) is *reducible* — never a valid Sobol polynomial; one row's `a` was fused with the next row's `m`. Dims 4–7 match no genuine Joe-Kuo row, and the dims ≥ 8 fallback is neither Sobol nor Halton despite the header's claim. Output stays deterministic and in [0, 1), so the blast radius is warmup-coverage *quality* (MultiChain/Bayesian seeding low-discrepancy property) — not a physics or feasibility defect.
+- **Where:** `Voxelforge.Core/Optimization/SobolSequence.cs`.
+- **Fix path:** transcribe the genuine `new-joe-kuo-6` table plus a property test (m_i odd, m_i < 2^i, primitive polynomial). Detail: CHANGELOG Sprint A.116.
+
+### `DesignPersistence` stores enums as raw ordinals, not strings (data-integrity, not physics)
+
+- **What's wrong:** no `JsonStringEnumConverter` is registered, contradicting the v24→v25 migration comment that claims string serialisation. Today's enums are append-only so round-trip is correct, but any future insertion/reorder would silently remap every saved design's topology/damper/igniter fields with no migration hook and no validation catch.
+- **Where:** `Voxelforge.Core/IO/DesignPersistence.cs`.
+- **Fix path:** a deliberate schema bump (v32) adding the converter with a numeric→name migration — a design-intent decision, not a bug fix, so documented rather than patched. Detail: CHANGELOG Sprint A.116.
 
 ---
 

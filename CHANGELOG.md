@@ -11,6 +11,15 @@ API surface stabilises.
 
 ## Unreleased
 
+### Sprint A.117 — Docs: ROADMAP + known-gaps ledger refresh after the coverage-backfill + red-team-round-3 merges
+
+A follow-up freshness pass on `ROADMAP.md` → Now (the v0.1.0 release-readiness criteria) and `physics-cascade-status.md`, both of which had gone stale against the four PRs just merged (A.113–A.116). Docs-only; no code change.
+
+- **Criterion 1 (red-team dry round)** updated from "rounds 1–2" to "rounds 1–3", naming round 3's four findings (GP poisoning, cross-chain breakdown/score mismatch, NSGA NaN-as-feasible, NSGA-III empty-generation crash) and listing what's been swept so far vs. explicitly not yet swept (`Voxelforge.Core/IO/` beyond persistence mechanics, the `*.Voxels` builders, the CLI dispatch layer, and the per-pillar `Optimization.cs` orchestration files — distinct from the generic optimizers just hardened).
+- **Criterion 2 (Linux coverage parity)** updated from "4 of 23" to "16 of 23", naming all 12 newly-covered families and enumerating the 7 that remain (WindTurbine, Hydroelectric, Electrolyser, Antenna, ChemicalReactor, HybridRocket, plus Stirling as a special case blocked on a model-fidelity prerequisite, not test-writing).
+- **`physics-cascade-status.md` refreshed** (was stale since 2026-07-08): two new **Documented gaps** entries for the A.116 findings — `SobolSequence`'s mis-transcribed Joe-Kuo direction numbers (quality/warmup-coverage, not correctness) and `DesignPersistence`'s raw-ordinal enum serialization contradicting its own migration comment (needs a schema-v32 decision). Header refreshed to note round 3.
+- **Criterion 5 (release mechanics)** notes the one new `PublicAPI.Unshipped.txt` entry from A.116 to carry through the Unshipped→Shipped move at the tag.
+
 ### Sprint A.116 — Red-team round 3: optimizer stack (Bayesian / multi-chain SA / NSGA)
 
 A third adversarial audit round (ROADMAP → Now criterion 1) over the surfaces rounds 1–2 hadn't swept: the optimizer portfolio, IO/persistence, gate mechanics, and the memory-envelope math. Every fix below landed with a fail-on-old / pass-on-new regression test on the Linux `core` leg (5 of the 6 new tests fail on the pre-fix code); calibration-laden or design-intent findings are documented rather than blind-fixed. Audited clean, explicitly: `MemoryProjectionGate` + `MegaScaleEnvelope` byte math, `ToleranceAnalysis` seeding, `GateRegistry`/`GateExplainer`, the `DesignPersistence` migration chain mechanics, `SimulatedAnnealingOptimizer` core, `CostObjective` + `ObjectiveWrappers`, `DesignVariableBinder`, `CmaEsOptimizer`, `GaussianProcessSurrogate`.
