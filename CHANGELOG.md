@@ -11,6 +11,21 @@ API surface stabilises.
 
 ## Unreleased
 
+### Sprint A.119 — Docs: roadmap scope review + tracker hygiene
+
+A scope-change review of `ROADMAP.md` prompted by criterion 2 (Linux coverage parity) closing out in A.118 — checked whether planning had drifted now that most of the v0.1.0 release-readiness list is either satisfied or has a clear remaining shape. Docs + tracker-only; no code change.
+
+- **Criterion 1 (red-team dry round) replaced with a falsifiable exit rule.** The open-ended "zero new defects" framing never fires by construction — every new surface swept in rounds 1–3 has found something, while re-swept surfaces stayed clean. Now: round 4 completes the first full pass over the remaining surfaces (IO schema files, CLI dispatch, per-pillar `Optimization.cs` orchestration, per-pillar gate-registry variants), every finding is fixed-or-documented, and a sampled re-audit of 2–3 already-swept surfaces stays clean.
+- **Criterion 3 (Windows-leg run) gains a concrete unlock path.** The self-hosted runner has been offline for every sprint since the public release; #13/#51 already hardened CI against that SPOF at the workflow level but don't close the gap for the ~66 % Windows-only test methods. PicoGK ships as a NuGet `<PackageReference>` (not vendored), and the `Library`/`LibraryScope` pattern is already headless-xUnit-safe (CLAUDE.md pitfall #8) — both suggest a GitHub-hosted `windows-latest` leg is worth spiking instead of continuing to wait on hardware.
+- **Criterion 4 (known-gaps ledger) corrected from stale to satisfied.** ROADMAP still flagged the A.116 Sobol/DesignPersistence entries as "need adding" to `physics-cascade-status.md`; they were in fact added when the ledger's header moved to 2026-07-11 during A.117. Updated the criterion text to match reality and confirmed against A.118 (no new gaps introduced, ledger still current).
+- **New "v0.1.x known-gaps burn-down" track added under Later.** The seven accumulated calibration/design-intent items (Crocco stability sign, HET beam-current coupling, bimodal-Hybrid power split, VASIMR Isp ceiling, Stirling MEP, Sobol Joe-Kuo table, DesignPersistence schema-v32) previously existed only as archival ledger entries with no forward plan; now named as a demand-gated Later track.
+- **Phase 1's stale GitHub Pages caveat removed** — it contradicted the Now section's own "enabled 2026-06-18" statement one paragraph below it.
+
+**Tracker hygiene:**
+- **#2 closed** — GitHub Pages satisfied by observation (enabled and deploying green since 2026-06-18).
+- **#46 retitled and its acceptance checklist updated** to reflect the Horn `sdCappedCone` fix (Sprint A.112, commit `27c113e`); Helical and Patch remain open.
+- **#30 and #32's VFA-diagnostic-ID collision documented on both issues, and found worse than previously flagged**: VFA004 and VFA005 shipped for unrelated purposes (test-naming; ambient-pragma-suppression) after #32 was filed, so #32's entire proposed VFA003–005 band needs renumbering regardless of which issue lands first — not just the VFA003 clash with #30.
+
 ### Sprint A.118 — Test coverage: Linux-leg backfill wave 4 — the six remaining portable Wave-1 solver families
 
 Completes the Sprint A.112/A.114/A.115 Linux CI backfill pattern (ROADMAP → Now §2). With waves 2–3 this lifts Wave-1 solver-family coverage on the reliable `core (linux)` leg from 16/23 to 22/23 — every portable, PicoGK-free family is now covered. The single remaining family (Stirling) stays deliberately uncovered: the Wave-1 cluster fit over-predicts free-piston output 10–100×, so a fixture would pin the wrong answer — MEP-model refinement (STR.W2) is the prerequisite (see `physics-cascade-status.md`). Test-only + a two-number ROADMAP refresh; no production-code change.
