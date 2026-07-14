@@ -105,6 +105,8 @@ internal sealed partial class AirbreathingForm : Form
             "Pulsejet",
             "Turboprop",
             "Turboshaft",
+            "LACE",
+            "RDE",
         });
         _cmbKind.SelectedIndex = KindToIndex(initialKind);
         _cmbKind.SelectedIndexChanged += (_, _) => UpdateKindVisibility();
@@ -356,17 +358,19 @@ internal sealed partial class AirbreathingForm : Form
 
     private static int KindToIndex(AirbreathingEngineKind kind) => kind switch
     {
-        AirbreathingEngineKind.Ramjet       => 0,
-        AirbreathingEngineKind.Turbojet     => 1,
-        AirbreathingEngineKind.Turbofan     => 2,
-        AirbreathingEngineKind.Scramjet     => 3,
-        AirbreathingEngineKind.Rbcc         => 4,
-        AirbreathingEngineKind.GasTurbine   => 5,
-        AirbreathingEngineKind.SteamTurbine => 6,
-        AirbreathingEngineKind.Pulsejet     => 7,
-        AirbreathingEngineKind.Turboprop    => 8,
-        AirbreathingEngineKind.Turboshaft   => 9,
-        _                                   => 0, // None / unknown → Ramjet
+        AirbreathingEngineKind.Ramjet              => 0,
+        AirbreathingEngineKind.Turbojet            => 1,
+        AirbreathingEngineKind.Turbofan            => 2,
+        AirbreathingEngineKind.Scramjet             =>  3,
+        AirbreathingEngineKind.Rbcc                => 4,
+        AirbreathingEngineKind.GasTurbine          => 5,
+        AirbreathingEngineKind.SteamTurbine        => 6,
+        AirbreathingEngineKind.Pulsejet            => 7,
+        AirbreathingEngineKind.Turboprop           => 8,
+        AirbreathingEngineKind.Turboshaft          => 9,
+        AirbreathingEngineKind.LiquidAirCycle      => 10,
+        AirbreathingEngineKind.RotatingDetonation  => 11,
+        _                                          => 0, // None / unknown → Ramjet
     };
 
     private AirbreathingEngineKind SelectedKind() => (_cmbKind.SelectedItem as string) switch
@@ -381,6 +385,8 @@ internal sealed partial class AirbreathingForm : Form
         "Pulsejet"     => AirbreathingEngineKind.Pulsejet,
         "Turboprop"    => AirbreathingEngineKind.Turboprop,
         "Turboshaft"   => AirbreathingEngineKind.Turboshaft,
+        "LACE"         => AirbreathingEngineKind.LiquidAirCycle,
+        "RDE"          => AirbreathingEngineKind.RotatingDetonation,
         _              => AirbreathingEngineKind.Ramjet,
     };
 

@@ -153,9 +153,10 @@ public static class CfdFieldExport
             double rInner = station.R_mm;
             // Outer jacket radius: inner + wall + channel height + jacket.
             double hChannel = InterpolateChannelHeight(channels, contour, stationIdx);
-            double rOuterShell = rInner + 0.8 + hChannel + outerJacketThickness_mm;
-            double rChannelInner = rInner + 0.8;          // approximate gas-side wall
-            double rChannelOuter = rInner + 0.8 + hChannel;
+            double tWallGas = channels.GasSideWallThickness_mm;
+            double rOuterShell = rInner + tWallGas + hChannel + outerJacketThickness_mm;
+            double rChannelInner = rInner + tWallGas;          // gas-side wall
+            double rChannelOuter = rInner + tWallGas + hChannel;
 
             // Look up solver per-station fields (guard for skip-regen case).
             double tWall      = (solver.Stations?.Length > stationIdx)
@@ -170,7 +171,12 @@ public static class CfdFieldExport
                 {
                     double z = -g.TransverseHalfWidth_mm + iz * dz;
                     double r = Math.Sqrt(y * y + z * z);
-                    int idx = ((ix * g.Ny) + iy) * g.Nz + iz;
+                    // VTK ImageData point order is x-fastest (VTK file-format
+                    // spec: pointId = i + j*dimX + k*dimX*dimY) — must match
+                    // the WholeExtent="0 Nx-1 0 Ny-1 0 Nz-1" header WriteVti
+                    // emits, or every consumer (ParaView/VisIt/OpenFOAM)
+                    // decodes a spatially scrambled field whenever Nx != Nz.
+                    int idx = ix + g.Nx * (iy + g.Ny * iz);
 
                     if (r <= rInner)
                     {
@@ -358,7 +364,9 @@ public static class CfdFieldExport
                 {
                     double z = -g.TransverseHalfWidth_mm + iz * dz;
                     double r = Math.Sqrt(y * y + z * z);
-                    int idx = ((ix * g.Ny) + iy) * g.Nz + iz;
+                    // VTK ImageData point order is x-fastest — see the
+                    // matching comment in Write() above.
+                    int idx = ix + g.Nx * (iy + g.Ny * iz);
 
                     if (onPlug && r <= rPlug)
                     {

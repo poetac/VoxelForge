@@ -56,9 +56,19 @@ public class AirbreathingFormKindCoverageTests
     [InlineData("Pulsejet",     AirbreathingEngineKind.Pulsejet)]
     [InlineData("Turboprop",    AirbreathingEngineKind.Turboprop)]
     [InlineData("Turboshaft",   AirbreathingEngineKind.Turboshaft)]
+    [InlineData("LACE",         AirbreathingEngineKind.LiquidAirCycle)]
+    [InlineData("RDE",          AirbreathingEngineKind.RotatingDetonation)]
     public void DisplayNameMatchesEnumValue(string displayName, AirbreathingEngineKind expected)
     {
         // Mirror the SelectedKind() switch in AirbreathingForm.cs.
+        //
+        // Red-team round 4: this theory previously stopped at the original
+        // 10 kinds even though EveryNonSentinelKind_HasRegisteredSolver
+        // (above) already pinned the count at 12 — LiquidAirCycle (LACE)
+        // and RotatingDetonation (RDE) were fully solver-backed but never
+        // reachable from the ComboBox or the --engine-kind CLI flag
+        // (AirbreathingForm.KindToIndex/SelectedKind silently fell back to
+        // Ramjet for both). Fixed alongside this test extension.
         var actual = displayName switch
         {
             "Ramjet"       => AirbreathingEngineKind.Ramjet,
@@ -71,6 +81,8 @@ public class AirbreathingFormKindCoverageTests
             "Pulsejet"     => AirbreathingEngineKind.Pulsejet,
             "Turboprop"    => AirbreathingEngineKind.Turboprop,
             "Turboshaft"   => AirbreathingEngineKind.Turboshaft,
+            "LACE"         => AirbreathingEngineKind.LiquidAirCycle,
+            "RDE"          => AirbreathingEngineKind.RotatingDetonation,
             _              => AirbreathingEngineKind.None,
         };
         Assert.Equal(expected, actual);
