@@ -11,6 +11,19 @@ API surface stabilises.
 
 ## Unreleased
 
+### Sprint A.123 — Red-team round 4: SATISFIED — last surface swept clean, ROADMAP criterion 1 closed
+
+Closes ROADMAP → Now criterion 1. The last open surface — the rest of rocket + airbreathing + marine optimization-orchestration/objective wiring (`RegenChamberOptimization.cs` in full, 2163 lines; `RegenObjective.cs`; `AirbreathingOptimization.cs` + its 5 objectives; `MarineOptimization.cs` + its 2 objectives; `MarineDesign.cs`; `AirbreathingEngine.cs`) — came back clean beyond the aerospike-gate fix already shipped in A.122. Read-only pass; no code changes.
+
+Two more leads investigated and refuted, personally spot-verified rather than taken on the auditing agent's word alone:
+
+- **Film-cooling C\* penalty precedence** (`RegenChamberOptimization.cs` `ComputeDerived`): looked at first like the C\*-efficiency derate could be bypassed by `InjectorPattern.OuterRowFilmFraction` diverging from `design.FilmFuelFraction` (the same physical quantity, two entry points). Refuted: `FilmFuelFraction` is SA dim 24 with a `min: 0.02` floor (`RegenChamberDesign.cs:1258`), and `DesignVariableBinder.Unpack`'s generic per-descriptor clamp (`DesignVariableBinder.cs:261-263`, reflection-driven — applies to every `[SaDesignVariable]` field, `FilmFuelFraction` included, without needing to name it literally) enforces that floor on every SA candidate. `AutoSeeder.cs:591-609` additionally pre-syncs the two fields on seeded baselines. The only reachable gap is a hand-built design bypassing both Unpack and AutoSeeder — not a search-corrupting bug.
+- **Sea-level Isp formula** (`RegenChamberOptimization.cs:1905`): the `IspSl = IspVac * (C_F / (C_F + Pamb/Pc*eps))` reconstruction only exactly recovers vacuum C_F when `divergenceLoss * NozzleCfEfficiency == 1`, otherwise carries a small (~2 %) error at typical values. Refuted as non-material: `IdealIspSeaLevel_s` is confirmed (by grep across all consumers) to be display/report-only — it never feeds `Evaluate`'s score or any `FeasibilityGate`.
+
+**Round 4 final tally** (Sprints A.120–A.123): 8 real hard-gate-class defects found and fixed, 1 documented-not-fixed (`RDE_ANNULUS_FILL_STARVED`, needs a data-plumbing change — see `physics-cascade-status.md`), 5 dead-end leads chased and refuted. Exit rule fully satisfied: (a) full pass over the A.119 not-yet-swept list complete, (b) every finding fixed-or-documented, (c) sampled re-audit of already-swept surfaces (NSGA-III, combustion-stability screen, plus these final two leads) stays clean.
+
+- **`ROADMAP.md` → Now criterion 1 marked SATISFIED.** No further red-team round gates the v0.1.0 tag; a round 5 remains available on demand if a future change reopens a swept surface, per the same discipline as criteria 2 and 4's "satisfied, re-check staleness before the tag" framing.
+
 ### Sprint A.122 — Red-team round 4 (continued): EP/nuclear wiring fully swept, aerospike-gate wiring gap closed
 
 Continues ROADMAP criterion 1. The electric-propulsion + nuclear optimization-orchestration/objective-wiring surface is now fully swept (2 real bugs found and fixed). Chasing a lead left by a scout agent that hit the session-limit interruption mid-audit of the rocket/airbreathing/marine wiring surface surfaced a third, structurally distinct bug in `RegenChamberOptimization.cs`.
