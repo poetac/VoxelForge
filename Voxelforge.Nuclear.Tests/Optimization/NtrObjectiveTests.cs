@@ -260,4 +260,30 @@ public sealed class NtrObjectiveTests
         var eval = obj.Evaluate(v.AsSpan());
         Assert.False(double.IsNaN(eval.Score));
     }
+
+    [Fact]
+    public void Build_Evaluate_OnBimodalElectricMode_ProducesFiniteScore_NotNaN()
+    {
+        // Red-team round 4: NuclearOptimization.GenerateWith NaNs IspVacuum_s
+        // for BimodalNtr + BimodalMode.Electric designs (no thrust in that
+        // mode), but IsFeasible is computed independently from gate
+        // violations, which never reference Isp or BimodalMode. A thermally
+        // sound Electric-mode design therefore reached ScoreNegativeIsp with
+        // IsFeasible=true and IspVacuum_s=NaN; -NaN is NaN, not +Infinity,
+        // which NaN-poisoned the SA optimizer's acceptance/best-score
+        // comparisons for the rest of the run (every subsequent `score <
+        // _bestScore` against a NaN best is false, so nothing is ever
+        // accepted again). Same numeric baseline as the NervaSolidCore case
+        // above -- only Kind/BimodalMode differ -- so ValidateSelf() still
+        // passes; this pins the score itself, not feasibility of the design.
+        var electricBimodal = MakeNrxA6() with
+        {
+            Kind        = NuclearKind.BimodalNtr,
+            BimodalMode = BimodalMode.Electric,
+        };
+        var obj = NtrObjective.Build(MakeCond(), electricBimodal);
+        double[] v = NtrObjective.Pack(electricBimodal);
+        var eval = obj.Evaluate(v.AsSpan());
+        Assert.False(double.IsNaN(eval.Score));
+    }
 }

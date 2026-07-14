@@ -1948,6 +1948,24 @@ public static class RegenChamberOptimization
         // Voxel-adequacy gate: if the result carries a voxel check and it failed,
         // add a synthetic violation so the same +∞ path is taken.
         var allViolations = new List<FeasibilityViolation>(gate.Violations);
+
+        // Red-team round 4: FeasibilityGate.Evaluate only checks the
+        // regen-family gates. Aerospike topologies additionally need
+        // AerospikeFeasibility's 5 parallel gates (AEROSPIKE_PLUG_WALL_TEMP,
+        // AEROSPIKE_COOLANT_CAVITATION_RISK, AEROSPIKE_ELEMENT_CLEARANCE,
+        // AEROSPIKE_INJECTOR_FACE_TEMP, LINEAR_AEROSPIKE_ASPECT_RATIO) --
+        // previously only invoked by the standalone
+        // AerospikeOptimization.BuildAndEvaluate convenience method, never
+        // by this GenerateWith -> Evaluate SA scoring path, so an aerospike
+        // design's plug wall temperature (etc.) was never actually gated
+        // during SA search even though the scoring surface above already
+        // reads gen.Aerospike for its objective terms.
+        if (gen.Aerospike is { } aerospikeBuild)
+        {
+            var aeroGate = AerospikeFeasibility.Evaluate(aerospikeBuild, gen.Conditions.WallMaterialIndex);
+            allViolations.AddRange(aeroGate.Violations);
+        }
+
         if (gen.VoxelAdequacy?.Overall == VoxelAdequacyLevel.Fail)
         {
             // Report the single worst (lowest-ratio) failing feature

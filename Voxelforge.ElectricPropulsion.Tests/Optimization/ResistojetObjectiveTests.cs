@@ -256,4 +256,18 @@ public sealed class ResistojetObjectiveTests
         Assert.Throws<ArgumentException>(
             () => ResistojetObjective.Build(VacuumConditions(), ResistojetBaseline(), custom));
     }
+
+    [Fact]
+    public void Build_OnHallEffectBaseline_Throws()
+    {
+        // Red-team round 4: unlike its 5 siblings (Het/Arcjet/Ppt/Mpd/Git),
+        // ResistojetObjective.Build had no baseline.Kind guard. A caller
+        // passing a HallEffect-Kind baseline got no error: Unpack never
+        // touches Kind, so it silently stayed HallEffect and the optimizer
+        // dispatched every candidate through the HET pipeline instead of
+        // the resistojet one it believed it was searching.
+        var hallEffect = ResistojetBaseline() with { Kind = ElectricPropulsionEngineKind.HallEffect };
+        Assert.Throws<ArgumentException>(
+            () => ResistojetObjective.Build(VacuumConditions(), hallEffect));
+    }
 }
