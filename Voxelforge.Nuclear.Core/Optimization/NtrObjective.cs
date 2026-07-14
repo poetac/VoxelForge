@@ -174,9 +174,21 @@ public static class NtrObjective
     }
 
     // Score: minimise −Isp_vacuum on feasible solves; +∞ on infeasible.
+    //
+    // Red-team round 4: NuclearOptimization.GenerateWith deliberately NaNs
+    // IspVacuum_s for BimodalNtr + BimodalMode.Electric designs (no thrust
+    // in that mode) but computes IsFeasible independently from the gate
+    // violations, which never reference Isp or BimodalMode — so a thermally
+    // sound Electric-mode design reaches here with IsFeasible=true and
+    // IspVacuum_s=NaN. -NaN is NaN, not +Infinity, so without the explicit
+    // IsNaN check this NaN-poisons the optimizer's acceptance/best-score
+    // logic for the design's entire lifetime (every subsequent comparison
+    // against a NaN _bestScore is false), rather than being treated as the
+    // "not a real thrust point" infeasibility sentinel every other part of
+    // the optimizer stack already knows how to handle correctly.
     private static EvaluationResult ScoreNegativeIsp(NtrGenerationResult result)
     {
-        double score = result.IsFeasible
+        double score = result.IsFeasible && !double.IsNaN(result.IspVacuum_s)
             ? -result.IspVacuum_s
             : double.PositiveInfinity;
         return new EvaluationResult(

@@ -87,6 +87,10 @@ public static class ResistojetObjective
     {
         ArgumentNullException.ThrowIfNull(conditions);
         ArgumentNullException.ThrowIfNull(baseline);
+        if (baseline.Kind != ElectricPropulsionEngineKind.Resistojet)
+            throw new ArgumentException(
+                $"ResistojetObjective.Build requires baseline.Kind=Resistojet; got {baseline.Kind}.",
+                nameof(baseline));
 
         var vars = variables ?? ApplyBusPowerClip(DefaultBounds, conditions);
         if (vars.Count != DefaultVariableNames.Length)
