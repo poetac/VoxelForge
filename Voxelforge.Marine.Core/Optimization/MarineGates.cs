@@ -230,7 +230,7 @@ internal static class MarineGates
 
         // HULL_CG_CB_OFFSET_LARGE — |z_CG − z_CB| > 5 % D.
         double cgCbLimit = CgCbOffsetFractionAdv * design.Diameter_m;
-        if (cgCbOffset_m > cgCbLimit)
+        if (Math.Abs(cgCbOffset_m) > cgCbLimit)
         {
             advisories.Add(new FeasibilityViolation(
                 ConstraintId: MarineConstraintIds.CgCbOffsetLarge,

@@ -185,4 +185,64 @@ public sealed class MarineGateTests
         Assert.DoesNotContain(result.Advisories,
             v => v.ConstraintId == MarineConstraintIds.FinenesRatioOutOfBand);
     }
+
+    // ── HULL_CG_CB_OFFSET_LARGE (advisory) ────────────────────────────────────
+    //
+    // Red-team round 4: the comparison was `cgCbOffset_m > cgCbLimit` — no
+    // Math.Abs() — despite both the inline comment and MarineConstraintIds'
+    // XML doc specifying |z_CG - z_CB| > 5% D. Any negative offset, however
+    // large in magnitude, silently passed. Not reachable via
+    // MarineOptimization.GenerateWith today (both callers of MarineGates.Evaluate
+    // hardcode cgCbOffset_m to 0.0), so these tests call the internal
+    // MarineGates.Evaluate overload directly, mirroring RunAuvPipeline's own
+    // fairing/drag/hydro/buckling construction.
+
+    private static (DragResult Drag, HydrostaticResult Hydro, BucklingResult Buckling)
+        SolveRemus100AuvSurfaces(MarineDesign design, MarineConditions cond)
+    {
+        var fairing = MyringFairingGeometry.Compute(design);
+        return (HoernerDragSolver.Solve(fairing, cond),
+                HydrostaticEquilibrium.Solve(fairing, design, cond),
+                PressureHullBuckling.Solve(design, cond));
+    }
+
+    [Fact]
+    public void CgCbOffsetLarge_Fires_WhenOffsetIsLargeAndPositive()
+    {
+        // REMUS-100: Diameter_m = 0.190 -> 5% advisory limit = 9.5 mm. 15 mm > limit.
+        var design = MakeRemus100Design();
+        var cond   = MakeRemus100Conditions();
+        var (drag, hydro, buckling) = SolveRemus100AuvSurfaces(design, cond);
+
+        var (_, advisories) = MarineGates.Evaluate(design, cond, drag, hydro, buckling, cgCbOffset_m: 0.015);
+
+        Assert.Contains(advisories, v => v.ConstraintId == MarineConstraintIds.CgCbOffsetLarge);
+    }
+
+    [Fact]
+    public void CgCbOffsetLarge_Fires_WhenOffsetIsLargeAndNegative()
+    {
+        // Same magnitude as the positive case (15 mm > 9.5 mm limit) but signed
+        // negative. The raw (un-abs'd) comparison `-0.015 > 0.0095` is false,
+        // so this is exactly the scenario the missing Math.Abs() let through.
+        var design = MakeRemus100Design();
+        var cond   = MakeRemus100Conditions();
+        var (drag, hydro, buckling) = SolveRemus100AuvSurfaces(design, cond);
+
+        var (_, advisories) = MarineGates.Evaluate(design, cond, drag, hydro, buckling, cgCbOffset_m: -0.015);
+
+        Assert.Contains(advisories, v => v.ConstraintId == MarineConstraintIds.CgCbOffsetLarge);
+    }
+
+    [Fact]
+    public void CgCbOffsetLarge_Clear_WhenOffsetIsSymmetric()
+    {
+        var design = MakeRemus100Design();
+        var cond   = MakeRemus100Conditions();
+        var (drag, hydro, buckling) = SolveRemus100AuvSurfaces(design, cond);
+
+        var (_, advisories) = MarineGates.Evaluate(design, cond, drag, hydro, buckling, cgCbOffset_m: 0.0);
+
+        Assert.DoesNotContain(advisories, v => v.ConstraintId == MarineConstraintIds.CgCbOffsetLarge);
+    }
 }
