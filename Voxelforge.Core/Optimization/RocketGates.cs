@@ -1954,7 +1954,21 @@ internal static class RocketGates
         // f_wave = v_wave / C where C = outer circumference.
         // We cannot recover C from the echo fields alone — use a representative
         // circumference that's consistent with DetonationWaveCount's formula
-        // inverted: C_nominal = N × f × L_cj / v_frac.
+        // inverted: C_nominal = N × v_frac × L_cj.
+        //
+        // KNOWN LIMITATION (red-team round 4, not yet fixed — see
+        // physics-cascade-status.md § Documented gaps): reconstructing
+        // C_nominal by inverting the very formula that produced N from C is
+        // circular. Substituting C_nominal = N·v_frac·L_cj into f_wave and
+        // then interWavePeriod = 1/(N·f_wave) makes both N and v_frac cancel
+        // algebraically, collapsing interWavePeriod_us to the constant
+        // L_cj / cjSpeed × 1e6 (≈ 8.33 µs) for every RdeWaveCount value —
+        // e.g. N=2 and N=8 both evaluate to exactly 8.333... µs. The gate
+        // still fires correctly on RdeAnnulusFillTime_us vs. that constant,
+        // but it has no actual dependence on wave count despite the
+        // Description text implying otherwise. A real fix needs the true
+        // annulus circumference threaded through from RdeCombustion into
+        // RegenGenerationResult rather than reconstructed from N.
         const double lcj_m = 0.020;
         double cNominal_m = gen.RdeWaveCount * waveSpeedFraction * lcj_m;
         double waveFreq_hz   = cjSpeed_ms * waveSpeedFraction / cNominal_m;

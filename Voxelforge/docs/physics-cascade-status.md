@@ -6,16 +6,21 @@ test-failure that exists *to* surface the gap; do not "fix" the
 gap by loosening the test threshold without first understanding
 which physics is broken.
 
-> Updated 2026-07-11: No active pinned-failure entries. Three post-public
-> red-team rounds (CHANGELOG Sprints A.111, A.112, A.116) have surfaced 30+
-> correctness defects and fixed each in the same sprint with a
+> Updated 2026-07-13: No active pinned-failure entries. Four post-public
+> red-team rounds (CHANGELOG Sprints A.111, A.112, A.116, A.120) have surfaced 30+
+> correctness defects and fixed nearly all in the same sprint with a
 > fail-on-old / pass-on-new regression test — none ever became a pinned
 > failure here. Their calibration-blocked / design-intent residue is
 > tracked in § Documented gaps below (round 3 added the Sobol and
-> DesignPersistence entries); fixes whose regression tests target the
+> DesignPersistence entries; round 4 added the RDE annulus-fill-time gate
+> degeneracy — a data-plumbing gap, not a calibration one, but likewise not
+> a same-file fix); fixes whose regression tests target the
 > offline Windows leg are queued in § Windows-leg validation pending. Two
 > known CI/infrastructure flakes documented below (§ Known CI/infrastructure
-> flakes) — neither is a physics regression.
+> flakes) — neither is a physics regression. Round 4 was cut short by an
+> infrastructure failure (subagent session limit) partway through the
+> gate-registry surface — see ROADMAP → Now §1 for exactly what's covered
+> and what remains for round 5.
 > Refresh whenever an entry's fix lands (drop the entry, add a
 > CHANGELOG sprint line). Stale-after: 1 sprint past the last refresh.
 
@@ -93,6 +98,12 @@ the release-notes "known issues" list for v0.1.0 (ROADMAP → Now §4).
 - **What's wrong:** no `JsonStringEnumConverter` is registered, contradicting the v24→v25 migration comment that claims string serialisation. Today's enums are append-only so round-trip is correct, but any future insertion/reorder would silently remap every saved design's topology/damper/igniter fields with no migration hook and no validation catch.
 - **Where:** `Voxelforge.Core/IO/DesignPersistence.cs`.
 - **Fix path:** a deliberate schema bump (v32) adding the converter with a numeric→name migration — a design-intent decision, not a bug fix, so documented rather than patched. Detail: CHANGELOG Sprint A.116.
+
+### RDE annulus fill-time gate's inter-wave period is wave-count-independent (`RDE_ANNULUS_FILL_STARVED`)
+
+- **What's wrong:** the gate estimates the annulus circumference by inverting `DetonationWaveCount`'s own formula (`C_nominal = N·v_frac·L_cj`) because the true circumference isn't threaded through to `RegenGenerationResult`. Substituting that estimate back into `f_wave = v_wave/C` and `interWavePeriod = 1/(N·f_wave)` makes both `N` and `v_frac` cancel algebraically — the computed threshold collapses to the constant `L_cj/cjSpeed` (≈ 8.333 µs) for every `RdeWaveCount`. Confirmed numerically: N=2 and N=8 both evaluate to exactly 8.333... µs. The Hard gate still fires correctly against `RdeAnnulusFillTime_us` vs. that constant, but has no actual dependence on wave count despite its own Description text citing N and f_wave as if they were independently derived.
+- **Where:** `Voxelforge.Core/Optimization/RocketGates.cs` (`EmitRdeAnnulusFillStarved`).
+- **Fix path:** thread the true annulus outer circumference from `RdeCombustion`/the RDE design through to `RegenGenerationResult` so the gate computes a genuine per-design inter-wave period instead of reconstructing a self-cancelling proxy from the wave count it's trying to check — a same-file fix isn't possible, the circularity is structural. Found and code-commented (not fixed) in red-team round 4. Detail: CHANGELOG Sprint A.120.
 
 ---
 
