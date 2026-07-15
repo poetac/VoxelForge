@@ -6,21 +6,21 @@ test-failure that exists *to* surface the gap; do not "fix" the
 gap by loosening the test threshold without first understanding
 which physics is broken.
 
-> Updated 2026-07-13: No active pinned-failure entries. Four post-public
-> red-team rounds (CHANGELOG Sprints A.111, A.112, A.116, A.120) have surfaced 30+
-> correctness defects and fixed nearly all in the same sprint with a
-> fail-on-old / pass-on-new regression test — none ever became a pinned
-> failure here. Their calibration-blocked / design-intent residue is
+> Updated 2026-07-14: No active pinned-failure entries. Four post-public
+> red-team rounds (CHANGELOG Sprints A.111, A.112, A.116, A.120–A.123) have
+> surfaced 30+ correctness defects and fixed nearly all in the same sprint
+> with a fail-on-old / pass-on-new regression test — none ever became a
+> pinned failure here. Their calibration-blocked / design-intent residue is
 > tracked in § Documented gaps below (round 3 added the Sobol and
 > DesignPersistence entries; round 4 added the RDE annulus-fill-time gate
 > degeneracy — a data-plumbing gap, not a calibration one, but likewise not
 > a same-file fix); fixes whose regression tests target the
 > offline Windows leg are queued in § Windows-leg validation pending. Two
 > known CI/infrastructure flakes documented below (§ Known CI/infrastructure
-> flakes) — neither is a physics regression. Round 4 was cut short by an
-> infrastructure failure (subagent session limit) partway through the
-> gate-registry surface — see ROADMAP → Now §1 for exactly what's covered
-> and what remains for round 5.
+> flakes) — neither is a physics regression. **Round 4 completed** across
+> Sprints A.120–A.123, surviving three separate mid-round subagent-session-
+> limit failures via solo continuation each time — ROADMAP → Now §1 marks
+> it SATISFIED; no further red-team round currently gates the v0.1.0 tag.
 > Refresh whenever an entry's fix lands (drop the entry, add a
 > CHANGELOG sprint line). Stale-after: 1 sprint past the last refresh.
 
@@ -109,16 +109,18 @@ the release-notes "known issues" list for v0.1.0 (ROADMAP → Now §4).
 
 ## Windows-leg validation pending
 
-Sprints A.111/A.112 shipped fixes in `net9.0-windows` code whose regression
-tests **have never executed** — they are math-verified only, because the
-self-hosted Windows runner has been offline. When the runner returns, run
-these first; a failure here is fresh signal, not pre-existing green:
+Sprints A.111/A.112/A.121 shipped fixes in `net9.0-windows` code whose
+regression tests **have never executed** — they are math-verified only,
+because the self-hosted Windows runner has been offline. When the runner
+returns, run these first; a failure here is fresh signal, not pre-existing
+green:
 
 - **Horn cone-frustum SDF `2·halfH` fix** — `Voxelforge.Voxels/Antenna/HornAntennaVoxelBuilder.cs` (+ its Linux math-mirror invariant test already passes).
 - **NTR `NozzleLength_mm` = bell length fix** — `NtrChamberVoxelBuilder`.
 - **Setup-wizard wall-material default sync** — `Voxelforge/UI/SetupWizardForm.cs`.
 - **VFD013 write-vs-read + VFD016 qualified-receiver analyzer fixes** — regression tests in `Voxelforge.Tests/Analyzers/` (e.g. `Vfd016AnalyzerTests.cs`).
 - The **documented analyzer preventive gaps** (VFD012 instance-`Stopwatch`, VFD005 `.Keys`/`.Values` iteration, generator FQN fast-path) also await the Windows analyzer-test harness before broadened detection can be validated rather than shipped blind (CHANGELOG A.112).
+- **`AirbreathingForm`'s `--engine-kind`/ComboBox mapping fix** (red-team round 4, A.121) — `KindToIndex`/`SelectedKind` in `Voxelforge/AirbreathingForm.cs` now cover all 12 `AirbreathingEngineKind` values (previously silently dropped `LiquidAirCycle` + `RotatingDetonation`, falling back to Ramjet with no error); `AirbreathingFormKindCoverageTests.DisplayNameMatchesEnumValue` extended from 10 to 12 cases to actually pin the count its own comment claimed to enforce.
 
 ---
 
