@@ -11,6 +11,13 @@ API surface stabilises.
 
 ## Unreleased
 
+### Sprint A.124 — Docs: physics-cascade-status.md sync after round 4's close
+
+A follow-up freshness pass, prompted by a project-status review that caught `physics-cascade-status.md` lagging `ROADMAP.md` after A.123 closed red-team round 4. Docs-only; no code change.
+
+- **Header corrected from "cut short" to "completed".** The doc's own summary still described round 4 as interrupted mid-sweep by a subagent-session-limit failure (accurate as of A.120, stale after A.121–A.123 finished it). Now states round 4 SATISFIED, matching `ROADMAP.md` → Now §1, and notes it survived three separate mid-round infrastructure failures rather than just one.
+- **§ Windows-leg validation pending gains the A.121 `AirbreathingForm` entry.** The `--engine-kind`/ComboBox mapping fix (12-of-12 `AirbreathingEngineKind` coverage, `AirbreathingFormKindCoverageTests` extended to match) is math/logic-verified but Windows-only to execute, same as the pre-existing Horn/NTR/setup-wizard/analyzer entries — it had shipped in A.121 but was never added to this queue.
+
 ### Sprint A.123 — Red-team round 4: SATISFIED — last surface swept clean, ROADMAP criterion 1 closed
 
 Closes ROADMAP → Now criterion 1. The last open surface — the rest of rocket + airbreathing + marine optimization-orchestration/objective wiring (`RegenChamberOptimization.cs` in full, 2163 lines; `RegenObjective.cs`; `AirbreathingOptimization.cs` + its 5 objectives; `MarineOptimization.cs` + its 2 objectives; `MarineDesign.cs`; `AirbreathingEngine.cs`) — came back clean beyond the aerospike-gate fix already shipped in A.122. Read-only pass; no code changes.
