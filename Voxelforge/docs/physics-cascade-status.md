@@ -56,30 +56,35 @@ the release-notes "known issues" list for v0.1.0 (ROADMAP → Now §4).
 - **Where:** `Voxelforge.Core/Combustion/Stability/CroccoNTau.cs`.
 - **Why not auto-fixed:** the canonical sensitive-time-lag sign is `+(1 − cos ωτ)`, but a bare flip marks flight-proven stable engines (RL10, LOX/CH4, LOX/RP1: |σ| ≈ 0.02–0.09 > `FailThreshold` 0.02) as infeasible, breaking published-engine validation.
 - **Fix path:** restore the sign **and** recalibrate the threshold (ideally after adding the omitted acoustic-damping term) against the validated-engine fixtures. Detail: CHANGELOG Sprint A.111.
+- **Tracking issue:** #76.
 
 ### VASIMR Isp is unbounded at low ionisation fraction
 
 - **What's wrong:** energy balances (jet power ≤ η_nozzle·P_icrh), but at very low η_i the per-ion energy — hence exit velocity / Isp — grows without ceiling; a constructed low-η_i design reports Isp > 100 000 s yet stays feasible (only the advisory `VASIMR_IONIZATION_FRACTION_LOW` fires). Reachable only via direct/CLI/deserialised construction — no VASIMR optimiser path exists.
 - **Where:** `Voxelforge.ElectricPropulsion.Core/Solvers/HeliconIcrhMagneticNozzleModel.cs`.
 - **Fix path:** a hard cap needs an empirical ion-energy/Isp ceiling calibrated against VX-200 data. Detail: CHANGELOG Sprint A.112.
+- **Tracking issue:** #79.
 
 ### Bimodal NTR Hybrid mode double-counts reactor power
 
 - **What's wrong:** in `BimodalMode.Hybrid` the thrust cycle heats propellant with the full `ReactorThermalPower_MW` while the Brayton loop *also* taps the full reactor power — a design can draw ~1.13× what the reactor produces. The documented ~20 % thrust / 80 % electric throttle split is never applied. Pure-Thrust and pure-Electric modes are unaffected.
 - **Where:** `Voxelforge.Nuclear.Core/NuclearOptimization.cs` (Hybrid dispatch pipeline).
 - **Fix path:** split reactor power between the two consumers (pipeline re-ordering); changes Hybrid thrust/Isp, so it is a design-intent + fixture-recalibration decision. Detail: CHANGELOG Sprint A.112.
+- **Tracking issue:** #77.
 
 ### HET thrust model is uncoupled from discharge current (gate-guarded)
 
 - **What's wrong:** the 0-D Hall-thruster model computes thrust from V_d and ṁ but not I_d, while P_d = V_d·I_d — so a low-I_d corner used to report physically impossible η_T > 1 designs as feasible. Sprint A.112 added the hard `HET_POWER_BALANCE_VIOLATED` conservation gate, which now rejects those corners; the *model* defect (beam current not coupled to I_d) remains.
 - **Where:** model `Voxelforge.ElectricPropulsion.Core/Plasma/HetPlasmaState.cs` (`BuschDischargeModel`); gate `Voxelforge.ElectricPropulsion.Core/ElectricPropulsionFeasibility.cs`.
 - **Fix path:** couple beam current to I_d and recalibrate against the BPT-4000 / SPT-100 / HiVHAc anchors. Detail: CHANGELOG Sprint A.112.
+- **Tracking issue:** #78.
 
 ### Stirling free-piston output over-predicted 10–100×
 
 - **What's wrong:** the Wave-1 cluster fit over-predicts free-piston power by 1–2 orders of magnitude; no validation fixture exists (the second-anchor was deferred out of Track C.1 for exactly this reason).
 - **Where:** `Voxelforge.Core/Stirling/StirlingSolver.cs`.
 - **Fix path:** MEP-model refinement (STR.W2) before a defensible fixture lands. Tracked in ROADMAP (Done → Stirling deferred) and issue #10's fixture list.
+- **Tracking issue:** #84 (model work; #10 covers only the deferred fixture).
 
 ### Antenna voxel builders: Helical + Patch geometry defects (Windows-leg)
 
@@ -92,18 +97,21 @@ the release-notes "known issues" list for v0.1.0 (ROADMAP → Now §4).
 - **What's wrong:** dimension 3 pairs `a = 2` with `s = 4` (`m = {1,1,3,3}`), whose decoded polynomial x⁴+x²+1 = (x²+x+1)² over GF(2) is *reducible* — never a valid Sobol polynomial; one row's `a` was fused with the next row's `m`. Dims 4–7 match no genuine Joe-Kuo row, and the dims ≥ 8 fallback is neither Sobol nor Halton despite the header's claim. Output stays deterministic and in [0, 1), so the blast radius is warmup-coverage *quality* (MultiChain/Bayesian seeding low-discrepancy property) — not a physics or feasibility defect.
 - **Where:** `Voxelforge.Core/Optimization/SobolSequence.cs`.
 - **Fix path:** transcribe the genuine `new-joe-kuo-6` table plus a property test (m_i odd, m_i < 2^i, primitive polynomial). Detail: CHANGELOG Sprint A.116.
+- **Tracking issue:** #80.
 
 ### `DesignPersistence` stores enums as raw ordinals, not strings (data-integrity, not physics)
 
 - **What's wrong:** no `JsonStringEnumConverter` is registered, contradicting the v24→v25 migration comment that claims string serialisation. Today's enums are append-only so round-trip is correct, but any future insertion/reorder would silently remap every saved design's topology/damper/igniter fields with no migration hook and no validation catch.
 - **Where:** `Voxelforge.Core/IO/DesignPersistence.cs`.
 - **Fix path:** a deliberate schema bump (v32) adding the converter with a numeric→name migration — a design-intent decision, not a bug fix, so documented rather than patched. Detail: CHANGELOG Sprint A.116.
+- **Tracking issue:** #81.
 
 ### RDE annulus fill-time gate's inter-wave period is wave-count-independent (`RDE_ANNULUS_FILL_STARVED`)
 
 - **What's wrong:** the gate estimates the annulus circumference by inverting `DetonationWaveCount`'s own formula (`C_nominal = N·v_frac·L_cj`) because the true circumference isn't threaded through to `RegenGenerationResult`. Substituting that estimate back into `f_wave = v_wave/C` and `interWavePeriod = 1/(N·f_wave)` makes both `N` and `v_frac` cancel algebraically — the computed threshold collapses to the constant `L_cj/cjSpeed` (≈ 8.333 µs) for every `RdeWaveCount`. Confirmed numerically: N=2 and N=8 both evaluate to exactly 8.333... µs. The Hard gate still fires correctly against `RdeAnnulusFillTime_us` vs. that constant, but has no actual dependence on wave count despite its own Description text citing N and f_wave as if they were independently derived.
 - **Where:** `Voxelforge.Core/Optimization/RocketGates.cs` (`EmitRdeAnnulusFillStarved`).
 - **Fix path:** thread the true annulus outer circumference from `RdeCombustion`/the RDE design through to `RegenGenerationResult` so the gate computes a genuine per-design inter-wave period instead of reconstructing a self-cancelling proxy from the wave count it's trying to check — a same-file fix isn't possible, the circularity is structural. Found and code-commented (not fixed) in red-team round 4. Detail: CHANGELOG Sprint A.120.
+- **Tracking issue:** #75.
 
 ---
 
