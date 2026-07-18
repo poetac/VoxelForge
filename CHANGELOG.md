@@ -11,6 +11,19 @@ API surface stabilises.
 
 ## Unreleased
 
+### Sprint A.125 — Tracker: every ledgered known-gap gets a claimable issue (#75–#84); fix-audit spot-checks
+
+Closes the last "documented but nowhere claimable" gap in the planning surface, plus a targeted audit pass over the round-4 fixes themselves. Docs + tracker-only; no production-code change.
+
+**Tracker (#75–#84 filed 2026-07-15):** every documented-not-fixed item previously living only in `physics-cascade-status.md` / code comments now has its own issue — #75 `RDE_ANNULUS_FILL_STARVED` circumference plumbing, #76 Crocco n-τ sign + recalibration, #77 bimodal-NTR Hybrid power split, #78 HET beam-current coupling, #79 VASIMR Isp ceiling, #80 Sobol Joe-Kuo transcription, #81 DesignPersistence schema-v32 enum strings, #82 `ACOUSTIC_DAMPER_OVERSIZED` damper-geometry carry-through (the `RocketGates.cs` "no GH issue yet" follow-on), #83 windows-latest CI spike (ROADMAP criterion 3's unlock path), #84 Stirling MEP refinement (STR.W2). Ledger entries and the ROADMAP burn-down list now cross-reference them; tracker-state note refreshed (42 open).
+
+**Fix-audit spot-checks (the round-4 fixes themselves, audited as diffs):** a five-auditor parallel audit attempt died wholesale on a subagent session limit (0 of 5 completed — same infrastructure failure class round 4 hit three times), so the three highest-value angles were verified solo instead:
+- **`CfdFieldExport` A.121 fix confirmed complete**: both flat-index sites (`Write` and `WriteAerospike`) now emit VTK's x-fastest order (`ix + Nx·(iy + Ny·iz)`), the wall-thickness fix reads `channels.GasSideWallThickness_mm` at all three radius computations, and `CfdFieldExportPointOrderingTests` is a genuine binary-parsing test (locates AppendedData, validates the byte-count header, asserts axis-is-fluid semantics) — not a tautology of the implementation's index formula.
+- **NSGA NaN-in-objective-component concern refuted**: a NaN reaching `Dominates()` via an objectiveExtractor component while `Score` stays finite is unreachable on the production paths — both app extractors (`Program.Nsga.ExtractObjectives`, `NsgaIISession`'s wrapped extractor) read breakdown fields that all feed `TotalScore` itself, so any NaN propagates into `Score` and the A.116 non-finite→infeasible classification already catches it.
+- **Aerospike-gate double-fire refuted**: outside tests, the only non-`Evaluate` caller of the standalone gate path is the bench console (`BenchAerospike`), whose violations never merge with `RegenChamberOptimization.Evaluate`'s — no production path fires the aerospike gates twice.
+
+Also corrects CLAUDE.md's stale suite count in the SDK-pin recipe (233/233 → 238/238 as of A.122).
+
 ### Sprint A.124 — Docs: physics-cascade-status.md sync after round 4's close
 
 A follow-up freshness pass, prompted by a project-status review that caught `physics-cascade-status.md` lagging `ROADMAP.md` after A.123 closed red-team round 4. Docs-only; no code change.
