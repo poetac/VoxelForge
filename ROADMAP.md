@@ -56,7 +56,7 @@ Framing-B has closed, so these are technically actionable — but under the curr
 
 **v0.1.x known-gaps burn-down** (calibration/design-intent items, not framing-scoped):
 
-Everything below is fully recorded in [`physics-cascade-status.md`](Voxelforge/docs/physics-cascade-status.md) § Documented gaps (Now §4 confirms the ledger is current), and — as of 2026-07-15 — each item now has its own claimable tracker issue:
+Everything below is fully recorded in [`physics-cascade-status.md`](Voxelforge/docs/physics-cascade-status.md) § Documented gaps (Now §4 confirms the ledger is current), and — as of 2026-07-15 — each item now has its own claimable tracker issue, and each of #75–#84 carries a self-contained **implementation guide comment** (exact file:line anchors, change plan, fail-on-old test recipe, and the container build/test commands) so pickup needs no re-discovery:
 
 - Crocco n-τ stability screen sign flip + recalibration against validated-engine fixtures (#76).
 - HET beam-current/discharge-current coupling + BPT-4000 / SPT-100 / HiVHAc recalibration (#78).
