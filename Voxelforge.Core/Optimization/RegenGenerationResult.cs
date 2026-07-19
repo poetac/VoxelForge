@@ -190,6 +190,15 @@ public sealed record RegenGenerationResult(
     public double RdeAnnulusFillTime_us { get; init; } = 0.0;
 
     /// <summary>
+    /// Issue #75: true RDE annulus outer circumference (m), threaded through so
+    /// <c>RDE_ANNULUS_FILL_STARVED</c> can compute a genuine per-design
+    /// inter-wave period instead of reconstructing (and cancelling) it from
+    /// <see cref="RdeWaveCount"/>. 0 when <see cref="RdeTopology"/> is
+    /// <see cref="RdeTopology.None"/>.
+    /// </summary>
+    public double RdeAnnulusCircumference_m { get; init; } = 0.0;
+
+    /// <summary>
     /// T6 (2026-04-28): adapter that hoists the physics-only fields
     /// the injector-face thermal solver consumes into a standalone
     /// <see cref="HeatTransfer.InjectorFaceGeometry"/> record. Returns

@@ -106,13 +106,6 @@ the release-notes "known issues" list for v0.1.0 (ROADMAP → Now §4).
 - **Fix path:** a deliberate schema bump (v32) adding the converter with a numeric→name migration — a design-intent decision, not a bug fix, so documented rather than patched. Detail: CHANGELOG Sprint A.116.
 - **Tracking issue:** #81.
 
-### RDE annulus fill-time gate's inter-wave period is wave-count-independent (`RDE_ANNULUS_FILL_STARVED`)
-
-- **What's wrong:** the gate estimates the annulus circumference by inverting `DetonationWaveCount`'s own formula (`C_nominal = N·v_frac·L_cj`) because the true circumference isn't threaded through to `RegenGenerationResult`. Substituting that estimate back into `f_wave = v_wave/C` and `interWavePeriod = 1/(N·f_wave)` makes both `N` and `v_frac` cancel algebraically — the computed threshold collapses to the constant `L_cj/cjSpeed` (≈ 8.333 µs) for every `RdeWaveCount`. Confirmed numerically: N=2 and N=8 both evaluate to exactly 8.333... µs. The Hard gate still fires correctly against `RdeAnnulusFillTime_us` vs. that constant, but has no actual dependence on wave count despite its own Description text citing N and f_wave as if they were independently derived.
-- **Where:** `Voxelforge.Core/Optimization/RocketGates.cs` (`EmitRdeAnnulusFillStarved`).
-- **Fix path:** thread the true annulus outer circumference from `RdeCombustion`/the RDE design through to `RegenGenerationResult` so the gate computes a genuine per-design inter-wave period instead of reconstructing a self-cancelling proxy from the wave count it's trying to check — a same-file fix isn't possible, the circularity is structural. Found and code-commented (not fixed) in red-team round 4. Detail: CHANGELOG Sprint A.120.
-- **Tracking issue:** #75.
-
 ---
 
 ## Windows-leg validation pending

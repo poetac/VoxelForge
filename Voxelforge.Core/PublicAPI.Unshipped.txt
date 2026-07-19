@@ -1,2 +1,4 @@
 #nullable enable
+Voxelforge.Optimization.RegenGenerationResult.RdeAnnulusCircumference_m.get -> double
+Voxelforge.Optimization.RegenGenerationResult.RdeAnnulusCircumference_m.init -> void
 Voxelforge.Optimization.SimulatedAnnealingOptimizer.MigrateFrom(double[]! migratedParams, double migratedScore, object? migratedBreakdown) -> void

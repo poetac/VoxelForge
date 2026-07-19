@@ -65,7 +65,6 @@ Everything below is fully recorded in [`physics-cascade-status.md`](Voxelforge/d
 - Stirling MEP-model refinement (STR.W2) — prerequisite for the coverage-parity fixture deferred in Now §2 (#84).
 - `SobolSequence` Joe-Kuo direction-number table transcription (quality-only) (#80).
 - `DesignPersistence` schema-v32 enum-string migration decision (#81).
-- `RDE_ANNULUS_FILL_STARVED` annulus-circumference data-plumbing fix (#75).
 - `ACOUSTIC_DAMPER_OVERSIZED` damper-geometry carry-through so its volume check can run (#82).
 
 Demand-gated like the rest of Later — pick up piecemeal as calibration data / decisions become available, not as a single tracked sprint.

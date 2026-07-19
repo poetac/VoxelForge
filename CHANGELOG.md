@@ -11,6 +11,14 @@ API surface stabilises.
 
 ## Unreleased
 
+### Sprint A.127 — Fix #75: `RDE_ANNULUS_FILL_STARVED` inter-wave period now varies per-design
+
+Closes issue #75 (the first pickup off the A.125 known-gaps burn-down list). `RegenGenerationResult` gains `RdeAnnulusCircumference_m`, threaded from the same `circumference_m` local `RegenChamberOptimization.GenerateWith` already computed for `DetonationWaveCount` but never echoed onto the result. `EmitRdeAnnulusFillStarved` now derives the inter-wave period directly from the true circumference instead of reconstructing (and self-cancelling) it from the wave count — the previous formula collapsed to the constant `L_cj/cjSpeed` (≈ 8.333 µs) regardless of design geometry. New `RdeAnnulusFillGateTests` (`Voxelforge.Core.Tests`) asserts two designs with the same wave count and fill time but different circumferences produce different fire/no-fire outcomes — impossible pre-fix, since the old formula never read circumference at all. `RegenGenerationResult.RdeAnnulusCircumference_m` added to `PublicAPI.Unshipped.txt` (RS0016). Drops the corresponding `physics-cascade-status.md` § Documented gaps entry and its ROADMAP burn-down line.
+
+### Sprint A.126 — CLAUDE.md: document `add_issue_comment` attribution-footer gotcha
+
+Found during a final repo-cleanliness sweep: the GitHub MCP `add_issue_comment` tool unconditionally appends a tool-attribution footer to every posted comment body, confirmed not avoidable from the comment text and not fixable after the fact (no comment-edit/delete tool available). Issues #75–#84's guide comments all carry it; left as-is rather than compounding with more tainted correction comments. `issue_write` and `update_pull_request` are unaffected and remain freely re-editable. Documented in CLAUDE.md § Attribution policy so future sessions route durable content through issue/PR bodies instead of comments.
+
 ### Sprint A.125 — Tracker: every ledgered known-gap gets a claimable issue (#75–#84); fix-audit spot-checks
 
 Closes the last "documented but nowhere claimable" gap in the planning surface, plus a targeted audit pass over the round-4 fixes themselves. Docs + tracker-only; no production-code change.
