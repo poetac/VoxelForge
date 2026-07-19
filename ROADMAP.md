@@ -63,7 +63,6 @@ Everything below is fully recorded in [`physics-cascade-status.md`](Voxelforge/d
 - Bimodal NTR Hybrid-mode reactor power split (design-intent decision + fixture recalibration) (#77).
 - VASIMR Isp ceiling calibrated against VX-200 data (#79).
 - Stirling MEP-model refinement (STR.W2) — prerequisite for the coverage-parity fixture deferred in Now §2 (#84).
-- `SobolSequence` Joe-Kuo direction-number table transcription (quality-only) (#80).
 - `DesignPersistence` schema-v32 enum-string migration decision (#81).
 
 Demand-gated like the rest of Later — pick up piecemeal as calibration data / decisions become available, not as a single tracked sprint.

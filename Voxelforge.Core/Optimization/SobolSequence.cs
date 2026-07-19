@@ -13,11 +13,16 @@
 // (CLAUDE.md "T1.2") estimates 1.5-3× faster time-to-first-feasible.
 //
 // Implementation: classical Sobol with Joe-Kuo (2008) direction numbers.
-// Direction numbers for the first 32 dimensions are baked in below
-// (sourced from the Joe-Kuo reference table, "new-joe-kuo-6.21201"
-// shortened to D=32). For dimensions beyond 32 (none in voxelforge
-// today — registry is 24-dim) the sequence falls back to a Halton-style
-// reflected base-prime sequence as a safe default.
+// Direction numbers for the first 8 dimensions (MaxBakedDimensions) are
+// baked in below, transcribed from the Joe-Kuo reference table
+// "new-joe-kuo-6.21201". Voxelforge's SA registry is ~24-26 dims, so
+// dims 8+ DO exercise the fallback below in normal use — it is not a
+// dead code path. That fallback is a pseudo-stratified hash-based
+// sequence (see ComputeDirectionNumbers), not genuine Sobol or Halton;
+// it gives "better than uniform" coverage on the mostly-categorical/
+// gated tail dims but should not be described as either by name (issue
+// #80 — the previous header claimed "Halton-style", which the fallback
+// code itself never actually implements).
 //
 // Slicing: each chain in T1.1's multi-chain SA gets a non-overlapping
 // stride of the Sobol sequence so chains explore distinct regions.
@@ -129,43 +134,55 @@ public sealed class SobolSequence
 
     // ─── Joe-Kuo direction numbers ─────────────────────────────────────
     //
-    // Source: Joe & Kuo (2008) "new-joe-kuo-6.21201" reference table,
-    // first 8 dimensions. For D=24 (voxelforge's registry) we use these
-    // 8 then fall back to a Halton-style sequence on prime bases for
-    // dims 8-23. Acceptable because the high-leverage SA dims (chamber
-    // pressure, MR, ε, channel geometry) are concentrated in the first
-    // several positions of the registry; dims 8+ are categorical or
-    // gated and matter less for initial coverage.
+    // Issue #80: this table previously mis-transcribed the genuine
+    // Joe-Kuo (2008) "new-joe-kuo-6.21201" reference table — dim 3's
+    // slot paired one row's `a` with the NEXT row's `m`-list (a=2 fused
+    // with m={1,1,3,3}), decoding to x⁴+x²+1 = (x²+x+1)² over GF(2),
+    // which is reducible and therefore never a valid Sobol polynomial.
+    // Dims 4-7 didn't match any genuine Joe-Kuo row at all. Retranscribed
+    // 2026-07-19 directly from the reference table (cross-checked against
+    // two independent mirrors of the original web.maths.unsw.edu.au/
+    // ~fkuo/sobol/ source: github.com/diku-dk/sobol-futhark and
+    // github.com/joe-kuo/sobol_data, byte-identical for d=2..9) and
+    // verified primitive by hand (also see SobolSequencePropertyTests,
+    // which checks this by brute-force GF(2) multiplicative order).
+    //
+    // Source table's dimension d is 1-indexed with d=1 the trivial van
+    // der Corput sequence (this class's dim=0); this class's dim=k for
+    // k≥1 is therefore source dimension d=k+1.
     //
     // Direction-number format: m_i ∈ {1, 3, 5, ...} (odd integers <
     // 2^i). Direction number v_i = m_i × 2^(MaxBits - i).
     //
-    // Polynomials (a) and m-values (m) per dim:
-    //   d=0: trivial (van der Corput on base 2), all m_i = 1
-    //   d=1: a=1, m = {1, 3}
-    //   d=2: a=1, m = {1, 3, 1}
-    //   d=3: a=2, m = {1, 1, 3, 3}
-    //   d=4: a=1, m = {1, 1, 5, 11, 7}
-    //   d=5: a=4, m = {1, 1, 5, 11, 13, 9}
-    //   d=6: a=2, m = {1, 1, 7, 11, 19, 23, 7}
-    //   d=7: a=4, m = {1, 1, 7, 13, 25, 13, 11, 51}
+    // Polynomials (a) and m-values (m) per dim (source d = dim+1):
+    //   dim=0 (d=1): trivial (van der Corput on base 2), all m_i = 1
+    //   dim=1 (d=2): a=0, m = {1}
+    //   dim=2 (d=3): a=1, m = {1, 3}
+    //   dim=3 (d=4): a=1, m = {1, 3, 1}
+    //   dim=4 (d=5): a=2, m = {1, 1, 1}
+    //   dim=5 (d=6): a=1, m = {1, 1, 3, 3}
+    //   dim=6 (d=7): a=4, m = {1, 3, 5, 13}
+    //   dim=7 (d=8): a=2, m = {1, 1, 5, 5, 17}
 
-    private static readonly uint[] s_polynomials =
+    // internal (not private): SobolSequencePropertyTests (Core.Tests, a
+    // friend assembly via InternalsVisibleTo) verifies these directly
+    // against the source table rather than a copy that could drift.
+    internal static readonly uint[] s_polynomials =
     {
         0,  // dim 0 — trivial
-        1, 1, 2, 1, 4, 2, 4,
+        0, 1, 1, 2, 1, 4, 2,
     };
 
-    private static readonly uint[][] s_mValues =
+    internal static readonly uint[][] s_mValues =
     {
-        Array.Empty<uint>(),                         // dim 0 — trivial
-        new uint[] { 1, 3 },                         // dim 1
-        new uint[] { 1, 3, 1 },                      // dim 2
-        new uint[] { 1, 1, 3, 3 },                   // dim 3
-        new uint[] { 1, 1, 5, 11, 7 },               // dim 4
-        new uint[] { 1, 1, 5, 11, 13, 9 },           // dim 5
-        new uint[] { 1, 1, 7, 11, 19, 23, 7 },       // dim 6
-        new uint[] { 1, 1, 7, 13, 25, 13, 11, 51 },  // dim 7
+        Array.Empty<uint>(),                  // dim 0 — trivial
+        new uint[] { 1 },                     // dim 1 (source d=2)
+        new uint[] { 1, 3 },                  // dim 2 (source d=3)
+        new uint[] { 1, 3, 1 },               // dim 3 (source d=4)
+        new uint[] { 1, 1, 1 },               // dim 4 (source d=5)
+        new uint[] { 1, 1, 3, 3 },            // dim 5 (source d=6)
+        new uint[] { 1, 3, 5, 13 },           // dim 6 (source d=7)
+        new uint[] { 1, 1, 5, 5, 17 },        // dim 7 (source d=8)
     };
 
     private static uint[] ComputeDirectionNumbers(int dim)
@@ -207,12 +224,13 @@ public sealed class SobolSequence
             return v;
         }
 
-        // Dim ≥ 8: fall back to van der Corput on the (dim-7+1)-th prime
-        // for safe coverage. This is technically a Halton sequence per
-        // dim, not pure Sobol, but for voxelforge's 24-dim registry
-        // where dims 8+ are mostly categorical / gated, this gives
-        // adequate uniformity without needing the full Joe-Kuo D=21201
-        // table (which is ~150 KB of direction numbers).
+        // Dim ≥ 8: fall back to a per-dimension prime-seeded pseudo-
+        // stratified stream (formula below) for safe coverage. Issue #80:
+        // this is neither pure Sobol nor genuine Halton — see the formula
+        // comment below for what it actually computes — but for
+        // voxelforge's registry where dims 8+ are mostly categorical /
+        // gated, it gives adequate uniformity without needing the full
+        // Joe-Kuo D=21201 table (which is ~150 KB of direction numbers).
         int prime = NthOddPrime(dim - MaxBakedDimensions + 1);
         // Encode "Halton on prime" in the same v[] layout by mapping
         // bit positions to prime-base reflections. We approximate this
