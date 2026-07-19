@@ -79,13 +79,6 @@ the release-notes "known issues" list for v0.1.0 (ROADMAP → Now §4).
 - **Fix path:** couple beam current to I_d and recalibrate against the BPT-4000 / SPT-100 / HiVHAc anchors. Detail: CHANGELOG Sprint A.112.
 - **Tracking issue:** #78.
 
-### Stirling free-piston output over-predicted 10–100×
-
-- **What's wrong:** the Wave-1 cluster fit over-predicts free-piston power by 1–2 orders of magnitude; no validation fixture exists (the second-anchor was deferred out of Track C.1 for exactly this reason).
-- **Where:** `Voxelforge.Core/Stirling/StirlingSolver.cs`.
-- **Fix path:** MEP-model refinement (STR.W2) before a defensible fixture lands. Tracked in ROADMAP (Done → Stirling deferred) and issue #10's fixture list.
-- **Tracking issue:** #84 (model work; #10 covers only the deferred fixture).
-
 ### Antenna voxel builders: Helical + Patch geometry defects (Windows-leg)
 
 - **What's wrong:** the Helical SDF builds disconnected toroidal rings instead of a continuous helix; the Patch builder reports RF metrics from the unfloored design while building geometry from floored dimensions. (The third finding in the same review — Horn `sdCappedCone` factor-2 — was fixed in Sprint A.112.)

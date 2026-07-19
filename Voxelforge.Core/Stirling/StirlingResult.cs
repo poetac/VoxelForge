@@ -1,28 +1,21 @@
-// StirlingResult.cs — Sprint STR.W1 solver output.
+// StirlingResult.cs — Sprint STR.W1 solver output. Issue #84 (STR.W2):
+// MEP model refined to West's number correlation; the STR.W1
+// 10-100x-over-prediction accuracy caveat is resolved (see
+// StirlingSolver.cs file header for the calibration + cross-check).
 
 namespace Voxelforge.Stirling;
 
 /// <summary>
-/// Solve-time outputs for a Stirling-engine snapshot (Sprint STR.W1).
+/// Solve-time outputs for a Stirling-engine snapshot.
 /// </summary>
-/// <remarks>
-/// <b>Accuracy caveat:</b> the Wave-1 mean-effective-pressure fit
-/// over-predicts free-piston Stirling power by <b>10–100×</b>, so the
-/// power-bearing outputs (<c>IndicatedPower_W</c>, <c>HeatInputRate_W</c>,
-/// <c>HeatRejectionRate_W</c>) are order-of-magnitude only — not validated
-/// numbers. See LIMITATIONS.md, "Validated free-piston Stirling output".
-/// No defensible validation fixture lands until the MEP model is refined.
-/// </remarks>
 /// <param name="CarnotEfficiency">η_Carnot = 1 − T_cold / T_hot [-].</param>
 /// <param name="IndicatedEfficiency">η_indicated = η_2nd · η_Carnot [-].</param>
-/// <param name="MeanEffectivePressure_Pa">BMEP-equivalent [Pa] —
-/// scaffold heuristic: 0.5 · P_mean (Schmidt-style indicated-work-
-/// fraction; real Stirling MEP is 0.3-0.7 of P_mean depending on
-/// configuration + dead volume).</param>
+/// <param name="MeanEffectivePressure_Pa">Mean effective pressure [Pa] —
+/// West's number correlation: Wn · P_mean · τ · fluidFactor, where
+/// τ = (T_hot−T_cold)/(T_hot+T_cold) and Wn ≈ 0.25 (see StirlingSolver.cs
+/// for the full derivation and calibration cross-check).</param>
 /// <param name="WorkPerCycle_J">W = MEP · V_swept [J/cycle].</param>
-/// <param name="IndicatedPower_W">P_indicated = W · f [W]. Order-of-magnitude
-/// only — the Wave-1 MEP fit over-predicts free-piston power 10–100× (see
-/// LIMITATIONS.md and the type-level accuracy caveat).</param>
+/// <param name="IndicatedPower_W">P_indicated = W · f [W].</param>
 /// <param name="HeatInputRate_W">Q_hot = P_indicated / η_indicated [W].</param>
 /// <param name="HeatRejectionRate_W">Q_cold = Q_hot − P_indicated [W].</param>
 internal sealed record StirlingResult(

@@ -80,7 +80,6 @@ recession.
 - **Pintle injector SA refinements.** Pintle element type is present; SA dims 26-27 cover diameter + sleeve hole count (Track H2 2026-04-27). Pintle-specific gap width + primary/secondary annulus ratios are not yet SA-promoted.
 - **Multi-stage turbine refinement.** Pump side handles N ∈ [1, 4] stages; turbine is still single-stage impulse. Extend if a high-thrust (> 1 MN) design drives the need.
 - **Preburner axial march.** `PreburnerCooling` is a lumped-parameter steady-state solver. A station-by-station analogue of the main chamber's `RegenCoolingSolver` is queued behind a real design hitting the `PREBURNER_WALL_TEMP` limit.
-- **Validated free-piston Stirling output.** The Wave-1 Stirling pillar is modeled, but its cluster fit over-predicts free-piston power by 10–100×, so no defensible validation fixture lands until the mean-effective-pressure model is refined. Treat Stirling numbers as order-of-magnitude only.
 
 ## Operational constraints
 
