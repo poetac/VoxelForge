@@ -351,6 +351,7 @@ public static class RegenChamberOptimization
         // → no gain (rdeFactor = 1.0), behaviour bit-identical to pre-OOB-7.
         int  rdeWaveCount    = 0;
         double rdeAnnulusFillTime_us = 0.0;
+        double rdeAnnulusCircumference_m = 0.0;
         if (design.RdeTopology != Optimization.RdeTopology.None)
         {
             double rdeFactor = Combustion.RdeCombustion.IspGain(
@@ -360,8 +361,8 @@ public static class RegenChamberOptimization
                 IdealIspVacuum_s   = derived.IdealIspVacuum_s   * rdeFactor,
                 IdealIspSeaLevel_s = derived.IdealIspSeaLevel_s * rdeFactor,
             };
-            double circumference_m = 2.0 * Math.PI * (design.RdeAnnulusOuterRadius_mm / 1000.0);
-            rdeWaveCount = Combustion.RdeCombustion.DetonationWaveCount(circumference_m);
+            rdeAnnulusCircumference_m = 2.0 * Math.PI * (design.RdeAnnulusOuterRadius_mm / 1000.0);
+            rdeWaveCount = Combustion.RdeCombustion.DetonationWaveCount(rdeAnnulusCircumference_m);
             // Injector ΔP approximated as 20 % of chamber pressure (common design rule).
             double injDp_Pa     = 0.20 * cond.ChamberPressure_Pa;
             // Mean propellant mixture density (LOX/CH4-class mixture density ≈ 700 kg/m³ as default).
@@ -912,6 +913,7 @@ public static class RegenChamberOptimization
             RdeTopology         = design.RdeTopology,
             RdeWaveCount        = rdeWaveCount,
             RdeAnnulusFillTime_us = rdeAnnulusFillTime_us,
+            RdeAnnulusCircumference_m = rdeAnnulusCircumference_m,
         };
 
         // PHASE 2 + PHASE 5: populate the injector-face estimate. When the

@@ -1943,35 +1943,18 @@ internal static class RocketGates
         if (gen.RdeTopology == Optimization.RdeTopology.None) return;
         if (gen.RdeWaveCount <= 0) return;
         if (gen.RdeAnnulusFillTime_us <= 0.0) return;
+        if (gen.RdeAnnulusCircumference_m <= 0.0) return;   // legacy/hand-built results
 
-        // Annulus circumference from design; outer-radius field on the result
-        // is unavailable directly — reconstruct from the conditions record and
-        // the design echoed in Conditions. Use a nominal 60 mm default.
+        // Issue #75: true annulus circumference (threaded from RdeCombustion via
+        // RegenGenerationResult.RdeAnnulusCircumference_m) makes the inter-wave
+        // period a genuine per-design quantity. Previously this was reconstructed
+        // by inverting DetonationWaveCount's own formula (C_nominal = N·v_frac·L_cj),
+        // which made both N and v_frac cancel out of the final period and collapsed
+        // the threshold to the same constant (~8.33 µs) regardless of wave count —
+        // see physics-cascade-status.md § Documented gaps (now resolved).
         const double cjSpeed_ms = 2400.0;
         const double waveSpeedFraction = 0.90;
-        // Outer circumference must be re-derived; echo fields give us wave count
-        // and fill time. Wave period = 1 / (N × f_wave).
-        // f_wave = v_wave / C where C = outer circumference.
-        // We cannot recover C from the echo fields alone — use a representative
-        // circumference that's consistent with DetonationWaveCount's formula
-        // inverted: C_nominal = N × v_frac × L_cj.
-        //
-        // KNOWN LIMITATION (red-team round 4, not yet fixed — see
-        // physics-cascade-status.md § Documented gaps): reconstructing
-        // C_nominal by inverting the very formula that produced N from C is
-        // circular. Substituting C_nominal = N·v_frac·L_cj into f_wave and
-        // then interWavePeriod = 1/(N·f_wave) makes both N and v_frac cancel
-        // algebraically, collapsing interWavePeriod_us to the constant
-        // L_cj / cjSpeed × 1e6 (≈ 8.33 µs) for every RdeWaveCount value —
-        // e.g. N=2 and N=8 both evaluate to exactly 8.333... µs. The gate
-        // still fires correctly on RdeAnnulusFillTime_us vs. that constant,
-        // but it has no actual dependence on wave count despite the
-        // Description text implying otherwise. A real fix needs the true
-        // annulus circumference threaded through from RdeCombustion into
-        // RegenGenerationResult rather than reconstructed from N.
-        const double lcj_m = 0.020;
-        double cNominal_m = gen.RdeWaveCount * waveSpeedFraction * lcj_m;
-        double waveFreq_hz   = cjSpeed_ms * waveSpeedFraction / cNominal_m;
+        double waveFreq_hz   = cjSpeed_ms * waveSpeedFraction / gen.RdeAnnulusCircumference_m;
         double interWavePeriod_us = 1e6 / (gen.RdeWaveCount * waveFreq_hz);
 
         if (!(gen.RdeAnnulusFillTime_us > interWavePeriod_us)) return;
