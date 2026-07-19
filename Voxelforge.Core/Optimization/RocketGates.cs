@@ -1695,33 +1695,44 @@ internal static class RocketGates
     {
         if (gen.Stability.AcousticDamper is not { Count: > 0 } damper) return;
 
-        // Recompute total damper volume from the saved design fields.
-        // Stability.AcousticDamper holds the result; the input config
-        // is already gone, so derive total volume from the design's
-        // damper fields directly.
-        Combustion.Stability.AcousticDamperConfig config =
-            damper.Type == Combustion.Stability.AcousticDamperType.Helmholtz
-                ? Combustion.Stability.AcousticDamperConfig.Helmholtz(
-                    count: damper.Count,
-                    neckArea_mm2: 0, neckLength_mm: 0, cavityVolume_mm3: 0)
-                : Combustion.Stability.AcousticDamperConfig.QuarterWave(
-                    count: damper.Count, length_mm: 0, diameter_mm: 0);
-        // The `damper` result doesn't carry the geometry payload through
-        // (deliberately — Δζ is the consumer-facing surface). Re-read
-        // the design's damper fields directly from gen.Conditions's
-        // sibling design record on RegenGenerationResult is not available
-        // here — RegenGenerationResult.Conditions holds OperatingConditions,
-        // not RegenChamberDesign. Skip this gate body when we can't
-        // recompute the total volume; the DETUNED gate already surfaces
-        // the configuration mistake the user should care about.
-        // Future RegenGenerationResult rev should carry the design too;
-        // tracked as a follow-on (no GH issue yet, see PR description).
-        _ = config;
+        // Issue #82: AcousticDamperResult.TotalVolume_mm3 is now stamped by
+        // AcousticDamper.Evaluate itself (from the live AcousticDamperConfig,
+        // before the config goes out of scope), so this can check true cavity
+        // displacement directly instead of reconstructing a zero-geometry
+        // placeholder config that could never actually fire on volume.
+        //
+        // Threshold (advisory, conservative first cut — no anchor data yet):
+        // total damper cavity volume > 5 % of chamber volume flags a design
+        // where the dampers are meaningfully displacing combustion volume /
+        // adding mass fraction. Revisit if anchor data narrows this.
+        const double VolumeFractionAdvisoryThreshold = 0.05;
+        double chamberVolume_mm3 = gen.Contour.ChamberVolume_mm3;
+        if (damper.TotalVolume_mm3 > 0.0 && chamberVolume_mm3 > 0.0)
+        {
+            double volumeFraction = damper.TotalVolume_mm3 / chamberVolume_mm3;
+            if (volumeFraction > VolumeFractionAdvisoryThreshold)
+            {
+                v.Add(new FeasibilityViolation(
+                    ConstraintId: "ACOUSTIC_DAMPER_OVERSIZED",
+                    Description:
+                        $"Damper cavity volume {damper.TotalVolume_mm3:F0} mm³ is "
+                      + $"{volumeFraction:P1} of chamber volume {chamberVolume_mm3:F0} mm³ "
+                      + $"(advisory threshold {VolumeFractionAdvisoryThreshold:P0}). Large "
+                      + "damper cavities displace combustion volume and add mass fraction; "
+                      + "consider fewer/smaller resonators or verify the Isp budget accounts "
+                      + "for this.",
+                    ActualValue: volumeFraction,
+                    Limit:       VolumeFractionAdvisoryThreshold));
+                return;
+            }
+        }
 
-        // Conservative oversize check based on the resonator count alone:
-        // > 16 distributed resonators around a chamber circumference
-        // implies inter-resonator spacing < 22.5° which competes with
-        // injector-element placement and adds mass-fraction concerns.
+        // Fallback: conservative oversize check based on the resonator count
+        // alone, for results where TotalVolume_mm3 isn't available (legacy/
+        // hand-built) or is within the volume threshold. > 16 distributed
+        // resonators around a chamber circumference implies inter-resonator
+        // spacing < 22.5° which competes with injector-element placement and
+        // adds mass-fraction concerns.
         const int CountAdvisoryThreshold = 16;
         if (damper.Count <= CountAdvisoryThreshold) return;
         v.Add(new FeasibilityViolation(

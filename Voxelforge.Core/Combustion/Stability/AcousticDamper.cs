@@ -143,7 +143,18 @@ public sealed record AcousticDamperResult(
     bool               IsTunedToAnyMode,
     /// <summary>Diagnostic reason string, e.g.
     /// "Helmholtz f₀ = 7240 Hz, tuned to T1 (7320 Hz) within 1.1 %".</summary>
-    string             Notes);
+    string             Notes)
+{
+    /// <summary>
+    /// Issue #82: aggregate gas-volume occupied by the damper array (mm³),
+    /// copied from <see cref="AcousticDamperConfig.TotalVolume_mm3"/> at
+    /// evaluation time (before the config goes out of scope). Lets
+    /// <c>ACOUSTIC_DAMPER_OVERSIZED</c> check true cavity displacement
+    /// instead of falling back to a resonator-count-only proxy. 0.0 when
+    /// unset (legacy/hand-built results).
+    /// </summary>
+    public double TotalVolume_mm3 { get; init; } = 0.0;
+}
 
 public static class AcousticDamper
 {
@@ -264,7 +275,10 @@ public static class AcousticDamper
                 DampingRatio_T1: 0.0,
                 DampingRatio_T2: 0.0,
                 IsTunedToAnyMode: false,
-                Notes: "Damper config produced f₀ = 0; check input geometry.");
+                Notes: "Damper config produced f₀ = 0; check input geometry.")
+            {
+                TotalVolume_mm3 = config.TotalVolume_mm3,
+            };
         }
 
         double dzL1 = DampingRatioForMode(f0, screech.L1_Hz, config.Count);
@@ -294,7 +308,10 @@ public static class AcousticDamper
             DampingRatio_T1:       dzT1,
             DampingRatio_T2:       dzT2,
             IsTunedToAnyMode:      tuned,
-            Notes:                 notes);
+            Notes:                 notes)
+        {
+            TotalVolume_mm3 = config.TotalVolume_mm3,
+        };
     }
 
     private static bool ModeWithinBand(double f0, double mode, double bandFraction)
