@@ -65,13 +65,6 @@ the release-notes "known issues" list for v0.1.0 (ROADMAP → Now §4).
 - **Fix path:** a hard cap needs an empirical ion-energy/Isp ceiling calibrated against VX-200 data. Detail: CHANGELOG Sprint A.112.
 - **Tracking issue:** #79.
 
-### Bimodal NTR Hybrid mode double-counts reactor power
-
-- **What's wrong:** in `BimodalMode.Hybrid` the thrust cycle heats propellant with the full `ReactorThermalPower_MW` while the Brayton loop *also* taps the full reactor power — a design can draw ~1.13× what the reactor produces. The documented ~20 % thrust / 80 % electric throttle split is never applied. Pure-Thrust and pure-Electric modes are unaffected.
-- **Where:** `Voxelforge.Nuclear.Core/NuclearOptimization.cs` (Hybrid dispatch pipeline).
-- **Fix path:** split reactor power between the two consumers (pipeline re-ordering); changes Hybrid thrust/Isp, so it is a design-intent + fixture-recalibration decision. Detail: CHANGELOG Sprint A.112.
-- **Tracking issue:** #77.
-
 ### HET thrust model is uncoupled from discharge current (gate-guarded)
 
 - **What's wrong:** the 0-D Hall-thruster model computes thrust from V_d and ṁ but not I_d, while P_d = V_d·I_d — so a low-I_d corner used to report physically impossible η_T > 1 designs as feasible. Sprint A.112 added the hard `HET_POWER_BALANCE_VIOLATED` conservation gate, which now rejects those corners; the *model* defect (beam current not coupled to I_d) remains.

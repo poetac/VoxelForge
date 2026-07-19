@@ -11,14 +11,23 @@
 // Physics:
 //   1. Newton iteration for T_exit (8 max) solving:
 //        P_MW × 10⁶ = ṁ × cp_mean × (T_exit − T_inlet)
-//      with cp_mean = LH2ThermalProperties.Cp_J_kgK((T_inlet + T_exit) / 2)
+//      with cp_mean = LH2ThermalProperties.Cp_J_kgK((T_inlet + T_exit) / 2).
+//      P_MW is the propellant-heating power: design.ReactorThermalPower_MW
+//      by default, or the caller's propellantHeatingPower_MW override in
+//      BimodalMode.Hybrid, where some reactor power is tapped for the
+//      Brayton electric loop before the remainder reaches the propellant
+//      (issue #77 — see NuclearOptimization.GenerateWith).
 //   2. γ_eff = LH2ThermalProperties.Gamma(T_exit)
 //   3. c* from standard ideal-gas formula
 //   4. Vacuum Isp (Pe=0 approximation, valid for ε ≥ 20):
 //        Isp_vac = η_eff × √(2γ/(γ−1) × R_H2 × T_exit) / g₀
 //      η_eff = 0.87: frozen-flow loss ~0.88 (H2 at 2260 K, ε~100,
 //        Illes & Ohler 1998) × divergence ~0.99 (15° half-angle).
-//   5. Volumetric heat flux Q_vol = P_MW / V_core [MW/m³]
+//   5. Volumetric heat flux Q_vol = ReactorThermalPower_MW / V_core [MW/m³]
+//      — always the reactor's full thermal output, never the (possibly
+//      Brayton-reduced) propellant-heating power above: Q_vol is a
+//      reactor-level metric, independent of how the heat is subsequently
+//      split between the thrust nozzle and the Brayton loop.
 //   6. k_eff heuristic = 0.98 + FuelLoadingFraction × 0.04
 
 using System;
@@ -36,10 +45,11 @@ internal static class NtrCycleSolver
 
     internal static NtrCycleResult Solve(
         NuclearThermalDesign design,
-        NuclearThermalConditions conditions)
+        NuclearThermalConditions conditions,
+        double? propellantHeatingPower_MW = null)
     {
         double T_i   = conditions.PropellantInletTemp_K;
-        double P_MW  = design.ReactorThermalPower_MW;
+        double P_MW  = propellantHeatingPower_MW ?? design.ReactorThermalPower_MW;
         double m_dot = design.PropellantMassFlow_kgs;
 
         // ── 1. Newton iteration for T_exit ────────────────────────────────────
@@ -74,9 +84,11 @@ internal static class NtrCycleSolver
         double F_vac = m_dot * isp_vac * G0_ms2;
 
         // ── 6. Volumetric heat flux ────────────────────────────────────────────
+        // Reactor-level metric — always design.ReactorThermalPower_MW, not
+        // the (possibly Brayton-reduced) propellant-heating P_MW above.
         double V_core_m3 = design.ReactorCoreVolume_m3;
         double Q_vol_MWm3 = V_core_m3 > 1e-9
-            ? P_MW / V_core_m3
+            ? design.ReactorThermalPower_MW / V_core_m3
             : double.NaN;
 
         // ── 7. k_eff heuristic ────────────────────────────────────────────────
