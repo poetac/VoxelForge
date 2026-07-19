@@ -92,13 +92,6 @@ the release-notes "known issues" list for v0.1.0 (ROADMAP → Now §4).
 - **Where:** `Voxelforge.Voxels/Antenna/HelicalAntennaVoxelBuilder.cs`, `Voxelforge.Voxels/Antenna/PatchAntennaVoxelBuilder.cs` (net9.0-windows — not built on the Linux leg).
 - **Tracking issue:** #46.
 
-### `SobolSequence` direction numbers are mis-transcribed vs. Joe-Kuo (quality, not correctness)
-
-- **What's wrong:** dimension 3 pairs `a = 2` with `s = 4` (`m = {1,1,3,3}`), whose decoded polynomial x⁴+x²+1 = (x²+x+1)² over GF(2) is *reducible* — never a valid Sobol polynomial; one row's `a` was fused with the next row's `m`. Dims 4–7 match no genuine Joe-Kuo row, and the dims ≥ 8 fallback is neither Sobol nor Halton despite the header's claim. Output stays deterministic and in [0, 1), so the blast radius is warmup-coverage *quality* (MultiChain/Bayesian seeding low-discrepancy property) — not a physics or feasibility defect.
-- **Where:** `Voxelforge.Core/Optimization/SobolSequence.cs`.
-- **Fix path:** transcribe the genuine `new-joe-kuo-6` table plus a property test (m_i odd, m_i < 2^i, primitive polynomial). Detail: CHANGELOG Sprint A.116.
-- **Tracking issue:** #80.
-
 ### `DesignPersistence` stores enums as raw ordinals, not strings (data-integrity, not physics)
 
 - **What's wrong:** no `JsonStringEnumConverter` is registered, contradicting the v24→v25 migration comment that claims string serialisation. Today's enums are append-only so round-trip is correct, but any future insertion/reorder would silently remap every saved design's topology/damper/igniter fields with no migration hook and no validation catch.
@@ -122,6 +115,7 @@ green:
 - **VFD013 write-vs-read + VFD016 qualified-receiver analyzer fixes** — regression tests in `Voxelforge.Tests/Analyzers/` (e.g. `Vfd016AnalyzerTests.cs`).
 - The **documented analyzer preventive gaps** (VFD012 instance-`Stopwatch`, VFD005 `.Keys`/`.Values` iteration, generator FQN fast-path) also await the Windows analyzer-test harness before broadened detection can be validated rather than shipped blind (CHANGELOG A.112).
 - **`AirbreathingForm`'s `--engine-kind`/ComboBox mapping fix** (red-team round 4, A.121) — `KindToIndex`/`SelectedKind` in `Voxelforge/AirbreathingForm.cs` now cover all 12 `AirbreathingEngineKind` values (previously silently dropped `LiquidAirCycle` + `RotatingDetonation`, falling back to Ramjet with no error); `AirbreathingFormKindCoverageTests.DisplayNameMatchesEnumValue` extended from 10 to 12 cases to actually pin the count its own comment claimed to enforce.
+- **`SobolSequence` Joe-Kuo table fix's Windows-only test surface** (issue #80, A.129) — `Voxelforge.Tests/SobolSequenceTests.cs`, `SobolSensitivityTests.cs` (uses plain `Random`, unrelated to `SobolSequence` — false-positive-checked), `MultiChainOptimizerTests.cs`'s `SobolWarmup_FirstKEvaluationsUseSobolPoints` + `DifferentSeeds_ProduceDifferentResults` + convergence-bound smoke tests. Read (not executed) during the fix: none pin exact values dependent on the specific direction-number table — all are determinism/structural/loose-bound checks that should hold under any valid Sobol table, and the `AsymmetricEvaluator` comment's "Sobol's index-1 point = [0.5,0.5,...]" assumption still holds post-fix (every baked dim's `m[0] = 1` in both the old and new tables). Assessed low-risk, not executed.
 
 ---
 
