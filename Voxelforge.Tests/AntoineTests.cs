@@ -126,10 +126,10 @@ public class AntoineTests
     [Fact]
     public void Schema_v20IsCurrent()
     {
-        // Schema bumped to v31 by OOB-7 #343 (RdeTopology fields).
+        // Schema bumped to v32 by issue #81 (JsonStringEnumConverter registered).
         // Test name retained for git-history continuity;
         // assertion tracks DesignPersistence.CurrentSchemaVersion.
-        Assert.Equal("v31", IO.DesignPersistence.CurrentSchemaVersion);
+        Assert.Equal("v32", IO.DesignPersistence.CurrentSchemaVersion);
     }
 
     [Fact]

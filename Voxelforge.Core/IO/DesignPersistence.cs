@@ -81,13 +81,13 @@ public static class DesignPersistence
     /// Migration chain in <see cref="Migrations"/> must cover every
     /// older version up to this one.
     /// </summary>
-    public const string CurrentSchemaVersion = "v31";
+    public const string CurrentSchemaVersion = "v32";
 
     /// <summary>
     /// Ordered list of schemas from oldest → newest. Each entry maps to
     /// a migration in <see cref="Migrations"/> (except the current one).
     /// </summary>
-    public static readonly string[] KnownSchemas = { "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31" };
+    public static readonly string[] KnownSchemas = { "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31", "v32" };
 
     static DesignPersistence()
     {
@@ -110,10 +110,18 @@ public static class DesignPersistence
         }
     }
 
+    // Issue #81: enums serialise/deserialise as their NAME (e.g. "TpmsGyroid"),
+    // not the raw numeric ordinal. JsonStringEnumConverter's default
+    // allowIntegerValues=true means this is purely additive for reads: v31
+    // and earlier files (numeric-encoded enums) still deserialize correctly
+    // (the converter accepts a raw number as a fallback), while every v32+
+    // save is immune to a future enum-member insertion/reorder silently
+    // remapping an old numeric value to a different member.
     private static readonly JsonSerializerOptions Opts = new()
     {
         WriteIndented = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new JsonStringEnumConverter() },
     };
 
     public static void Save(string path, OperatingConditions c, RegenChamberDesign d, RegenGenerationResult? r)
@@ -401,9 +409,13 @@ public static class DesignPersistence
             // ChannelTopology.ExpansionDeflection (E-D nozzle).
             // No new fields on RegenChamberDesign — existing bell knobs
             // (ContractionRatio, ExpansionRatio, BellLengthFraction, …)
-            // all apply to the E-D outer bell. The topology is serialised
-            // as the string "ExpansionDeflection" and deserialises cleanly
-            // via the standard JsonStringEnumConverter path. Identity migration.
+            // all apply to the E-D outer bell. Identity migration.
+            // CORRECTION (issue #81, A.131): this comment previously claimed
+            // the topology "is serialised as the string ... via the standard
+            // JsonStringEnumConverter path" — no such converter was actually
+            // registered until v31→v32 below; at v25 (and every version up
+            // to v31) ChannelTopology serialised as its raw numeric ordinal,
+            // same as every other enum on this record.
             [("v24", "v25")] = node => { node["Schema"] = "v25"; },
 
             // Issue #348 / OOB-1 follow-on (2026-05-01): added
@@ -440,5 +452,14 @@ public static class DesignPersistence
             // Identity migration — v30 designs load with RdeTopology=None, preserving
             // bit-identical deflagration physics from pre-OOB-7 designs.
             [("v30", "v31")] = node => { node["Schema"] = "v31"; },
+            // Issue #81 (A.131): registers JsonStringEnumConverter on Opts —
+            // a Save()/Load() behavior change, not a data-shape change.
+            // Identity migration: JsonStringEnumConverter's default
+            // allowIntegerValues=true means it accepts a raw numeric ordinal
+            // on read exactly as before, so v31 files (numeric-encoded
+            // enums) deserialize unchanged under v32. Every save from here
+            // on writes enum names instead, closing the "future reorder
+            // silently remaps old ordinals" risk going forward.
+            [("v31", "v32")] = node => { node["Schema"] = "v32"; },
         };
 }

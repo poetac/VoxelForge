@@ -85,13 +85,6 @@ the release-notes "known issues" list for v0.1.0 (ROADMAP → Now §4).
 - **Where:** `Voxelforge.Voxels/Antenna/HelicalAntennaVoxelBuilder.cs`, `Voxelforge.Voxels/Antenna/PatchAntennaVoxelBuilder.cs` (net9.0-windows — not built on the Linux leg).
 - **Tracking issue:** #46.
 
-### `DesignPersistence` stores enums as raw ordinals, not strings (data-integrity, not physics)
-
-- **What's wrong:** no `JsonStringEnumConverter` is registered, contradicting the v24→v25 migration comment that claims string serialisation. Today's enums are append-only so round-trip is correct, but any future insertion/reorder would silently remap every saved design's topology/damper/igniter fields with no migration hook and no validation catch.
-- **Where:** `Voxelforge.Core/IO/DesignPersistence.cs`.
-- **Fix path:** a deliberate schema bump (v32) adding the converter with a numeric→name migration — a design-intent decision, not a bug fix, so documented rather than patched. Detail: CHANGELOG Sprint A.116.
-- **Tracking issue:** #81.
-
 ---
 
 ## Windows-leg validation pending

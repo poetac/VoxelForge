@@ -11,6 +11,16 @@ API surface stabilises.
 
 ## Unreleased
 
+### Sprint A.131 — Fix #81: DesignPersistence schema v32 — enums serialise as names
+
+Closes issue #81. `DesignPersistence`'s `JsonSerializerOptions` never registered a `JsonStringEnumConverter`, contradicting the v24→v25 migration comment's claim that string serialisation already existed (it didn't — every enum on `RegenChamberDesign`/`OperatingConditions` serialised as its raw numeric ordinal). Schema bumped to v32 with an identity migration: `JsonStringEnumConverter`'s default `allowIntegerValues=true` means the converter transparently accepts either a raw number (old v31-and-earlier files) or a name string (new v32+ files) on read, so no JSON-tree rewriting is needed — every save from here on writes names, closing the "a future enum-member insertion/reorder silently remaps an old numeric value to a different member" risk documented in the ledger.
+
+- `Opts` gains `Converters = { new JsonStringEnumConverter() }`; `CurrentSchemaVersion` → `"v32"`; `KnownSchemas` gains `"v32"`; new `[("v31", "v32")]` identity migration entry.
+- Corrects the stale v24→v25 comment that incorrectly claimed a `JsonStringEnumConverter` path already existed.
+- New `Voxelforge.Core.Tests/DesignPersistenceEnumSchemaTests.cs`: a fresh save writes enum fields as quoted names (fail-on-old: the pre-fix bare-ordinal pattern `"ChannelTopology": 1` must not appear), a save→load round-trip preserves enum values, and a hand-built v31 fixture with numeric-encoded enums still loads correctly and migrates its `Schema` tag forward to v32.
+- **Blast-radius sweep** (this constant is a public API value and is hard-asserted in several places): found and updated 5 Windows-only `Voxelforge.Tests` files that literal-pin `"v31"` (`RotatingDetonationEngineTests.cs`, `TurbopumpBatteryEnergyTests.cs`, `AntoineTests.cs`, `Tier1CorrectnessBundleTests.cs`, `FiniteRateChemistryTests.cs`) — all updated to `"v32"`, following the existing "test name retained for git-history continuity, assertion tracks the constant" convention already established in two of them. Confirmed `RoadmapItemsTests.cs`'s schema tests are deliberately self-adjusting (compare against the constant dynamically, not a literal) and need no change. `PublicAPI.Unshipped.txt` gains the changed `const … CurrentSchemaVersion = "v32"` entry (RS0016 — a const's value is part of its tracked signature). `ADR-022`'s per-pillar version table corrected (v31 → v32).
+- Drops the `physics-cascade-status.md` § Documented gaps entry and the ROADMAP known-gaps burn-down line — the last entry on that list. Updates criterion 4's live gap list.
+
 ### Sprint A.130 — Fix #84: Stirling MEP model refined to West's number; closes ROADMAP criterion 2 (23/23)
 
 Closes issue #84 and ROADMAP → Now criterion 2 (Linux coverage parity), the last of the 23 Wave-1 pillar families. The STR.W1 scaffold's flat `MEP = 0.5 · P_mean` (Schmidt-cluster-fit) heuristic had no dependence on temperature differential at all, so a barely-warm design (τ → 0, where net Stirling power correctly → 0) produced the same MEP as a high-ΔT design — an unbounded relative error as τ shrinks, almost certainly why the pre-fix over-prediction was reported spanning as wide a range as 10-100× rather than a single fixed factor.

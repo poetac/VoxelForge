@@ -165,7 +165,10 @@ public class FiniteRateChemistryTests
     [Fact]
     public void CurrentSchemaVersion_IsV30()
     {
-        Assert.Equal("v31", DesignPersistence.CurrentSchemaVersion);
+        // Issue #81 bumped current to v32 (JsonStringEnumConverter registered).
+        // Test name retained for git-history continuity; assertion tracks
+        // DesignPersistence.CurrentSchemaVersion.
+        Assert.Equal("v32", DesignPersistence.CurrentSchemaVersion);
     }
 
     [Fact]
@@ -190,7 +193,7 @@ public class FiniteRateChemistryTests
         File.WriteAllText(tmp.Path, v29Json);
         var loaded = DesignPersistence.Load(tmp.Path);
         Assert.NotNull(loaded);
-        Assert.Equal("v31", loaded!.Schema);
+        Assert.Equal("v32", loaded!.Schema);
         Assert.False(loaded.Conditions!.UseFiniteRateCorrection);
     }
 }

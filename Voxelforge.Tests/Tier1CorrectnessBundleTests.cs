@@ -308,7 +308,7 @@ public class Tier1CorrectnessBundleTests
         // Force the static ctor; any missing migration would have thrown
         // on first load of the type. Reaching this assertion proves the
         // completeness check passed.
-        Assert.Equal("v31", DesignPersistence.CurrentSchemaVersion);
+        Assert.Equal("v32", DesignPersistence.CurrentSchemaVersion);
         Assert.NotEmpty(DesignPersistence.KnownSchemas);
     }
 

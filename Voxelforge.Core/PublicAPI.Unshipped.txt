@@ -1,4 +1,5 @@
 #nullable enable
+const Voxelforge.IO.DesignPersistence.CurrentSchemaVersion = "v32" -> string!
 Voxelforge.Combustion.Stability.AcousticDamperResult.TotalVolume_mm3.get -> double
 Voxelforge.Combustion.Stability.AcousticDamperResult.TotalVolume_mm3.init -> void
 Voxelforge.Optimization.RegenGenerationResult.RdeAnnulusCircumference_m.get -> double

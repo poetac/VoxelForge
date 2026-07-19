@@ -246,10 +246,10 @@ public class TurbopumpBatteryEnergyTests
     [Fact]
     public void CurrentSchemaVersion_IsV20()
     {
-        // OOB-7 (#343) bumped current to v31 (RdeTopology fields).
+        // Issue #81 bumped current to v32 (JsonStringEnumConverter registered).
         // Test name retained for git-history continuity; assertion tracks
         // DesignPersistence.CurrentSchemaVersion.
-        Assert.Equal("v31", DesignPersistence.CurrentSchemaVersion);
+        Assert.Equal("v32", DesignPersistence.CurrentSchemaVersion);
     }
 
     [Fact]
@@ -299,7 +299,7 @@ public class TurbopumpBatteryEnergyTests
         var loaded = DesignPersistence.Load(tmp.Path);
 
         Assert.NotNull(loaded);
-        Assert.Equal("v31", loaded!.Schema);
+        Assert.Equal("v32", loaded!.Schema);
     }
 
     [Fact]
