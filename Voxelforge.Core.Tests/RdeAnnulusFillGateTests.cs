@@ -11,7 +11,7 @@
 // outcomes at the SAME fill time and wave count — impossible pre-fix, since
 // the old formula never read circumference at all.
 
-using Voxelforge.Chamber;
+using Voxelforge.Combustion;
 using Voxelforge.Optimization;
 using Xunit;
 
