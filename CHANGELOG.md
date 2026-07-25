@@ -11,6 +11,19 @@ API surface stabilises.
 
 ## Unreleased
 
+### Sprint A.133 — Fix #79: VASIMR gains a cited Isp hard ceiling
+
+Closes issue #79. `HeliconIcrhMagneticNozzleModel`'s energy-per-ion (hence Isp) has no mathematical ceiling at very low ionisation fraction η_i — the same fixed ICRH power dumped into vanishingly few ions grows E_per_ion without bound while energy stays conserved (jet power ≤ η_nozzle·P_icrh throughout), so no existing energy-balance gate catches it. A constructed low-η_i / high-P_icrh design previously reported Isp > 100 000 s yet stayed feasible.
+
+**Fix:** new hard gate `VASIMR_ISP_CEILING_EXCEEDED` (`ElectricPropulsionFeasibility.VasimrIspCeiling_s = 8000` s) rather than clamping the model's output — the unclamped Isp stays diagnostically visible on the result; the gate is what rejects the design. 8000 s sits above both cited VX-200-class argon/200 kW anchors — the highest experimentally demonstrated Isp (~4900 s, Longmier et al. 2014, J. Propulsion and Power) and the highest semi-empirical prediction at the same power class (~6000 s, Chang Diaz et al., AIAA-2012-3930) — with margin for legitimate exploration, while catching the reported >100 000 s corner outright.
+
+A ~30 000 s figure already present in `VasimrPlasmaState.cs`'s own header comment (describing VASIMR's variable-Isp sweep) turned out, on independent verification, to trace to a real paper (Ilin et al., "VASIMR Human Mission to Mars," SPESIF 2011) — but that source assumes 12-200 MW nuclear-electric power, 60-1000× this model's calibrated 200 kW-class envelope, so it doesn't apply at the scale this code actually models. The comment is corrected to cite the mismatch explicitly rather than leave a misleadingly-scaled number in place.
+
+- `HeliconIcrhMagneticNozzleModel.cs`: the "KNOWN LIMITATION" comment describing the unbounded E_per_ion is updated to point at the new gate instead of describing it as unfixed.
+- New `Voxelforge.ElectricPropulsion.Tests/Feasibility/VasimrIspCeilingGateTests.cs` (6 tests): unit-level boundary checks on the gate's own `>` comparison (fires above, not at-or-below, the ceiling), an end-to-end reproduction of the actual degenerate low-η_i corner (starved 5 kW helicon against a 500 mg/s argon flow with 500 kW ICRH — verified via a Python mirror of the exact formula chain to give η_i ≈ 3 % / Isp ≈ 20 970 s before the gate rejects it) confirming both the model still reports the true unclamped Isp and the design is now infeasible, and a VX-200i-baseline regression guard (Isp ≈ 4992 s stays comfortably under the ceiling and feasible).
+- Checked every other VASIMR-touching fixture in `Voxelforge.ElectricPropulsion.Tests` (VX-200i's high-thrust-mode variant, the EP.W4 phase-1 schema-migration scaffold design) against the new ceiling via the same Python mirror — all land under 4000 s, none affected.
+- Drops the `physics-cascade-status.md` § Documented gaps entry and the ROADMAP known-gaps burn-down line (Crocco #76 and HET #78 remain — genuine calibration/research questions, unlike this one which had two independently-corroborated VX-200-class anchors). Updates criterion 4's live gap list.
+
 ### Sprint A.132 — Fix #77: Bimodal NTR Hybrid mode splits reactor power by energy conservation
 
 Closes issue #77. `BimodalMode.Hybrid` heated the thrust propellant with the full `ReactorThermalPower_MW` in `NtrCycleSolver.Solve`, then separately ran the Brayton loop against that same full reactor power — a Hybrid design could draw more thermal power than the reactor produces (e.g. a 1.5 MW reactor delivering ~1.5 MW to thrust *and* ~0.2 MW to the electric tap). The documented ~20 % thrust / 80 % electric throttle split was never applied.

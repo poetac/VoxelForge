@@ -441,6 +441,28 @@ public static class ElectricPropulsionFeasibility
     public const double VasimrNozzleConversionFloor = 0.30;
 
     /// <summary>
+    /// VASIMR specific-impulse hard ceiling [s] (issue #79). At very low
+    /// ionisation fraction η_i, <see cref="Solvers.HeliconIcrhMagneticNozzleModel"/>'s
+    /// E_per_ion (hence Isp) grows without a mathematical ceiling — the same
+    /// fixed P_icrh dumped into vanishingly few ions. Energy is conserved
+    /// (jet power stays ≤ η_nozzle·P_icrh), so the runaway isn't caught by
+    /// any energy-balance gate; it needs an empirical ceiling instead.
+    /// Argon/200 kW-class hardware (this model's calibrated envelope) has
+    /// demonstrated ~4900 s at ~70 % thruster efficiency (Longmier et al.,
+    /// "VX-200 Performance Measurements and Helicon Throttle Tables Using
+    /// Argon and Krypton," J. Propulsion and Power, 2014) with a
+    /// semi-empirical prediction up to ~6000 s at the same power class
+    /// (Chang Diaz et al., "VX-200 Improved Throttling Range," AIAA-2012-3930)
+    /// — neither experimentally exceeded. 8000 s sits above both with margin
+    /// for legitimate exploration while catching the reported >100 000 s
+    /// degenerate corner outright. The ~30 000 s figure sometimes quoted for
+    /// VASIMR (e.g. Ilin et al., "VASIMR Human Mission to Mars," SPESIF 2011)
+    /// assumes 12-200 MW nuclear-electric power — 60-1000× this model's
+    /// envelope — and does not apply at this scale.
+    /// </summary>
+    public const double VasimrIspCeiling_s = 8000.0;
+
+    /// <summary>
     /// Run gates in canonical per-kind order. Resistojet emits 5 hard +
     /// 5 advisory; HallEffect emits 3 hard + 3 advisory. Future plasma
     /// variants extend the switch additively per ADR-029 D2.
@@ -599,12 +621,15 @@ public static class ElectricPropulsionFeasibility
                 EvaluateVasimrSolenoidFieldOutOfBand(design, hard);
                 // Hard VASIMR gate 3 — magnetic-nozzle geometry inverted (M < 1).
                 EvaluateVasimrMagneticMirrorInverted(result, hard);
+                // Hard VASIMR gate 4 — Isp exceeds the VX-200-class physical ceiling
+                // (issue #79: unbounded E_per_ion at low ionisation fraction).
+                EvaluateVasimrIspUnphysical(result, hard);
 
-                // Advisory VASIMR gate 4 — helicon-to-ICRH ratio out of cluster band.
+                // Advisory VASIMR gate 5 — helicon-to-ICRH ratio out of cluster band.
                 EvaluateVasimrHeliconIcrhRatioOutOfBand(design, advisories);
-                // Advisory VASIMR gate 5 — ionisation fraction below floor.
+                // Advisory VASIMR gate 6 — ionisation fraction below floor.
                 EvaluateVasimrIonisationFractionBelowFloor(result, advisories);
-                // Advisory VASIMR gate 6 — nozzle conversion efficiency below floor.
+                // Advisory VASIMR gate 7 — nozzle conversion efficiency below floor.
                 EvaluateVasimrNozzleConversionLow(result, advisories);
                 break;
 
@@ -1732,6 +1757,25 @@ public static class ElectricPropulsionFeasibility
               + "VasimrNozzleExitRadius_mm.",
                 ActualValue: M,
                 Limit:       1.0));
+        }
+    }
+
+    private static void EvaluateVasimrIspUnphysical(
+        ElectricPropulsionResult result,
+        List<FeasibilityViolation> violations)
+    {
+        if (result.IspVacuum_s > VasimrIspCeiling_s)
+        {
+            violations.Add(new FeasibilityViolation(
+                "VASIMR_ISP_CEILING_EXCEEDED",
+                $"Isp = {result.IspVacuum_s:F0} s exceeds the {VasimrIspCeiling_s:F0} s "
+              + "physical ceiling for this model's VX-200-class argon envelope. This "
+              + "usually means the ionisation fraction is too low for the ICRH power "
+              + "level (the same RF power is being dumped into very few ions). Raise "
+              + "VasimrHeliconRfPower_W or lower VasimrArgonMassFlow_kgs to restore a "
+              + "realistic η_i, or reduce VasimrIcrhRfPower_W.",
+                ActualValue: result.IspVacuum_s,
+                Limit:       VasimrIspCeiling_s));
         }
     }
 

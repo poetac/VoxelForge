@@ -16,10 +16,15 @@
 //     converts T_perp → T_parallel as B drops. Nozzle efficiency
 //     η_nozzle ≈ 1 - 1/M.
 //   • Directed exit velocity: v_eff = √(2·η_nozzle·E_per_ion·e/m_Ar).
-//   • Variable specific impulse: by trading P_helicon vs P_icrh at
-//     fixed total power, the engine sweeps Isp from ~1500 s (high-thrust
-//     mode, low T_perp, high ṁ_ion) to ~30000 s (low-thrust mode,
-//     high T_perp, low ṁ_ion). VX-200i nominal: 5000 s @ 5 N / 200 kW.
+//   • Variable specific impulse: by trading P_helicon vs P_icrh at fixed
+//     total power, the engine sweeps Isp from ~1500 s (high-thrust mode,
+//     low T_perp, high ṁ_ion) up toward this model's ~8000 s hard ceiling
+//     (ElectricPropulsionFeasibility.VasimrIspCeiling_s, issue #79) as
+//     T_perp rises and ṁ_ion falls. VX-200i nominal: 5000 s @ 5 N / 200 kW.
+//     (A ~30000 s figure is sometimes quoted for VASIMR — e.g. Ilin et al.,
+//     "VASIMR Human Mission to Mars," SPESIF 2011 — but that assumes
+//     12-200 MW nuclear-electric power, 60-1000× this model's calibrated
+//     envelope; it is not reachable at this scale.)
 //
 // Differences from FEEP / HET / MPD / HDLT records:
 //   • IonTemperature_eV is the defining VASIMR observable — proxy for
