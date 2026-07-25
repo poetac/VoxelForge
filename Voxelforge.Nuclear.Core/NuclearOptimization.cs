@@ -66,39 +66,42 @@ public static class NuclearOptimization
                 $"Conditions family '{conditions.Family}' is not '{EngineFamilies.Nuclear}'.",
                 nameof(conditions));
 
-        // ── 1. Thermal cycle ──────────────────────────────────────────────────
-        var cycle = NtrCycleSolver.Solve(design, conditions);
+        // ── 1. Bimodal Brayton gas loop (Sprint NU.W3, when activated). ──
+        // Computed before the thermal cycle (step 2) so BimodalMode.Hybrid
+        // can pass the post-tap remainder into the propellant-heating power
+        // instead of double-counting reactor power across both consumers
+        // (issue #77 — see step 2). Runs only when Kind = BimodalNtr and
+        // BimodalMode != Thrust. The thrust-mode pipeline is bit-identical
+        // to NervaSolidCore (cycle + regen + fuel-pin + gates); the Brayton
+        // loop adds an electric-power output alongside.
+        BraytonGasLoopResult? brayton = TryRunBraytonModel(design);
 
-        // ── 2. Regen nozzle cooling pass ──────────────────────────────────────
+        // ── 2. Thermal cycle ──────────────────────────────────────────────────
+        // BimodalMode.Hybrid splits reactor power between the two consumers
+        // by energy conservation: the Brayton loop's actual draw
+        // (brayton.ReactorPowerToBrayton_MW — already capped at the full
+        // reactor output inside BraytonGasLoopSolver.Solve, so this never
+        // goes negative) is unavailable to heat the thrust propellant, so
+        // the remainder becomes the cycle's propellant-heating power.
+        // Pure-Thrust designs never run Brayton (brayton is null here) and
+        // pure-Electric designs have their thrust/Isp/c* result fields
+        // NaN'd below regardless of the cycle solve's output — both pass no
+        // override, i.e. heat propellant with the full reactor power
+        // exactly as before this fix.
+        double? propellantHeatingOverride_MW =
+            brayton is not null && design.BimodalMode == BimodalMode.Hybrid
+                ? design.ReactorThermalPower_MW - brayton.ReactorPowerToBrayton_MW
+                : null;
+        var cycle = NtrCycleSolver.Solve(design, conditions, propellantHeatingOverride_MW);
+
+        // ── 3. Regen nozzle cooling pass ──────────────────────────────────────
         bool regenWallExceeds = RunRegenCooling(design, cycle, conditions);
 
-        // ── 3. Per-pin heat-conduction model (Sprint NU.W2, when activated). ─
+        // ── 4. Per-pin heat-conduction model (Sprint NU.W2, when activated). ─
         // The model runs only when the four required fuel-pin fields are
         // populated — Wave-1 designs with all NaN/zero fuel-pin fields skip
         // the entire path and leave the per-pin result fields at NaN.
         FuelPinHeatResult? pinHeat = TryRunFuelPinModel(design, conditions);
-
-        // ── 4. Bimodal Brayton gas loop (Sprint NU.W3, when activated). ──
-        // Runs only when Kind = BimodalNtr and BimodalMode != Thrust. The
-        // thrust-mode pipeline is bit-identical to NervaSolidCore (cycle +
-        // regen + fuel-pin + gates); the Brayton loop adds an electric-
-        // power output alongside.
-        //
-        // KNOWN LIMITATION (red-team round 3): in BimodalMode.Hybrid this
-        // double-counts reactor power. Step 1 already heated the propellant
-        // (thrust) with the FULL design.ReactorThermalPower_MW, and the Brayton
-        // loop below ALSO taps the full reactor power for electricity — so a
-        // Hybrid design can draw more than the reactor produces (e.g. 1.5 MW
-        // reactor → ~1.5 MW thrust + ~0.2 MW electric tap = 1.7 MW). The
-        // BimodalMode.Hybrid contract documents a ~20 % thrust / ~80 % electric
-        // throttle split that is never applied. A correct fix must SPLIT the
-        // reactor power between the thrust cycle and the Brayton tap (either the
-        // documented 20/80 or thrust = reactor − tap by energy conservation),
-        // which re-orders the pipeline (compute the tap first) and changes Hybrid
-        // thrust/Isp — a design-intent + fixture-recalibration decision, so it is
-        // documented here rather than silently patched. Pure-Thrust and
-        // pure-Electric modes are unaffected (only one consumer each).
-        BraytonGasLoopResult? brayton = TryRunBraytonModel(design);
 
         // ── 5. Gate evaluation ────────────────────────────────────────────────
         var (violations, advisories) =
