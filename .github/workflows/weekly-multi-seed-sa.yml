@@ -47,7 +47,7 @@ jobs:
         preset: [merlin, rl10, pressure-fed-small, aerospike, pintle]
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - name: Restore + build
         run: dotnet restore Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj && dotnet build Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj --no-restore --configuration Release
 
@@ -83,7 +83,7 @@ jobs:
         preset: [mattingly-ramjet, j85-turbojet]
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - name: Restore + build
         run: dotnet restore Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj && dotnet build Voxelforge.Benchmarks/Voxelforge.Benchmarks.csproj --no-restore --configuration Release
 
@@ -116,7 +116,7 @@ jobs:
     if: always()
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
 
       - name: Download all convergence data
         uses: actions/download-artifact@fa0a91b85d4f404e444306b1a4df79b0d7c43c4f  # v4.2.1

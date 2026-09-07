@@ -33,7 +33,7 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - name: Restore + build
         run: dotnet restore voxelforge.sln && dotnet build voxelforge.sln --no-restore --configuration Release
       - name: Test
@@ -55,7 +55,7 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - name: Restore + build
         run: dotnet restore Voxelforge.Airbreathing.Tests/Voxelforge.Airbreathing.Tests.csproj && dotnet build Voxelforge.Airbreathing.Tests/Voxelforge.Airbreathing.Tests.csproj --no-restore --configuration Release
       - name: Test
@@ -76,7 +76,7 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - name: Restore + build
         run: dotnet restore Voxelforge.ElectricPropulsion.Tests/Voxelforge.ElectricPropulsion.Tests.csproj && dotnet build Voxelforge.ElectricPropulsion.Tests/Voxelforge.ElectricPropulsion.Tests.csproj --no-restore --configuration Release
       - name: Test
@@ -97,7 +97,7 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - name: Restore + build
         run: dotnet restore Voxelforge.Marine.Tests/Voxelforge.Marine.Tests.csproj && dotnet build Voxelforge.Marine.Tests/Voxelforge.Marine.Tests.csproj --no-restore --configuration Release
       - name: Test
@@ -118,7 +118,7 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - name: Restore + build
         run: dotnet restore Voxelforge.Nuclear.Tests/Voxelforge.Nuclear.Tests.csproj && dotnet build Voxelforge.Nuclear.Tests/Voxelforge.Nuclear.Tests.csproj --no-restore --configuration Release
       - name: Test
@@ -139,7 +139,7 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - name: Restore + build
         run: dotnet restore Voxelforge.Cfd.Tests/Voxelforge.Cfd.Tests.csproj && dotnet build Voxelforge.Cfd.Tests/Voxelforge.Cfd.Tests.csproj --no-restore --configuration Release
       - name: Test
@@ -164,7 +164,7 @@ jobs:
     if: always()   # run even when some pillar jobs fail
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
 
       - name: Download all TRX artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444306b1a4df79b0d7c43c4f  # v4.2.1
