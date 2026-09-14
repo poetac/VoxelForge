@@ -26,7 +26,7 @@
       8-bit indexed-palette format). Apache 2.0 wrapper over ImageMagick
       (also Apache 2.0); no copyleft constraint on downstream forks.
     -->
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.14.0" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.17.1" />
   </ItemGroup>
 
 </Project>
