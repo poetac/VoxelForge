@@ -42,7 +42,7 @@
     <!-- Magick.NET for animated orbit GIF composition (OrbitRig.cs).
          Q8 = 8-bit-per-channel; sufficient for GIF indexed-palette.
          Apache 2.0 — same version as Voxelforge.Benchmarks. -->
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.14.0" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.17.1" />
   </ItemGroup>
 
   <ItemGroup>
